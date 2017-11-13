@@ -1,15 +1,21 @@
 # extended object
 
-Simple {
-       name: "Extended Object";
+Nested {
+    remote: true;
+    author: "Author1";
+    elapsedSeconds: 15;
 
-       booleanValue: false;
+    # overload just some properties
+    settings: _ {
+        timeout: 100;
+    }
 
-       firstObject: Object {
+    alternateClip: Simple {
+        clipName: "Another Clip";
+    }
 
-       }
-
-       secondObject: samples.Simple {
-
-       }
+    alternateCover: samples.Cover {
+        title: "Sample Cover";
+        url: "https://cover.jpg";
+    }
 }

@@ -1,18 +1,30 @@
-Object {
-       id: "parent";
-       name: "Week"
+Simple {
+    title: "galery";
 
-       children: [
-                 Object {
-                        id: "child1";
-                        name: "Sunday";
-                        age: 10;
-                  },
-                  Object {
-                         id: "child2";
-                         name: "Monday";
-                         siblingId: "child1";
-                         age: 20;
-                  }
-       ]
+    settings: Object {
+        timeout: 100;
+        refreshTime: 5;
+    }
+
+    cover: samples.Cover {
+        title: "cover1";
+        url: "https://cover1.jpeg";
+    }
+
+    movies: [
+        samples.movie.Movie {
+            title: "movie1";
+            duration: 200;
+            url: "https://movie1.mp4";
+        },
+        samples.movie.Movie {
+            title: "movie2";
+            url: "https://movie2.mp4";
+        },
+        samples.movie.Movie {
+            title: "movie3";
+            duration: 300;
+            url: "https://movie3.mp4";
+        }
+    ]
 }

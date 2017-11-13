@@ -1,12 +1,13 @@
-# simple object
+# simple object example
 
 Object {
-       # boolean value
-       booleanValue: true;
+    # comment 1
+    clipName: "Simple Object";
 
-       # number value
-       numberValue: 10.2;
+    # comment 2
+    remote: false;
 
-       # string value
-       stringValue: "Foo Bar";
+    elapsedSeconds: 10.2;
+
+    frameSteps: [ 10, 12, 15, 18 ];
 }
