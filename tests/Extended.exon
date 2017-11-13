@@ -1,0 +1,15 @@
+# extended object
+
+Simple {
+       name: "Extended Object";
+
+       booleanValue: false;
+
+       firstObject: Object {
+
+       }
+
+       secondObject: samples.Simple {
+
+       }
+}

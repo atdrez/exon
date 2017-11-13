@@ -1,0 +1,18 @@
+Object {
+       id: "parent";
+       name: "Week"
+
+       children: [
+                 Object {
+                        id: "child1";
+                        name: "Sunday";
+                        age: 10;
+                  },
+                  Object {
+                         id: "child2";
+                         name: "Monday";
+                         siblingId: "child1";
+                         age: 20;
+                  }
+       ]
+}

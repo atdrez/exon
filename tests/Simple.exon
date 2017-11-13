@@ -1,0 +1,12 @@
+# simple object
+
+Object {
+       # boolean value
+       booleanValue: true;
+
+       # number value
+       numberValue: 10.2;
+
+       # string value
+       stringValue: "Foo Bar";
+}

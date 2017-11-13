@@ -1,0 +1,14 @@
+{
+  "name": "exon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bin/main.js",
+  "scripts": {
+    "start": "node bin/main.js"
+  },
+  "dependencies": {
+    "@types/node": "^7.0.0"
+  },
+  "devDependencies": {
+  }
+}
