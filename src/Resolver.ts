@@ -33,23 +33,35 @@ export class Resolver {
         return result;
     }
 
-    private resolveRecursive(obj: any, target: any) {
-        const parent = target['__base__'];
+    private resolveRecursive(obj: any, source: any) {
+        const parent = source['__base__'];
 
         if (parent) {
             this.resolveRecursive(obj, parent);
         }
 
-        for (const key in target) {
-            if (!key.startsWith("__")) {
-                obj[key] = this.parseValueRecursive(target[key]);
+        for (const key in source) {
+            if (key.startsWith("__"))
+                continue;
+
+            const sourceValue = source[key];
+
+            if (typeof sourceValue === 'object' && sourceValue['__ref__']) {
+                for (const innerKey in sourceValue) {
+                    if (innerKey.startsWith("__"))
+                        continue;
+
+                    obj[key][innerKey] = this.parseValueRecursive(sourceValue[innerKey]);
+                }
+            } else {
+                obj[key] = this.parseValueRecursive(sourceValue);
             }
         }
     }
 
     private parseValueRecursive(value: any) {
         if (value instanceof Array) {
-            let result = new Array<any>();
+            const result = new Array<any>();
 
             for (let key in value) {
                 result.push(this.parseValueRecursive(value[key]));

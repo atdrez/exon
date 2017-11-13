@@ -40,7 +40,9 @@ export class Parser {
     }
 
     private findAndParseObject(objectName: string, dirName: string) : any {
-        const path = objectName.replace('.', '/') + Parser.extension;
+        const basePath = objectName.split(".").join("/");
+
+        const path = basePath + Parser.extension;
         const fileName = Path.join(dirName, path);
 
         const input = FileSystem.readFileSync(fileName);
@@ -71,7 +73,11 @@ export class Parser {
         }
 
         if (objectName !== 'Object') {
-            result['__base__'] = this.findAndParseObject(objectName, lexer.dirName);
+            if (objectName === '_') {
+                result['__ref__'] = true;
+            } else {
+                result['__base__'] = this.findAndParseObject(objectName, lexer.dirName);
+            }
         }
 
         token = lexer.readToken();
