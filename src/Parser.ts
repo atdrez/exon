@@ -28,9 +28,15 @@ import { Lexer } from "./Lexer"
 import { Token } from "./Token";
 import { TokenType } from "./TokenType";
 import { ParserError } from "./ParserError";
+import { ScriptManager } from "./ScriptManager";
 
 export class Parser {
     private static extension = ".exon";
+    private m_ScriptManager: ScriptManager;
+
+    public constructor(manager: ScriptManager) {
+        this.m_ScriptManager = manager;
+    }
 
     public parse(fileName: string) : any {
         const input = FileSystem.readFileSync(fileName);
@@ -76,7 +82,10 @@ export class Parser {
             if (objectName === '_') {
                 result['__ref__'] = true;
             } else {
-                result['__base__'] = this.findAndParseObject(objectName, lexer.dirName);
+                if (this.m_ScriptManager.contains(objectName))
+                    result['__native__'] = objectName;
+                else
+                    result['__base__'] = this.findAndParseObject(objectName, lexer.dirName);
             }
         }
 

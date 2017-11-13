@@ -21,8 +21,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import  * as Native from "./native";
 import { Parser } from "./Parser";
 import { Resolver } from "./Resolver";
+import { ScriptManager } from "./ScriptManager";
 
 function usage() {
     console.error("Usage: node %s [--collapsed | --extended] <filename>",
@@ -40,13 +42,18 @@ const fileName = process.argv[3];
 const isExtended= (method === "--extended");
 const isCollapsed = (method === "--collapsed");
 
-const parser = new Parser();
+const manager = new ScriptManager();
+
+// register native scripts
+manager.register(new Native.EnvVar());
+
+const parser = new Parser(manager);
 const result = parser.parse(fileName);
 
 if (isExtended) {
     console.log(JSON.stringify(result, null, 4));
 } else if (isCollapsed) {
-    const resolver = new Resolver();
+    const resolver = new Resolver(manager);
     const output = resolver.resolve(result);
 
     console.log(JSON.stringify(output, null, 4));

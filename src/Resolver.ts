@@ -21,16 +21,37 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export class Resolver {
-    constructor() {
+import { ScriptManager } from "./ScriptManager";
 
+export class Resolver {
+    private m_ScriptManager: ScriptManager;
+
+    constructor(manager: ScriptManager) {
+        this.m_ScriptManager = manager;
     }
 
     public resolve(obj: any) : any {
-        const result = {};
-        this.resolveRecursive(result, obj);
+        const native = obj['__native__'];
+
+        let result = {};
+
+        if (native) {
+            result = this.resolveNative(obj, native);
+        }
+
+        if (typeof result === "object")
+            this.resolveRecursive(result, obj);
 
         return result;
+    }
+
+    private resolveNative(obj: any, native: string) {
+        const script = this.m_ScriptManager.find(native);
+
+        if (!script)
+            throw new Error(`Unable to find '${native}' element`);
+
+        return script.resolve(obj);
     }
 
     private resolveRecursive(obj: any, source: any) {
