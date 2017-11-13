@@ -1,0 +1,7 @@
+Object {
+    name: "Environment Variable Example";
+
+    environmentName: Exon.Env.Variable {
+        name: "ENVNAME"
+    }
+}
