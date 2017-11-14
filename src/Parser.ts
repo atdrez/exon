@@ -130,6 +130,9 @@ export class Parser {
         case TokenType.False:
             return false;
 
+        case TokenType.Null:
+            return null;
+
         case TokenType.LeftBracket:
             lexer.putTokenBack();
             return this.parseArray(lexer);
@@ -139,7 +142,7 @@ export class Parser {
             return this.parseObject(lexer);
 
         default:
-            throw new ParserError(`Invalid token found '${token.toString()}', expected: <number> | <string> | <array> | <object>`, lexer.lineIndex);
+            throw new ParserError(`Invalid token found '${token.toString()}', expected: <number> | <null> | <string> | <array> | <object>`, lexer.lineIndex);
         }
     }
 

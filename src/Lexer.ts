@@ -213,6 +213,11 @@ export class Lexer {
                 if (buffer[startIndex] === 116 && buffer[startIndex + 1] === 114 &&
                     buffer[startIndex + 2] === 117 && buffer[startIndex + 3] === 101)
                     return new Token(buffer, TokenType.True, startIndex, bufferIndex - 1);
+
+                // null
+                if (buffer[startIndex] === 110 && buffer[startIndex + 1] === 117 &&
+                    buffer[startIndex + 2] === 108 && buffer[startIndex + 3] === 108)
+                    return new Token(buffer, TokenType.Null, startIndex, bufferIndex - 1);
             } else if (identifierLength === 5) {
                 // false
                 if (buffer[startIndex] === 102 && buffer[startIndex + 1] === 97 &&

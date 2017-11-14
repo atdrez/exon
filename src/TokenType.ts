@@ -28,6 +28,7 @@ export enum TokenType {
     Number = 3,
     True = 4,
     False = 5,
+    Null = 6,
 
     Colon = 10,
     Comma = 11,
