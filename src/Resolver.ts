@@ -31,27 +31,21 @@ export class Resolver {
     }
 
     public resolve(obj: any) : any {
+        let result = {};
+        this.resolveRecursive(result, obj);
+
         const native = obj['__native__'];
 
-        let result = {};
+        if (native !== undefined) {
+            const script = this.m_ScriptManager.find(native);
 
-        if (native) {
-            result = this.resolveNative(obj, native);
+            if (!script)
+                throw new Error(`Unable to find '${native}' element`);
+
+            result = script.resolve(result);
         }
 
-        if (typeof result === "object")
-            this.resolveRecursive(result, obj);
-
         return result;
-    }
-
-    private resolveNative(obj: any, native: string) {
-        const script = this.m_ScriptManager.find(native);
-
-        if (!script)
-            throw new Error(`Unable to find '${native}' element`);
-
-        return script.resolve(obj);
     }
 
     private resolveRecursive(obj: any, source: any) {
@@ -62,12 +56,15 @@ export class Resolver {
         }
 
         for (const key in source) {
-            if (key.startsWith("__"))
+            if (key.startsWith("__")) {
                 continue;
+            }
 
             const sourceValue = source[key];
 
-            if (typeof sourceValue === 'object' && sourceValue['__ref__']) {
+            if (sourceValue === undefined || sourceValue === null) {
+                obj[key] = null;
+            } else  if (typeof sourceValue === 'object' && sourceValue['__ref__']) {
                 for (const innerKey in sourceValue) {
                     if (innerKey.startsWith("__"))
                         continue;
