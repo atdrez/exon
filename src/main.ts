@@ -44,8 +44,12 @@ const isCollapsed = (method === "--collapsed");
 
 const manager = new ScriptManager();
 
+const components = Native.components();
+
 // register native scripts
-manager.register(new Native.EnvVar());
+for (let i = 0; i < components.length; i++) {
+    manager.register(new components[i]);
+}
 
 const parser = new Parser(manager);
 const result = parser.parse(fileName);

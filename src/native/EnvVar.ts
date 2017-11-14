@@ -25,13 +25,14 @@ import { IScript } from "../IScript";
 
 export class EnvVar implements IScript {
     public name() : string {
-        return "Exon.Env.Variable";
+        return "Exon.Environment.Variable";
     }
 
     public resolve(obj: any) : any {
         if (!obj.name)
             throw new Error(`${this.name()} should have a name property defined`);
 
-        return process.env[obj.name];
+        const value = process.env[obj.name];
+        return value === undefined ? null : value;
     }
 }
