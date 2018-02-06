@@ -21,14 +21,14 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { IScript } from "../IScript";
+import { IScript, Context } from "../IScript";
 
 export class EnvVar implements IScript {
     public name() : string {
         return "Exon.Environment.Variable";
     }
 
-    public resolve(obj: any) : any {
+    public resolve(obj: any, context: Context) : any {
         if (!obj.name)
             throw new Error(`${this.name()} should have a name property defined`);
 

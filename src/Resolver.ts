@@ -21,17 +21,24 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { Context } from "./IScript";
 import { ScriptManager } from "./ScriptManager";
 
 export class Resolver {
+    private m_Context: Context;
     private m_ScriptManager: ScriptManager;
 
     constructor(manager: ScriptManager) {
+        this.m_Context = { fileName: "" };
         this.m_ScriptManager = manager;
     }
 
     public resolve(obj: any) : any {
         let result = {};
+
+        if (obj['__file__'])
+            this.m_Context.fileName = obj['__file__'];
+
         this.resolveRecursive(result, obj);
 
         const native = obj['__native__'];
@@ -42,7 +49,7 @@ export class Resolver {
             if (!script)
                 throw new Error(`Unable to find '${native}' element`);
 
-            result = script.resolve(result);
+            result = script.resolve(result, this.m_Context);
         }
 
         return result;

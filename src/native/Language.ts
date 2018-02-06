@@ -21,7 +21,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { IScript } from "../IScript";
+import { IScript, Context } from "../IScript";
 
 
 export class BaseComponent implements IScript {
@@ -35,13 +35,13 @@ export class BaseComponent implements IScript {
         this.m_Name = `Exon.${name}`;
     }
 
-    public resolve(obj: any) : any {
+    public resolve(obj: any, context: Context) : any {
         throw new Error(`Not implemented`);
     }
 }
 
 export class BinaryOperator extends BaseComponent {
-    public resolve(obj: any) : any {
+    public resolve(obj: any, context: Context) : any {
         if (obj.left === undefined)
             throw new Error(`${this.name()} should have a 'left' property defined`);
 
@@ -57,7 +57,7 @@ export class BinaryOperator extends BaseComponent {
 }
 
 export class BaseComparator extends BaseComponent {
-    public resolve(obj: any) : any {
+    public resolve(obj: any, context: Context) : any {
         const values = obj.condition;
 
         if (values === undefined)
@@ -132,7 +132,7 @@ export class If extends BaseComponent {
         super("If");
     }
 
-    public resolve(obj: any) : any {
+    public resolve(obj: any, context: Context) : any {
         if (obj.condition === undefined)
             throw new Error(`${this.name()} should have a 'condition' property defined`);
 

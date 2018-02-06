@@ -21,8 +21,12 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+export type Context  = {
+    fileName: string;
+}
+
 export interface IScript {
     name() : string;
 
-    resolve(obj: any) : any;
+    resolve(obj: any, context: Context) : any;
 }
