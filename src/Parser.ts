@@ -62,14 +62,14 @@ export class Parser {
 
         if (token.tokenType !== TokenType.Identifier)
             throw new ParserError(`Invalid token found '${token.toString()}', expected <identifier>`,
-                                  lexer.lineIndex);
+                                  lexer);
 
         const objectName = token.toString();
 
         token = lexer.readToken();
 
         if (token.tokenType !== TokenType.LeftCurlyBracket)
-            throw new ParserError(`Invalid token found ${token.toString()}, expected '{'`, lexer.lineIndex);
+            throw new ParserError(`Invalid token found ${token.toString()}, expected '{'`, lexer);
 
         const result = {};
 
@@ -93,7 +93,7 @@ export class Parser {
 
         while (token.tokenType !== TokenType.RightCurlyBracket) {
             if (token.tokenType !== TokenType.Identifier)
-                throw new ParserError(`Invalid token found '${token.toString()}', expected: <identifier> | }`, lexer.lineIndex);
+                throw new ParserError(`Invalid token found '${token.toString()}', expected: <identifier> | }`, lexer);
 
             const parameterName = token.toString();
 
@@ -101,7 +101,7 @@ export class Parser {
 
             if (token.tokenType !== TokenType.Colon)
                 throw new ParserError(`Invalid token found '${token.toString()}', expected: ':'`,
-                                      lexer.lineIndex);
+                                      lexer);
 
             result[parameterName] = this.parseValue(lexer);
 
@@ -142,7 +142,7 @@ export class Parser {
             return this.parseObject(lexer);
 
         default:
-            throw new ParserError(`Invalid token found '${token.toString()}', expected: <number> | <null> | <string> | <array> | <object>`, lexer.lineIndex);
+            throw new ParserError(`Invalid token found '${token.toString()}', expected: <number> | <null> | <string> | <array> | <object>`, lexer);
         }
     }
 
@@ -151,7 +151,7 @@ export class Parser {
 
         if (token.tokenType !== TokenType.LeftBracket)
             throw new ParserError(`Invalid token found '${token.toString()}', expected: '['`,
-                                  lexer.lineIndex);
+                                  lexer);
 
         let result = new Array<any>();
 
@@ -168,7 +168,7 @@ export class Parser {
 
             if (token.tokenType !== TokenType.Comma)
                 throw new ParserError(`Invalid token found '${token.toString()}', expected: ','`,
-                                      lexer.lineIndex);
+                                      lexer);
         }
 
         return result;

@@ -21,8 +21,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { Lexer } from "./Lexer"
+
 export class ParserError extends Error {
-    constructor(message: string, line: number) {
-        super(`${message} [line: ${line}]`);
+    constructor(message: string, lexer: Lexer) {
+        super(`${message} [file: ${lexer.fileName}, line: ${lexer.lineIndex}]`);
     }
 }
