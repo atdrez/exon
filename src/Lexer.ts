@@ -136,8 +136,23 @@ export class Lexer {
 
             ch = buffer[bufferIndex];
 
+            let escaped = false;
+
             // read string
-            while (ch !== 34) {
+            while (true) {
+                if (!escaped) {
+                    if (ch === 34) // end of string
+                        break;
+
+                    if (ch === 92) { // '\'
+                        escaped = true;
+                        bufferIndex++;
+                        continue;
+                    }
+                }
+
+                escaped = false;
+
                 if (bufferIndex >= bufferLength) {
                     throw new LexerError("Unexpected end of buffer", this.m_LineIndex);
                 }
