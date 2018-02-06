@@ -114,6 +114,10 @@ export class Parser {
         return result;
     }
 
+    private static unescape(value: string) {
+        return value.replace(/\\"/g, '"');
+    }
+
     private parseValue(lexer: Lexer) : any {
         let token = lexer.readToken();
 
@@ -122,7 +126,7 @@ export class Parser {
             return parseFloat(token.toString());
 
         case TokenType.String:
-            return token.toString();
+            return Parser.unescape(token.toString());
 
         case TokenType.True:
             return true;
