@@ -157,7 +157,14 @@ export class Parser {
             throw new ParserError(`Invalid token found '${token.toString()}', expected: '['`,
                                   lexer);
 
-        let result = new Array<any>();
+        const result = new Array<any>();
+
+        token = lexer.readToken();
+
+        if (token.tokenType === TokenType.RightBracket)
+            return result;
+
+        lexer.putTokenBack();
 
         while (true) {
             const value = this.parseValue(lexer);
