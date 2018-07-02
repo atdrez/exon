@@ -38,7 +38,7 @@ export class EvalJson implements IScript {
             if (attribute === 'content')
                 continue;
 
-            result = result.replace('$' + attribute, obj[attribute]);
+            result = result.replace(new RegExp("\\$" + attribute, 'g'), obj[attribute]);
         }
 
         try {
