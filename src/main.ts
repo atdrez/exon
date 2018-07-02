@@ -55,12 +55,12 @@ const parser = new Parser(manager);
 const result = parser.parse(fileName);
 
 if (isExtended) {
-    console.log(JSON.stringify(result, null, 4));
+    console.log(JSON.stringify(result, null, 4).replace(/\\\\/g, '\\'));
 } else if (isCollapsed) {
     const resolver = new Resolver(manager);
     const output = resolver.resolve(result);
 
-    console.log(JSON.stringify(output, null, 4));
+    console.log(JSON.stringify(output, null, 4).replace(/\\\\/g, '\\'));
 } else {
     usage();
 }
