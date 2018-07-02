@@ -122,6 +122,15 @@ export class Parser {
         let token = lexer.readToken();
 
         switch (token.tokenType) {
+        case TokenType.Minus: {
+            token = lexer.readToken();
+
+            if (token.tokenType !== TokenType.Number)
+                throw new ParserError(`Invalid token found '${token.toString()}', expected a number`,  lexer);
+
+            return -parseFloat(token.toString());
+        }
+
         case TokenType.Number:
             return parseFloat(token.toString());
 

@@ -37,4 +37,5 @@ export enum TokenType {
     RightBracket = 14,
     LeftCurlyBracket = 15,
     RightCurlyBracket = 16,
+    Minus = 17,
 }

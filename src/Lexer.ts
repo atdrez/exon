@@ -107,6 +107,10 @@ export class Lexer {
             this.m_BufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.Colon, startIndex, startIndex);
 
+        case 45: // '-'
+            this.m_BufferIndex = bufferIndex + 1;
+            return new Token(buffer, TokenType.Minus, startIndex, startIndex);
+
         case 59: // ';'
             this.m_BufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.Semicolon, startIndex, startIndex);
