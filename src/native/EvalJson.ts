@@ -38,13 +38,18 @@ export class EvalJson implements IScript {
             if (attribute === 'content')
                 continue;
 
-            result = result.replace(new RegExp("\\$" + attribute, 'g'), obj[attribute]);
+            let value = obj[attribute];
+
+            if (value instanceof Object)
+                value = JSON.stringify(value);
+
+            result = result.replace(new RegExp("\\$" + attribute, 'g'), value);
         }
 
         try {
             return JSON.parse(result);
         } catch (error) {
-            throw new Error(`${this.name()}.content: invalid json format`);
+            throw new Error(`${this.name()}.content: invalid json format '${result}'`);
         }
     }
 }
