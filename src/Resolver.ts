@@ -41,7 +41,14 @@ export class Resolver {
 
         this.resolveRecursive(result, obj);
 
-        const native = obj['__native__'];
+        let native = obj['__native__'];
+
+        if (!native) {
+            const base = obj['__base__'];
+
+            if (base)
+                native = base['__native__'];
+        }
 
         if (native !== undefined) {
             const script = this.m_ScriptManager.find(native);
