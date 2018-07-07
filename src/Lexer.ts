@@ -26,6 +26,9 @@ import { Token  } from "./Token";
 import { TokenType } from "./TokenType";
 import { LexerError  } from "./LexerError";
 
+const CH_LF = 10;
+const CH_SLASH = 47;
+
 export class Lexer {
     private m_Buffer: Buffer;
     private m_LineIndex : number = 1;
@@ -70,14 +73,21 @@ export class Lexer {
             let ch = buffer[bufferIndex];
 
             if (ch === 32 || ch === 9 || ch === 13 || ch === 10) {
-                if (ch === 10)
+                if (ch === CH_LF)
                     this.m_LineIndex++;
 
                 bufferIndex++;
-            } else if (ch === 35) {
+            } else if (ch === CH_SLASH) {
                 // skip one-line comment
+
+                if (bufferIndex >= bufferLength - 1)
+                    break;
+
+                if (buffer[bufferIndex + 1] !== CH_SLASH)
+                    break;
+
                 while (bufferIndex < bufferLength) {
-                    if (buffer[bufferIndex] === 10)
+                    if (buffer[bufferIndex] === CH_LF)
                         break;
 
                     bufferIndex++;
