@@ -32,24 +32,45 @@ import { ScriptManager } from "./ScriptManager";
 
 export class Parser {
     private static extension = ".exon";
+
+    private m_Paths: string[];
     private m_ScriptManager: ScriptManager;
 
-    public constructor(manager: ScriptManager) {
+    public constructor(manager: ScriptManager, paths: string[] = []) {
+        this.m_Paths = paths;
         this.m_ScriptManager = manager;
     }
 
     public parse(fileName: string) : any {
-        const input = FileSystem.readFileSync(fileName);
-        const lexer = new Lexer(input, fileName);
+        const absoluteFilePath = Path.resolve(fileName);
+
+        const input = FileSystem.readFileSync(absoluteFilePath);
+        const lexer = new Lexer(input, absoluteFilePath);
 
         return  this.parseObject(lexer, true);
     }
 
-    private findAndParseObject(objectName: string, dirName: string) : any {
+    private resolveFileName(objectName: string, dirName: string) : string {
         const basePath = objectName.split(".").join("/");
+        const fileName = Path.join(dirName, basePath + Parser.extension);
 
-        const path = basePath + Parser.extension;
-        const fileName = Path.join(dirName, path);
+        if (FileSystem.existsSync(fileName))
+            return fileName;
+
+        const relativePath = Path.relative(dirName, fileName);
+
+        for (let path of this.m_Paths) {
+            const resolvedPath = Path.join(path, relativePath);
+
+            if (FileSystem.existsSync(resolvedPath))
+                return resolvedPath;
+        }
+
+        throw new Error(`File does not exists: ${relativePath}`);
+    }
+
+    private findAndParseObject(objectName: string, dirName: string) : any {
+        const fileName = this.resolveFileName(objectName, dirName);
 
         const input = FileSystem.readFileSync(fileName);
         const lexer = new Lexer(input, fileName);

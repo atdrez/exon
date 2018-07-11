@@ -21,29 +21,29 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import  * as argv from "argv";
 import  * as Native from "./native";
 import { Parser } from "./Parser";
 import { Resolver } from "./Resolver";
 import { ScriptManager } from "./ScriptManager";
 
-function usage() {
-    console.error("Usage: node %s [--collapsed | --extended] <filename>",
-                  process.argv[1]);
-    process.exit(-1);
-}
+const options = [{
+    name: 'extended',
+    short: 'e',
+    type: 'boolean'
+}, {
+    name: 'path',
+    short: 'p',
+    type: 'list,path'
+}];
 
-if (process.argv.length < 4) {
-    usage();
-}
+const params = argv.option(options).run();
 
-const method = process.argv[2];
-const fileName = process.argv[3];
-
-const isExtended= (method === "--extended");
-const isCollapsed = (method === "--collapsed");
+const fileName : string = params.targets[0];
+const paths : string[] = params.options.path;
+const isExtended: boolean = params.options.extended;
 
 const manager = new ScriptManager();
-
 const components = Native.components();
 
 // register native scripts
@@ -51,18 +51,16 @@ for (let i = 0; i < components.length; i++) {
     manager.register(new components[i]);
 }
 
-const parser = new Parser(manager);
+const parser = new Parser(manager, paths);
 const result = parser.parse(fileName);
 
 if (isExtended) {
     console.log(JSON.stringify(result, null, 4).replace(/\\\\/g, '\\'));
-} else if (isCollapsed) {
+} else {
     const resolver = new Resolver(manager);
     const output = resolver.resolve(result);
 
     console.log(JSON.stringify(output, null, 4).replace(/\\\\/g, '\\'));
-} else {
-    usage();
 }
 
 process.exit(0);
