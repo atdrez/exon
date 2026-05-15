@@ -1,7 +1,0 @@
-Object {
-    name: "Environment Variable Example";
-
-    environmentName: Exon.Environment.Variable {
-        name: "ENVNAME"
-    }
-}

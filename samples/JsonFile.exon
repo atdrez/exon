@@ -1,0 +1,6 @@
+// load raw json from file
+Object {
+    content: Exon.Json {
+        path: "fixtures/meta.json"
+    }
+}

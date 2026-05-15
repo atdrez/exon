@@ -1,0 +1,10 @@
+Object {
+    // evaluate json string with params and return the object
+    endpoint: Exon.EvalJson {
+        content: "{\"url\": \"https://$host/$version\", \"timeout\": $timeout}"
+
+        host: "api.example.com"
+        version: "v2"
+        timeout: 30
+    }
+}

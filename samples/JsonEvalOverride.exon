@@ -1,0 +1,6 @@
+JsonEval {
+    // override loaded json property
+    endpoint: _ {
+        url: "https://localhost/v3"
+    }
+}

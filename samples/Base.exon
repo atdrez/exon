@@ -1,0 +1,7 @@
+Object {
+    host: "localhost"
+    port: 8080
+    debug: false
+    maxConnections: 100
+    tags: [ "dev", "internal" ]
+}

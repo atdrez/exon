@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
     "target": "es2015",
-    "lib": ["es5", "es6"],
+    "lib": ["es5", "es6", "dom"],
+    "types": ["node"],
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "rootDir": "./src",
     "outDir": "./bin",
     "strictNullChecks": true,
+    "noImplicitAny": false,
     "sourceMap": true
   },
   "exclude": [

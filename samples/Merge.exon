@@ -1,0 +1,18 @@
+Object {
+    // merge multiple objects into a single one
+    config: Exon.Merge {
+        targets: [
+            Object {
+                host: "localhost"
+                port: 8080
+            },
+            Object {
+                // override existing field
+                host: "prod.example.com"
+
+                // merge new field
+                debug: false
+            }
+        ]
+    }
+}
