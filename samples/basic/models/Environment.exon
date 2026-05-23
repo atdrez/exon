@@ -1,0 +1,9 @@
+{
+    distro: "ubuntu"
+    version: 10.04
+
+    variables: {
+        log: "debug"
+        name: "machine01"
+    }
+}

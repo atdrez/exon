@@ -1,0 +1,35 @@
+// Usage example: SCORE=85 ./run.sh samples/flowcontrol/cond.exon
+
+using fn.*
+
+{
+    name: "Cond Sample"
+
+    ***
+    cond evaluates condition/result pairs in order and
+    returns the result of the first matching condition.
+    An odd trailing item serves as the default (else) branch.
+    ***
+
+    score: coalesce { process.env { "SCORE" } 0 }
+
+    // grade based on score: A >= 90, B >= 80, C >= 70, else F
+    grade: cond {
+        ge { @root.score 90 }  "A"
+        ge { @root.score 80 }  "B"
+        ge { @root.score 70 }  "C"
+        "F"
+    }
+
+    // simple two-branch: even or odd
+    parity: cond {
+        eq { mod { @root.score 2 } 0 }  "even"
+        "odd"
+    }
+
+    // no default: returns null when nothing matches
+    highOnly: cond {
+        ge { @root.score 95 }  "excellent"
+        ge { @root.score 90 }  "great"
+    }
+}

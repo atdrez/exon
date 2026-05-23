@@ -1,0 +1,13 @@
+using fn.*
+
+wrapper {
+    __content__: []
+
+    content: if {
+        condition:
+            eq { process.env { "ENV" } "development" }
+        then: sequence {
+            @root.__content__
+        }
+    }
+}

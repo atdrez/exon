@@ -1,0 +1,28 @@
+using fn.*
+
+{
+    try_catch_exception: try {
+        sequence {
+            // throws an exception
+            raise { "An error ocurred" }
+        }
+        catch: "exception catched!"
+    }
+
+    try_catch_exception_with_no_error: try {
+        sequence {
+            // return string
+            string.join { "the answer is " add { 40 2 } }
+        }
+        catch: "exception catched!"
+    }
+
+    try_catch_exception_with_no_catch: try {
+        sequence {
+            raise { "An error ocurred" }
+        }
+    }
+
+    // uncomment this line to throw exception outside try catch
+    // raise { "An error ocurred outside try catch" }
+}

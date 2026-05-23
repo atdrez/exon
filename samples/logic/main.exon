@@ -1,0 +1,41 @@
+using fn.*
+
+{
+    or: {
+        true_true: or { true true }
+        true_false: or { true false }
+        false_false: or { false false }
+    }
+
+    and: {
+        true_true: and { true true }
+        true_false: and { true false }
+        false_false: and { false false }
+    }
+
+    xor: {
+        true_false: xor { true false }
+        false_true: xor { false true }
+        true_true: xor { true true }
+        false_false: xor { false false }
+    }
+
+    not: {
+        not_true: not { true }
+        not_false: not { false }
+    }
+
+    composed: {
+        true_and__true_or_false: and { true or { true false } }
+
+        false_or__true_and_false: or { false and { true false } }
+
+        exp_10_equals_10__or__12_equals_8: or { eq { 10 10 } eq { 12 8 } }
+
+        // (10 == 10) xor (5 > 3) = false (both true)
+        xor_both_true: xor { eq { 10 10 } gt { 5 3 } }
+
+        // (10 == 10) xor (5 > 10) = true (only one true)
+        xor_one_true: xor { eq { 10 10 } gt { 5 10 } }
+    }
+}

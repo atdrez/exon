@@ -1,0 +1,16 @@
+{
+    // merge multiple objects into a single one
+    config: fn.merge {
+        {
+            host: "localhost"
+            port: 8080
+        }
+        {
+            // override existing field
+            host: "prod.example.com"
+
+            // merge new field
+            debug: false
+        }
+    }
+}

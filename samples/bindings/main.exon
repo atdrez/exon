@@ -1,0 +1,40 @@
+***
+Demonstrates how properties can reference other properties using the @ syntax.
+Covers direct bindings (referencing a sibling property), nested bindings
+(chaining references), computed bindings via built-in functions, and
+nested object bindings where a child object references a parent property.
+
+The @root binding is implicit, it always refers to the root object of the
+current file without any explicit declaration.
+***
+
+{
+    r: "red"
+    g: "green"
+
+    // direct bindings for root element property
+    r_ref: @root.r
+
+    // nested binding
+    r_ref_ref: @root.r_ref
+
+    red_and_green: fn.string.join {
+        @root.r " and " @root.g
+    }
+
+    red_and_green_ref: {
+        color: @root.red_and_green
+    }
+
+    info: Object@obj {
+        name: "John"
+        surname: "Doe"
+
+        extra: {
+            fullName: fn.string.join {
+                @obj.name @obj.surname
+                separator: " "
+            }
+        }
+    }
+}

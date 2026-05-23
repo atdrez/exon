@@ -1,0 +1,61 @@
+using fn.*
+
+{
+    typeof: {
+        // "string"
+        ofString: typeof { "hello" }
+
+        // "number"
+        ofNumber: typeof { 42 }
+
+        // "boolean"
+        ofBoolean: typeof { true }
+
+        // "null"
+        ofNull: typeof { null }
+
+        // "array"
+        ofArray: typeof { [1, 2, 3] }
+
+        // "object"
+        ofObject: typeof { { x: 1 } }
+    }
+
+    defined: {
+        // true - a string is defined
+        string: defined { "hello" }
+
+        // true - false is defined (defined != truthy)
+        falsyBoolean: defined { false }
+
+        // true - 0 is defined
+        zero: defined { 0 }
+
+        // false - null is not defined
+        nullValue: defined { null }
+    }
+
+    in: {
+        // true - 2 is in the array
+        numberInArray: in { 2 [1, 2, 3] }
+
+        // false - 5 is not in the array
+        numberNotInArray: in { 5 [1, 2, 3] }
+
+        // true - key "a" exists in the object
+        keyInObject: in { "a" { a: 1 b: 2 } }
+
+        // false - key "z" does not exist
+        keyNotInObject: in { "z" { a: 1 b: 2 } }
+    }
+
+    ***
+    Combined: determine how to handle a config value
+    based on its type and presence.
+    ***
+    rawValue: "42"
+    isPresent: defined { @root.rawValue }
+    kind: typeof { @root.rawValue }
+    allowedKinds: ["string", "number"]
+    kindAllowed: in { @root.kind @root.allowedKinds }
+}

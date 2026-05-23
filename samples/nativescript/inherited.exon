@@ -1,0 +1,12 @@
+using fn.*
+using mylibname.math.fibonacci
+
+base {
+    fibonacci_sequence_from_inherited: mylibname.foreach {
+        data: [1, 2, 3, 4, 5]
+        do: string.join@v {
+            num: parameter {"value"}
+            "Fibonacci number at #" @v.num " is " fibonacci { value: @v.num }
+        }
+    }
+}

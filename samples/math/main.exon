@@ -1,0 +1,51 @@
+using fn.*
+
+{
+    // 10 + 5
+    addition: add { 10 5 }
+
+    // 10 - 5
+    subtraction: sub { 10 5 }
+
+    // 10 * 5
+    multiplication: mul { 10 5 }
+
+    // 10 / 5
+    division: div { 10 5 }
+
+    // (10 * 5) - 13 + 2 = 39
+    expression: add { sub { mul { 10 5 } 13 } 2 }
+
+    // root.addition (15) * 3 = 45
+    multiplicationOverAddition: mul { @root.addition 3 }
+
+    // min (15, 10) = 10
+    minBetween10And15: math.min { 15 10 }
+
+    // max (15, 10) = 15
+    maxBetween10And15: math.max { 15 10 }
+
+    // clamp (15, min: 10, max: 20) = 15
+    clamp15InRangeMin10Max20: math.clamp { 15 10 20 }
+
+    // clamp (5, min: 10, max: 20) = 10
+    clamp5InRangeMin10Max20: math.clamp { 5 10 20 }
+
+    // clamp (35, min: 10, max: 20) = 10
+    clamp35InRangeMin10Max20: math.clamp { 35 10 20 }
+
+    // 10 % 3 = 1
+    modulo: mod { 10 3 }
+
+    // 2 ^ 8 = 256
+    power: pow { 2 8 }
+
+    // -(15) = -15
+    negate: neg { 15 }
+
+    // -(addition) = -15
+    negateRef: neg { @root.addition }
+
+    // (2 ^ 10) % 100 = 24
+    composedModPow: mod { pow { 2 10 } 100 }
+}

@@ -1,0 +1,18 @@
+using ..models.User // load ../models/User.exon
+
+{
+    admins: [
+        User {
+            username: "abc"
+            email: "abc@example.com"
+        },
+        User {
+            username: "xyz"
+            email: "xyz@example.com"
+        },
+        User {
+            username: "loremipsum"
+            email: "loremipsum@example.com"
+        }
+    ]
+}

@@ -1,0 +1,90 @@
+***
+Demonstrates fn.component: define reusable components inline, without a .exon file.
+Each fn.component block registers a new component under the given id. Callers supply
+named parameters; any field left out falls back to the default declared in content.
+
+Run:
+  node ../../bin/main.js main.exon
+***
+
+using fn.*
+
+{
+    *** define a plain data component ***
+    fn.component {
+        id: "shop.data"
+        content: {
+            tax_rate:   20
+            book_price: 10
+            shoe_price: 60
+        }
+    }
+
+    *** format.entry: formats a "label: value" string ***
+    fn.component {
+        id: "format.entry"
+        content: wrapper {
+            label: ""
+            value: ""
+            content: string.join { @root.label ": " @root.value }
+        }
+    }
+
+    *** shop.total: adds a percentage tax to a base price ***
+    fn.component {
+        id: "shop.total"
+        content: wrapper {
+            price: 0
+            tax: 0
+            content: add { @root.price  mul { @root.price  div { @root.tax 100 } } }
+        }
+    }
+
+    *** math.bound: clamps a value between lo and hi ***
+    fn.component {
+        id: "math.bound"
+        content: wrapper {
+            value: 0
+            lo: 0
+            hi: 100
+            content: math.clamp { @root.value  @root.lo  @root.hi }
+        }
+    }
+
+    *** data ***
+
+    data: shop.data {
+        // override book price
+        book_price: 25
+    }
+
+    *** apply tax ***
+
+    book_total: shop.total {
+        price: @root.data.book_price
+        tax: @root.data.tax_rate
+    }
+
+    shoe_total: shop.total {
+        price: @root.data.shoe_price
+        tax: @root.data.tax_rate
+    }
+
+    *** clamp a raw score to [0, 100] ***
+
+    raw_score:    115
+    bounded_score: math.bound { value: @root.raw_score  lo: 0  hi: 100 }
+
+    *** build report lines using format.entry ***
+
+    line_book:  format.entry { label: "Book total"  value: @root.book_total }
+    line_shoe:  format.entry { label: "Shoe total"  value: @root.shoe_total }
+    line_score: format.entry { label: "Score"       value: @root.bounded_score }
+
+    report: string.join {
+        @root.line_book
+        @root.line_shoe
+        @root.line_score
+        separator: "\n"
+    }
+}
