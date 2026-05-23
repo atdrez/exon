@@ -1,0 +1,14 @@
+fn.wrapper {
+    _load: fn.sequence {
+        fn.native {
+            id: "lib.css.format"
+            path: "js/css_format.js"
+        }
+    }
+
+    data: null
+
+    content: lib.css.format {
+        content: @root.data
+    }
+}

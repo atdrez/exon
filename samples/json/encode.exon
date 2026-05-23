@@ -1,0 +1,22 @@
+// convert obj to json string
+{
+    str: fn.json.encode {
+        indent: 4
+
+        {
+            name: "appname"
+            endpoints: [
+                {
+                    host: "localhost"
+                    port: 8080
+                    defs: ["dev"]
+                },
+                {
+                    host: "prod.example.com"
+                    port: 80
+                    defs: ["prod", "track"]
+                }
+            ]
+        }
+    }
+}

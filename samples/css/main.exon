@@ -1,0 +1,11 @@
+***
+Strongly typed css definition
+
+running:
+  ENV=devel ./run.sh samples/css/base.exon 
+  ENV=production ./run.sh samples/css/base.exon 
+***
+
+lib.encode {
+    data: css {}
+}

@@ -1,0 +1,21 @@
+***
+Enforce number type checking
+***
+
+using fn.*
+
+base {
+    set: set {
+        target: @root
+        property: "_value"
+        value: sequence {
+            assert {
+                number.is { parameter { "value" } }
+                message: "Invalid number type"
+            }
+
+            set { target: @root  property: "_defined"  value: true }
+            parameter { "value" }
+        }
+    }
+}

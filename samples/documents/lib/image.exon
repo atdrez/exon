@@ -1,0 +1,20 @@
+using fn.*
+
+wrapper {
+    url: ""
+    text: ""
+
+    content: switch {
+        value: process.env { "FMT" }
+            if {
+                condition: string.isEmpty { @root.text }
+                then:
+                    string.join { "<img src='" @root.url "'/>" separator: "" }
+                else:
+                    string.join { "<img src='" @root.url "' alt='" @root.text "'/>" separator: "" }
+            }
+        __default:
+            // ![This is an alt text.](/image/Markdown-mark.svg "This is a sample image.")
+            string.join { "![" @root.text "](" @root.url ")" separator: "" }
+    }
+}

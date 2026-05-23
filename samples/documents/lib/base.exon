@@ -1,0 +1,32 @@
+using fn.*
+
+wrapper {
+    // load native script
+    fn.native {
+        id: "lib.native.multiline"
+        path: "js/trimlines.js"
+    }
+
+    md: { prefix: "" suffix: "" }
+    html: { prefix: "" suffix: "" }
+
+    content: switch {
+        value: process.env { "FMT" }
+
+        html: string.join {
+            @root.html.prefix
+            string.join { @root.__content__ separator: "" }
+            @root.html.suffix
+
+            separator: ""
+        }
+
+        __default: string.join {
+            @root.md.prefix
+            string.join { @root.__content__ separator: "" }
+            @root.md.suffix
+
+            separator: ""
+        }
+    }
+}

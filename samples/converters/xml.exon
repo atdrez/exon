@@ -1,0 +1,12 @@
+fn.xml.encode {
+    {
+        host: "localhost"
+        port: 8080
+        tags: [ "dev", "internal" ]
+
+        config: {
+            debug: false
+            maxConnections: 100
+        }
+    }
+}

@@ -1,0 +1,13 @@
+using fn.*
+
+wrapper {
+    count: 1
+
+    content: switch {
+        value: process.env { "FMT" }
+        html:
+            string.join { repeat { content: "<br/>" count: @root.count} separator: "" }
+        __default:
+            string.join { repeat { content: "\n" count: @root.count} separator: "" }
+    }
+}

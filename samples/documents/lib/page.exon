@@ -1,0 +1,6 @@
+
+
+base {
+    md: * {}
+    html: * { prefix: "<html><body>" suffix: "</body></html>" }
+}

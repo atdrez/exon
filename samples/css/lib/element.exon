@@ -1,0 +1,19 @@
+using lib.*
+
+{
+    selector: ""
+
+    font-family: ""
+    font-size: property.number{}
+
+    margin: ""
+    padding: property.dimension {}
+
+    color: property.color{}
+    background-color: property.color{}
+
+    width: property.dimension {}
+    height: property.dimension {}
+    max-width: property.dimension {}
+    max-height: property.dimension {}
+}

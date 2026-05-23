@@ -1,0 +1,22 @@
+***
+Enforce number type checking
+***
+
+using fn.*
+
+property {
+    _value: null
+    _defined: false
+
+    get: if {
+        condition: get {
+            target: @root
+            property: "_defined"
+        }
+        then: get {
+            target: @root
+            property: "_value"
+        }
+        else: null
+    }
+}

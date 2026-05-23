@@ -1,0 +1,6 @@
+
+using lib.*
+
+element {
+    selector: "p"
+}

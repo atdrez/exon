@@ -1,0 +1,38 @@
+using ..lib.*
+
+extract {
+    h2{"Quick Example"}
+
+    blockquote {
+        """
+        {
+            host: "localhost"
+            port: fn.if {
+                condition: fn.eq { fn.process.env { "ENV" } "production" }
+                then: 80
+                else: 8080
+            }
+            tags: [ "web", "api" ]
+        }
+        """
+    }
+    br{}
+
+    "Exon compiles to JSON, XML, YAML, or any custom output format."
+    br{}
+
+    i{"All definitions are resolved at runtime through a pipeline of lexing, parsing, and resolution."}
+    br{}
+
+    b{"Native components (" i { "fn.*" } ") extend the language with custom transformation logic."}
+    br{}
+
+    ul {
+        li { b{"Inheritance:"} " A type name before {} resolves to a base .exon file." }
+        li { b{"Bindings:"} " " i{"@ref"} " syntax links values across objects." }
+        li { b{"Lazy evaluation:"} " Components control their own resolution order." }
+        li { b{"Extensibility:"} " Add custom fn.* components via the ScriptManager." }
+    }
+
+    br{ count: 2 }
+}

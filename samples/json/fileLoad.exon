@@ -1,0 +1,10 @@
+using fn.file.load  // used to load file
+
+// load raw json from file
+{
+    data: fn.json.decode {
+        content: fn.file.load {
+            path: "data/meta.json"
+        }
+    }
+}

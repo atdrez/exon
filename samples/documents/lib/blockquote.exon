@@ -1,0 +1,4 @@
+base {
+    md: * { prefix: "\n```" suffix: "```\n" }
+    html: * { prefix: "<blockquote>" suffix: "</blockquote>" }
+}

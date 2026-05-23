@@ -1,0 +1,6 @@
+decode {
+    // override loaded json property
+    endpoint: * {
+        url: "https://localhost/v3"
+    }
+}

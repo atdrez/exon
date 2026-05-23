@@ -1,0 +1,29 @@
+using fn.*
+
+wrapper {
+    url: ""
+    text: ""
+
+    content: switch {
+        value: process.env { "FMT" }
+        html:
+            // <a href="https://example.com">Click here</a>
+            if {
+                condition: string.isEmpty { @root.text }
+                then:
+                    string.join { "<a href='" @root.url "'>" @root.url "</a>" separator: "" }
+                else:
+                    string.join { "<a href='" @root.url "'>" @root.text "</a>" separator: "" }
+            }
+
+        __default:
+            // [Markdown Live Preview](https://markdownlivepreview.com/).
+            if {
+                condition: string.isEmpty { @root.text }
+                then:
+                    string.join { "<" @root.url ">" separator: "" }
+                else:
+                    string.join { "[" @root.text "](" @root.url ")" separator: "" }
+            }
+    }
+}

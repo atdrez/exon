@@ -1,0 +1,38 @@
+using ..lib.*
+
+extract {
+    h2{"Resources"}
+
+    """Following is all resources
+    """
+
+    ul {
+        li {
+            link {
+                text: "Getting Started"
+                url: "docs/getting-started.md"
+            }
+        }
+        li {
+            link {
+                text: "Language Reference"
+                url: "docs/language-reference.md"
+            }
+        }
+        li {
+            link {
+                text: "Standard Components"
+                url: "docs/standard-components.md"
+            }
+        }
+    }
+    br{count: 2}
+
+    image { url: "https://example.com/exon-logo.png" }
+    br{}
+
+    image {
+        url: "docs/exon-architecture.png"
+        text: "Exon interpreter pipeline diagram"
+    }
+}

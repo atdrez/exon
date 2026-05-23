@@ -1,0 +1,96 @@
+***
+Strongly typed css definition
+
+running:
+    ./run.sh samples/css/main.exon 
+    ENV=production ./run.sh samples/css/main.exon
+
+testing:
+    ./run.sh -t samples/css/main.exon
+***
+
+using lib.*
+using fn.eq
+using fn.sequence
+using ..tests.lib.it
+using ..tests.lib.describe
+using ..tests.lib.toCatch
+using ..tests.lib.toNotCatch
+
+{
+    body {
+        font-family: "Arial, sans-serif"
+        font-size: 12
+        width: "100%"
+        background-color: "#f4f4f4"; // trying to assign "redd" will raise exception
+        margin: 0
+        padding: "20px"
+    }
+
+    fn.if {
+        condition: eq {
+            fn.process.env {"ENV"} "production"
+        }
+        then: p {
+            color: "blue"
+            text-align: "center"
+        }
+        else: p {
+            color: "green"
+        }
+    }
+
+    class.container {
+        max-width: "600px" // trying to assign non valid dimesion will raise exception
+        margin: "auto"
+        background: "white"
+        padding: "24px"
+        border-radius: "8px"
+        box-shadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
+    }
+
+    cc.center {
+        color: "blue"
+        background: "yellow"
+    }
+
+    __tests__: sequence {
+        describe {
+            description: "Property checker"
+
+            it {
+                "checking default body color"
+                sequence@t01 {
+                    v: body {}
+                    eq { @t01.v.color null }
+                }
+            }
+
+            it {
+                "checking body color"
+                sequence@t02 {
+                    v: body { color: "green"; }
+                    eq { @t02.v.color "green" }
+                }
+            }
+
+            it {
+                "assigning wrong color, exception expected"
+                toCatch {
+                    body {
+                        color: "reddd";
+                    }
+                }
+            }
+
+            it {
+                "assigning right color, exception not expected"
+                toNotCatch {
+                    body {
+                        color: "#ff0000";
+                    }
+                }
+            }
+        }
+    }
+}

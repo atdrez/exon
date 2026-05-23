@@ -1,0 +1,4 @@
+base {
+    md: * {}
+    html: * { prefix: "<ul>" suffix: "</ul>" }
+}

@@ -1,0 +1,4 @@
+base {
+    md: * { prefix: "**" suffix: "**" }
+    html: * { prefix: "<b>" suffix: "</b>" }
+}

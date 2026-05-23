@@ -1,0 +1,14 @@
+***
+Strongly typed css definition
+
+running:
+  ENV=devel ./run.sh samples/css/base.exon 
+  ENV=production ./run.sh samples/css/base.exon 
+***
+
+using ..lib.class.center
+
+center {
+    color: "red";
+    text-align: "center";
+}
