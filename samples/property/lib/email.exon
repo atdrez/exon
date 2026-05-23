@@ -1,0 +1,37 @@
+***
+Enforce string type and email regex checking
+***
+
+using fn.*
+
+property {
+    _value: ""
+
+    get: get {
+        target: @root
+        property: "_value"
+    }
+
+    set: set {
+        target: @root
+        property: "_value"
+        value: sequence {
+            assert {
+                string.is { parameter { "value" } }
+                message: "Invalid type: must be string"
+            }
+
+            // check email pattern
+            assert {
+                regex.test {
+                    parameter { "value" }
+                    pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+                }
+                message: "Invalid email format"
+            }
+
+            // return value
+            parameter { "value" }
+        }
+    }
+}

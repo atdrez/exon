@@ -1,0 +1,29 @@
+***
+Enforce number type checking and clamp the value to a range
+***
+
+using fn.*
+
+property {
+    min: -999999
+    max: 999999
+    _value: 0
+
+    get: get {
+        target: @root
+        property: "_value"
+    }
+
+    set: set {
+        target: @root
+        property: "_value"
+        value: sequence {
+            assert {
+                number.is { parameter { "value" } }
+                message: "Invalid type: must be number"
+            }
+            // return value clamped
+            math.clamp { parameter { "value" } @root.min @root.max }
+        }
+    }
+}

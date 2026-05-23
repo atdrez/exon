@@ -1,0 +1,7 @@
+{
+    value: lib.clamped {
+        min: 0
+        max: 100
+        _value: 50
+    }
+}

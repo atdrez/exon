@@ -1,0 +1,37 @@
+***
+Demonstrates how a child object can extend and override properties defined
+in a base object. Shows the default value inheritance when no override is given,
+explicit property overrides, and clamping behavior when a value falls outside the
+allowed range. Also includes a computed property that references an overridden value
+via a binding.
+***
+
+{
+    ***
+    value = 50, no change
+    ***
+    i50: gauge {}
+
+    ***
+    value = 35, no clamp [0, 100]
+    ***
+    i35: gauge { value: 35 }
+
+    ***
+    clamped to 0 (min = 0)
+    ***
+    in15: gauge { value: -15 }
+
+    ***
+    clamped to 100 (max = 100)
+    ***
+    i160: gauge { value: 160 }
+
+    email01: email {}
+
+    email02: email {
+        value: "lorem@ipsum.com"
+    }
+
+    addition: fn.add { @root.i35.value 10 }
+}
