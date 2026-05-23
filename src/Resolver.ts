@@ -1,109 +1,363 @@
-/*
- * Copyright (c) 2017 Adriano Tinoco d'Oliveira Rezende
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
- * Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
- * KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+// SPDX-License-Identifier: MIT
 
-import { Context } from "./IScript";
-import { ScriptManager } from "./ScriptManager";
+import { Context } from "./Context";
+import { IResolver } from "./IResolver";
+import { ResolverError } from "./ResolverError";
+import { RuntimeOptions } from "./RuntimeOptions";
+import { IScriptRepository } from "./IScriptRepository";
 
-export class Resolver {
-    private m_Context: Context;
-    private m_ScriptManager: ScriptManager;
+export class Resolver implements IResolver {
+    #context: Context;
+    #idRegistry: Map<string, Map<string, any>> = new Map();
+    #params: { [key: string]: any } | undefined = undefined;
 
-    constructor(manager: ScriptManager) {
-        this.m_Context = { fileName: "" };
-        this.m_ScriptManager = manager;
+    static readonly #METADATA_KEYS = new Set([
+        '__name__', '__file__', '__line__', '__id__', '__idFile__', '__ref__',
+        '__native__', '__base__', '__bind__', '__tests__'
+    ]);
+
+    constructor(manager: IScriptRepository, options: RuntimeOptions) {
+        this.#context = new Context(this, manager, options);
     }
 
-    public resolve(obj: any) : any {
-        let result = {};
+    private isMetaDataField(key: string): boolean {
+        if (key === '__tests__') {
+            return !this.#context.options.testMode;
+        }
 
-        if (obj['__file__'])
-            this.m_Context.fileName = obj['__file__'];
+        return Resolver.#METADATA_KEYS.has(key);
+    }
 
-        this.resolveRecursive(result, obj);
+    private registerIdInFile(id: string, file: string, value: any): void {
+        let fileMap = this.#idRegistry.get(file);
+
+        if (!fileMap) {
+            fileMap = new Map<string, any>();
+            this.#idRegistry.set(file, fileMap);
+        }
+
+        fileMap.set(id, value);
+    }
+
+    private registerObjectIds(id: string | undefined, idFile: string, isRoot: boolean, rootFile: string, value: any): void {
+        if (id) {
+            this.registerIdInFile(id, idFile, value);
+        }
+
+        if (isRoot) {
+            this.registerIdInFile('root', rootFile, value);
+        }
+    }
+
+    private registerBaseIds(base: any, target: any): void {
+        const baseId: string | undefined = base['__id__'];
+
+        if (baseId) {
+            this.registerIdInFile(baseId, base['__idFile__'] ?? '', target);
+        }
+
+        if ('__name__' in base) {
+            this.registerIdInFile('root', base['__file__'] ?? '', target);
+        }
+    }
+
+    private makeLocatedError(message: string, inner: string, file: string): ResolverError {
+        const err = new ResolverError(message, inner);
+        Object.defineProperty(err, '__located__', { value: true });
+        Object.defineProperty(err, '__locatedFile__', { value: file });
+        return err;
+    }
+
+    public resolve(obj: any, params?: { [key: string]: any }): any {
+        if (params !== undefined) {
+            const saved = this.#params;
+            this.#params = params;
+            const result = this.resolveImpl(obj);
+            this.#params = saved;
+            return result;
+        }
+
+        return this.resolveImpl(obj);
+    }
+
+    private resolveImpl(obj: any): any {
+        if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+            return obj;
+        }
+
+        if ('__preresolved__' in obj) {
+            return obj['__preresolved__'];
+        }
+
+        let result: any = {};
+
+        if (obj['__file__']) {
+            this.#context.location.file = obj['__file__'];
+        }
+
+        if (obj['__line__']) {
+            this.#context.location.line = obj['__line__'];
+        }
+
+        const myFileName = this.#context.location.file;
+        const myLine = this.#context.location.line;
+
+        const isFileRoot = '__name__' in obj;
+        const id: string | undefined = obj['__id__'];
+        const idFile: string = obj['__idFile__'] ?? '';
+
+        this.registerObjectIds(id, idFile, isFileRoot, myFileName, result);
 
         let native = obj['__native__'];
 
         if (!native) {
-            const base = obj['__base__'];
-
-            if (base)
+            let base = obj['__base__'];
+            while (base && !native) {
                 native = base['__native__'];
+                base = base['__base__'];
+            }
         }
 
-        if (native !== undefined) {
-            const script = this.m_ScriptManager.find(native);
+        const script = native ? this.#context.findScript(native) : undefined;
 
-            if (!script)
-                throw new Error(`Unable to find '${native}' element`);
-
-            result = script.resolve(result, this.m_Context);
+        if (native && !script) {
+            throw new Error(`Unable to find '${native}' element`);
         }
+
+        try {
+            if (script?.isDeferred?.()) {
+                const rawForLazy = obj['__base__'] ? this.mergeRawForLazy(obj) : obj;
+
+                this.registerObjectIds(id, idFile, isFileRoot, myFileName, rawForLazy);
+
+                const savedIds = this.saveBaseChainIds(obj);
+                this.registerBaseChainIds(obj, rawForLazy);
+                result = this.#context.resolveScript(script, rawForLazy, this.#params);
+                this.restoreIds(savedIds);
+            } else {
+                this.resolveRecursive(result, obj);
+
+                if (script) {
+                    result = this.#context.resolveScript(script, result, this.#params);
+                }
+            }
+        } catch (e) {
+            this.rethrow(e, myFileName, myLine);
+        }
+
+        this.registerObjectIds(id, idFile, isFileRoot, myFileName, result);
 
         return result;
+    }
+
+    private saveBaseChainIds(obj: any): Array<[string, string, any]> {
+        const saved: Array<[string, string, any]> = [];
+
+        let current = obj['__base__'];
+        while (current) {
+            const baseId: string | undefined = current['__id__'];
+            if (baseId) {
+                const baseIdFile: string = current['__idFile__'] ?? '';
+                const fileMap = this.#idRegistry.get(baseIdFile);
+                saved.push([baseId, baseIdFile, fileMap?.get(baseId)]);
+            }
+
+            if ('__name__' in current) {
+                const baseFile: string = current['__file__'] ?? '';
+                const fileMap = this.#idRegistry.get(baseFile);
+                saved.push(['root', baseFile, fileMap?.get('root')]);
+            }
+
+            current = current['__base__'];
+        }
+
+        return saved;
+    }
+
+    private restoreIds(saved: Array<[string, string, any]>): void {
+        for (const [id, file, value] of saved) {
+            if (value === undefined) {
+                const fileMap = this.#idRegistry.get(file);
+                if (fileMap) {
+                    fileMap.delete(id);
+                    if (fileMap.size === 0) {
+                        this.#idRegistry.delete(file);
+                    }
+                }
+            } else {
+                this.registerIdInFile(id, file, value);
+            }
+        }
+    }
+
+    private registerBaseChainIds(obj: any, target: any): void {
+        let current = obj['__base__'];
+        while (current) {
+            this.registerBaseIds(current, target);
+            current = current['__base__'];
+        }
+    }
+
+    private mergeRawForLazy(obj: any): any {
+        const merged: any = {};
+
+        const collectBase = (source: any) => {
+            const parent = source['__base__'];
+            if (parent) {
+                collectBase(parent);
+            }
+            for (const key of Object.keys(source)) {
+                if (!this.isMetaDataField(key)) {
+                    merged[key] = source[key];
+                }
+            }
+        };
+
+        collectBase(obj['__base__']);
+        for (const key of Object.keys(obj)) {
+            if (!this.isMetaDataField(key)) {
+                merged[key] = obj[key];
+            }
+        }
+
+        return merged;
     }
 
     private resolveRecursive(obj: any, source: any) {
         const parent = source['__base__'];
 
         if (parent) {
+            this.registerBaseIds(parent, obj);
             this.resolveRecursive(obj, parent);
         }
 
-        for (const key in source) {
-            if (key.startsWith("__")) {
+        for (const key of Object.keys(source)) {
+            if (this.isMetaDataField(key)) {
                 continue;
             }
 
             const sourceValue = source[key];
 
-            if (sourceValue === undefined || sourceValue === null) {
-                obj[key] = null;
-            } else  if (typeof sourceValue === 'object' && sourceValue['__ref__']) {
-                for (const innerKey in sourceValue) {
-                    if (innerKey.startsWith("__"))
-                        continue;
+            if (key.includes('.')) {
+                this.setNestedProperty(obj, key, sourceValue);
+                continue;
+            }
 
-                    obj[key][innerKey] = this.parseValueRecursive(sourceValue[innerKey]);
-                }
+            if (key.startsWith('__componentDef_') && key.endsWith('__')) {
+                this.parseValueRecursive(sourceValue);
+            } else if (sourceValue === undefined || sourceValue === null) {
+                this.#context.setProperty(obj, key, null);
+            } else if (typeof sourceValue === 'object' && sourceValue['__ref__']) {
+                const target = this.#context.getProperty(obj, key);
+                this.applyPartialOverride(target, sourceValue);
+            } else if (key === '__content__') {
+                const existing = this.#context.getProperty(obj, key);
+                const resolved = this.parseValueRecursive(sourceValue);
+                this.#context.setProperty(obj, key, Array.isArray(existing) ? existing.concat(resolved) : resolved);
             } else {
-                obj[key] = this.parseValueRecursive(sourceValue);
+                this.#context.setProperty(obj, key, this.parseValueRecursive(sourceValue));
             }
         }
     }
 
-    private parseValueRecursive(value: any) {
-        if (value instanceof Array) {
-            const result = new Array<any>();
+    public rethrow(error: unknown, callerFile: string, callerLine: number): never {
+        if (!(error instanceof Error)) {
+            throw error;
+        }
 
-            for (let key in value) {
-                result.push(this.parseValueRecursive(value[key]));
+        const loc = callerLine > 0 ? `${callerFile}:${callerLine}` : callerFile;
+
+        if ((error as any).__located__) {
+            const locatedFile = (error as any).__locatedFile__;
+            if (locatedFile !== callerFile && callerFile) {
+                throw this.makeLocatedError(`  [${loc}]\n${error.message}`, error.message, callerFile);
+            }
+            throw error;
+        }
+
+        throw this.makeLocatedError(`  [${loc}]: ${error.message}`, error.message, callerFile);
+    }
+
+    public resolveBinding(path: string, file: string): any {
+        const parts = path.split('.');
+        const id = parts[0];
+        const fileMap = this.#idRegistry.get(file);
+        const target = fileMap?.get(id);
+
+        if (target === undefined) {
+            throw new Error(`Unknown id reference: @${id}`);
+        }
+
+        let result = target;
+
+        for (let i = 1; i < parts.length; i++) {
+            if (this.#context.isObjectBinding(result)) {
+                result = this.resolveBinding(result['__bind__'], result['__bindFile__'] ?? file);
             }
 
-            return result;
-        } else if (typeof value === 'object') {
-            return this.resolve(value);
-        } else {
-            return value;
+            if (result === undefined || result === null) {
+                throw new Error(`Cannot access property '${parts[i]}' on undefined`);
+            }
+
+            result = this.#context.getProperty(result, parts[i]);
         }
+
+        if (this.#context.isObjectBinding(result)) {
+            return this.resolveBinding(result['__bind__'], result['__bindFile__'] ?? file);
+        }
+
+        if (Array.isArray(result)) {
+            return result.map(item => this.parseValueRecursive(item));
+        }
+
+        return result;
+    }
+
+    private setNestedProperty(obj: any, key: string, value: any): void {
+        const parts = key.split('.');
+        let target = obj;
+        for (let i = 0; i < parts.length - 1; i++) {
+            target = this.#context.getProperty(target, parts[i]);
+            if (target === undefined || target === null) {
+                throw new Error(`Cannot override '${key}': '${parts.slice(0, i + 1).join('.')}' is ${String(target)}`);
+            }
+        }
+        const leafKey = parts[parts.length - 1];
+        this.#context.setProperty(target, leafKey, value === null ? null : this.parseValueRecursive(value));
+    }
+
+    private applyPartialOverride(target: any, refObj: any): void {
+        for (const key of Object.keys(refObj)) {
+            if (key.startsWith('__')) {
+                continue;
+            }
+
+            const value = refObj[key];
+            if (typeof value === 'object' && value !== null && value['__ref__']) {
+                this.applyPartialOverride(this.#context.getProperty(target, key), value);
+            } else {
+                this.#context.setProperty(target, key, this.parseValueRecursive(value));
+            }
+        }
+    }
+
+    private parseValueRecursive(value: any): any {
+        if (Array.isArray(value)) {
+            return value.map(item => this.parseValueRecursive(item));
+        }
+
+        if (typeof value === 'object' && value !== null) {
+            if (value['__bind__'] !== undefined) {
+                return this.resolveBinding(value['__bind__'], value['__bindFile__'] ?? '');
+            }
+
+            if ('__preresolved__' in value) {
+                return value['__preresolved__'];
+            }
+
+            return this.resolveImpl(value);
+        }
+
+        return value;
     }
 }

@@ -8,11 +8,12 @@
     "rootDir": "./src",
     "outDir": "./bin",
     "strictNullChecks": true,
-    "noImplicitAny": false,
     "sourceMap": true
   },
   "exclude": [
     "bin",
-    "node_modules"
+    "node_modules",
+    "tests",
+    "vitest.config.ts"
   ]
 }

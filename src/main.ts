@@ -1,66 +1,96 @@
-/*
- * Copyright (c) 2017 Adriano Tinoco d'Oliveira Rezende
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
- * Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
- * KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+// SPDX-License-Identifier: MIT
 
 import  * as argv from "argv";
-import  * as Native from "./native";
+import * as IPC from "./ipc";
 import { Parser } from "./Parser";
 import { Resolver } from "./Resolver";
-import { ScriptManager } from "./ScriptManager";
+import { RuntimeOptions } from "./RuntimeOptions";
+import { ScriptRepository } from "./ScriptRepository";
+import { IScriptRepository } from "./IScriptRepository";
 
-const options = [{
-    name: 'extended',
-    short: 'e',
-    type: 'boolean'
-}, {
-    name: 'path',
-    short: 'p',
-    type: 'list,path'
-}];
+const options = [
+    { name: 'extended', short: 'e', type: 'boolean'},
+    { name: 'path', short: 'p', type: 'list,path'},
+    { name: 'test', short: 't', type: 'boolean'},
+    { name: 'run', short: 'r', type: 'boolean'},
+    { name: 'channel', short: 'c', type: 'boolean'},
+    { name: 'bare', short: 'b', type: 'boolean'},
+];
+
+function printOutput(result: any) {
+    if (result instanceof Object) {
+        result = JSON.stringify(result, null, 4).replace(/\\\\/g, '\\');
+    }
+
+    console.log(result);
+}
+
+function parseFile(manager: IScriptRepository, paths: string[], fileName: string) {
+    return new Parser(manager, paths).parse(fileName);
+}
+
+function runChannel(manager: IScriptRepository, paths: string[], fileName: string) {
+    const channelOptions = new RuntimeOptions({ run: true, test: false });
+
+    process.on('message', (msg: any) => {
+        IPC.setMessage(msg);
+        try {
+            new Resolver(manager, channelOptions).resolve(parseFile(manager, paths, fileName));
+        } catch (e) {
+            if (process.send) {
+                process.send({ __error__: e instanceof Error ? e.message : String(e) });
+            }
+        }
+    });
+
+    if (process.send) {
+        process.send({ __ready__: true });
+    }
+}
+
+function runNormal(manager: IScriptRepository, paths: string[], fileName: string, opts: any) {
+    try {
+        const result = parseFile(manager, paths, fileName);
+
+        if (opts.extended) {
+            printOutput(result);
+        } else {
+            const options = new RuntimeOptions(opts);
+            const resolver = new Resolver(manager, options);
+            const output = resolver.resolve(result);
+
+            if (options.shouldPrintOutput()) {
+                printOutput(output);
+            }
+        }
+
+        process.exit(0);
+    } catch (e) {
+        console.error("[ERROR]:")
+        console.error(e instanceof Error ? e.message : String(e));
+        process.exit(1);
+    }
+}
 
 const params = argv.option(options).run();
 
 const fileName : string = params.targets[0];
 const paths : string[] = params.options.path;
-const isExtended: boolean = params.options.extended;
 
-const manager = new ScriptManager();
-const components = Native.components();
+const manager = new ScriptRepository();
 
-// register native scripts
-for (let i = 0; i < components.length; i++) {
-    manager.register(new components[i]);
+if (!params.options.bare) {
+    // register native components
+    const Native: { components(): any[] } = require("./fn");
+
+    const components = Native.components();
+    for (let i = 0; i < components.length; i++) {
+        manager.register(new components[i]);
+    }
 }
 
-const parser = new Parser(manager, paths);
-const result = parser.parse(fileName);
-
-if (isExtended) {
-    console.log(JSON.stringify(result, null, 4).replace(/\\\\/g, '\\'));
+if (params.options.channel) {
+    runChannel(manager, paths, fileName);
 } else {
-    const resolver = new Resolver(manager);
-    const output = resolver.resolve(result);
-
-    console.log(JSON.stringify(output, null, 4).replace(/\\\\/g, '\\'));
+    runNormal(manager, paths, fileName, params.options);
 }
-
-process.exit(0);
