@@ -1,0 +1,22 @@
+using fn.*
+
+wrapper {
+    files: []
+    target: ""
+    includes: []
+    outputDir: ""
+
+    content: string.join@do {
+        // fetch compiler via environment var, or fallback to gcc
+        or { process.env { "EMAKE_C_COMPILER" } "gcc" }
+        " -o " @root.outputDir "/" @root.target
+        string.join {
+            foreach {
+                data: @root.includes
+                do: string.join { " -I " parameter {"value"} " " }
+            }
+            separator: " "
+        }
+        string.join { @root.files separator: " "}
+    }
+}

@@ -1,0 +1,62 @@
+***
+Behaves like cmake. 
+Discovers all .c and .h files in srcDir and compiles them with gcc.
+It can be extended via native script or custom components (check ./emake folder)
+
+Build (passing the output name):
+  node bin/main.js -r samples/buildsystem/build.exon
+
+Build with custom compiler and custom output name:
+  EMAKE_C_COMPILER=cc node bin/main.js -r samples/buildsystem/build.exon <output_name>
+***
+
+using emake.*
+using fn.println
+using fn.process.exec
+
+{
+    fn.assert {
+      fn.defined { fn.process.argv {3} }
+      message: "Script argument is missing"
+    }
+
+    dir: fn.path.dirname { fn.process.argv {3} }
+  
+    srcDir: fn.string.join { @root.dir "/src" }
+    outDir: fn.string.join { @root.dir "/bin" }
+  
+    // use target passed via args, or fallback to hello
+    target: fn.or { fn.process.argv { 4 } "hello" }
+
+    // discover source and header files
+    cFiles: discover { dir: @root.srcDir path: "*.c" }
+    hFiles: discover { dir: @root.srcDir path: "*.h" }
+
+    // display discovered files
+    println { "discovered:" }
+    display { category: "header" files: @root.hFiles }
+    display { category: "source" files: @root.cFiles }
+
+    // create compile command
+    compileCmd: compile {
+        files: @root.cFiles
+        target: @root.target
+        outputDir: @root.outDir
+        includes: [ @root.srcDir ] // accept multiple includes
+    }
+
+    // make output directory
+    exec { "mkdir -p " @root.outDir }
+
+    // compile
+    println { fn.string.join { "compiling:\n   " @root.compileCmd } }
+    exec { @root.compileCmd }
+    println { "build complete!" }
+
+    println { "running:\n" }
+
+    *** run compiled binary and capture output ***
+    println {
+        exec { fn.string.join { "./" @root.outDir "/" @root.target } }
+    }
+}

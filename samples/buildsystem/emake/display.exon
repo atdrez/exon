@@ -1,0 +1,11 @@
+using fn.*
+
+wrapper {
+    files: []
+    category: ""
+
+    content: foreach {
+        data: @root.files
+        do: println { string.join { "   " @root.category ": " parameter { "value" } } }
+    }
+}
