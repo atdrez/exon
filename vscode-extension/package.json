@@ -1,0 +1,30 @@
+{
+    "name": "exon-language",
+    "displayName": "Exon Language",
+    "description": "Syntax highlighting for the Exon configuration and data definition language (.exon files)",
+    "version": "0.1.0",
+    "publisher": "exon",
+    "engines": {
+        "vscode": "^1.70.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "exon",
+                "aliases": ["Exon", "exon"],
+                "extensions": [".exon"],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "exon",
+                "scopeName": "source.exon",
+                "path": "./syntaxes/exon.tmLanguage.json"
+            }
+        ]
+    }
+}
