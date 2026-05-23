@@ -1,6 +1,0 @@
-JsonFile {
-    // override loaded json property
-    content: _ {
-        name: "my new app name"
-    }
-}

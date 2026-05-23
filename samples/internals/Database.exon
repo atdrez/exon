@@ -1,6 +1,0 @@
-Object {
-    host: "localhost"
-    port: 5432
-    name: ""
-    poolSize: 5
-}

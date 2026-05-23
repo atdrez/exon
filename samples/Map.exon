@@ -1,7 +1,0 @@
-Object {
-    // join key/value in a map
-    statusDescriptions: Exon.Map {
-        keys:   [ "200", "404", "500" ]
-        values: [ "OK", "Not Found", "Internal Server Error" ]
-    }
-}

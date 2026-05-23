@@ -1,6 +1,0 @@
-Exon.If {
-    condition: Exon.Eq {
-        left: Exon.Environment.Variable { name: "ENV" }
-        right: "devel"
-    }
-}
