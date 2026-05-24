@@ -32,13 +32,13 @@ export class Parser {
     public parseFromBuffer(buffer: Buffer, fileName: string) : any {
         const lexer = new Lexer(buffer, fileName);
 
-        this.extractUsingDirectives(lexer);
+        const usingNamespaces = this.extractUsingDirectives(lexer);
 
-        const result = this.parseObject(lexer, true);
+        const result = this.parseObject(lexer, usingNamespaces, true);
 
         const extra = lexer.readToken();
         if (extra.tokenType !== TokenType.None)
-            throw new ParserError(`Unexpected token found after root object declaraction`, lexer);
+            throw new ParserError(`Unexpected token found after root object declaration`, lexer);
 
         return result;
     }
@@ -92,21 +92,23 @@ export class Parser {
             const input = FileSystem.readFileSync(fileName);
             const lexer = new Lexer(input, fileName);
 
-            this.extractUsingDirectives(lexer);
+            const usingNamespaces = this.extractUsingDirectives(lexer);
 
-            return this.parseObject(lexer, true);
+            return this.parseObject(lexer, usingNamespaces, true);
         } finally {
             this.#parsingFiles.delete(fileName);
         }
     }
 
-    private extractUsingDirectives(lexer: Lexer): void {
+    private extractUsingDirectives(lexer: Lexer): string[] {
+        const namespaces: string[] = [];
+
         while (true) {
             const token = lexer.readToken();
 
             if (token.tokenType !== TokenType.Identifier || token.toString() !== 'using') {
                 lexer.putTokenBack();
-                return;
+                return namespaces;
             }
 
             const nameToken = lexer.readToken();
@@ -114,7 +116,7 @@ export class Parser {
             if (nameToken.tokenType !== TokenType.Identifier)
                 throw new ParserError(`Expected namespace after 'using'`, lexer);
 
-            lexer.addUsing(nameToken.toString());
+            namespaces.push(nameToken.toString());
         }
     }
 
@@ -145,22 +147,22 @@ export class Parser {
         return objectName;
     }
 
-    private parseObject(lexer: Lexer, isRoot: boolean = false) : any {
+    private parseObject(lexer: Lexer, usingNamespaces: string[], isRoot: boolean = false) : any {
         const token = lexer.readToken();
 
         if (token.tokenType === TokenType.LeftCurlyBracket) {
             lexer.putTokenBack();
-            return this.parseObjectBody(Parser.#defaultObjectName, lexer, isRoot);
+            return this.parseObjectBody(Parser.#defaultObjectName, lexer, usingNamespaces, isRoot);
         }
 
         if (token.tokenType !== TokenType.Identifier)
             throw new ParserError(`Invalid token found '${token.toString()}', expected <identifier>`,
                                   lexer);
 
-        return this.parseObjectBody(token.toString(), lexer, isRoot);
+        return this.parseObjectBody(token.toString(), lexer, usingNamespaces, isRoot);
     }
 
-    private parseObjectBody(objectName: string, lexer: Lexer, isRoot: boolean = false) : any {
+    private parseObjectBody(objectName: string, lexer: Lexer, usingNamespaces: string[], isRoot: boolean = false) : any {
         let token = lexer.readToken();
 
         let objectId: string | null = null;
@@ -202,7 +204,7 @@ export class Parser {
                 if (this.#scriptManager.contains(objectName)) {
                     result['__native__'] = objectName;
                 } else {
-                    const resolvedName = this.resolveUsingName(objectName, lexer.usingNamespaces, lexer.dirName);
+                    const resolvedName = this.resolveUsingName(objectName, usingNamespaces, lexer.dirName);
                     if (this.#scriptManager.contains(resolvedName))
                         result['__native__'] = resolvedName;
                     else
@@ -219,7 +221,7 @@ export class Parser {
             if (token.tokenType !== TokenType.Identifier) {
                 // bare value (string, number, bool, null, array, @ref) -> implicit content
                 lexer.putTokenBack();
-                content.push(this.parseValue(lexer));
+                content.push(this.parseValue(lexer, usingNamespaces));
                 token = lexer.readToken();
                 if (token.tokenType === TokenType.Semicolon)
                     token = lexer.readToken();
@@ -231,11 +233,11 @@ export class Parser {
 
             if (nextToken.tokenType === TokenType.Colon) {
                 // regular key: value field
-                result[parameterName] = this.parseValue(lexer);
+                result[parameterName] = this.parseValue(lexer, usingNamespaces);
             } else {
                 // inline object as implicit content item (e.g. h1 { ... })
                 lexer.putTokenBack();
-                const item = this.parseObjectBody(parameterName, lexer);
+                const item = this.parseObjectBody(parameterName, lexer, usingNamespaces);
                 const itemScript = this.#scriptManager.find(item['__native__']);
                 if (itemScript?.isComponent?.()) {
                     // store component-def objects at their source position so the
@@ -266,7 +268,7 @@ export class Parser {
         return result;
     }
 
-    private parseValue(lexer: Lexer) : any {
+    private parseValue(lexer: Lexer, usingNamespaces: string[]) : any {
         let token = lexer.readToken();
 
         switch (token.tokenType) {
@@ -297,15 +299,15 @@ export class Parser {
 
         case TokenType.LeftBracket:
             lexer.putTokenBack();
-            return this.parseArray(lexer);
+            return this.parseArray(lexer, usingNamespaces);
 
         case TokenType.LeftCurlyBracket:
             lexer.putTokenBack();
-            return this.parseObjectBody(Parser.#defaultObjectName, lexer);
+            return this.parseObjectBody(Parser.#defaultObjectName, lexer, usingNamespaces);
 
         case TokenType.Identifier:
             lexer.putTokenBack();
-            return this.parseObject(lexer);
+            return this.parseObject(lexer, usingNamespaces);
 
         case TokenType.At: {
             const refToken = lexer.readToken();
@@ -321,7 +323,7 @@ export class Parser {
         }
     }
 
-    private parseArray(lexer: Lexer): any {
+    private parseArray(lexer: Lexer, usingNamespaces: string[]): any {
         let token = lexer.readToken();
 
         if (token.tokenType !== TokenType.LeftBracket)
@@ -338,7 +340,7 @@ export class Parser {
         lexer.putTokenBack();
 
         while (true) {
-            const value = this.parseValue(lexer);
+            const value = this.parseValue(lexer, usingNamespaces);
 
             result.push(value);
 

@@ -2,7 +2,7 @@
 
 import { Context } from "./Context";
 import { IResolver } from "./IResolver";
-import { ResolverError } from "./ResolverError";
+import { LocatedError, ResolverError } from "./ResolverError";
 import { RuntimeOptions } from "./RuntimeOptions";
 import { IScriptRepository } from "./IScriptRepository";
 
@@ -13,7 +13,7 @@ export class Resolver implements IResolver {
 
     static readonly #METADATA_KEYS = new Set([
         '__name__', '__file__', '__line__', '__id__', '__idFile__', '__ref__',
-        '__native__', '__base__', '__bind__', '__tests__'
+        '__native__', '__base__', '__bind__'
     ]);
 
     constructor(manager: IScriptRepository, options: RuntimeOptions) {
@@ -21,11 +21,12 @@ export class Resolver implements IResolver {
     }
 
     private isMetaDataField(key: string): boolean {
-        if (key === '__tests__') {
-            return !this.#context.options.testMode;
-        }
-
         return Resolver.#METADATA_KEYS.has(key);
+    }
+
+    private shouldSkipField(key: string): boolean {
+        return this.isMetaDataField(key)
+            || (key === '__tests__' && !this.#context.options.testMode);
     }
 
     private registerIdInFile(id: string, file: string, value: any): void {
@@ -61,11 +62,8 @@ export class Resolver implements IResolver {
         }
     }
 
-    private makeLocatedError(message: string, inner: string, file: string): ResolverError {
-        const err = new ResolverError(message, inner);
-        Object.defineProperty(err, '__located__', { value: true });
-        Object.defineProperty(err, '__locatedFile__', { value: file });
-        return err;
+    private makeLocatedError(message: string, inner: string, file: string): LocatedError {
+        return new LocatedError(message, inner, file);
     }
 
     public resolve(obj: any, params?: { [key: string]: any }): any {
@@ -207,7 +205,7 @@ export class Resolver implements IResolver {
                 collectBase(parent);
             }
             for (const key of Object.keys(source)) {
-                if (!this.isMetaDataField(key)) {
+                if (!this.shouldSkipField(key)) {
                     merged[key] = source[key];
                 }
             }
@@ -215,7 +213,7 @@ export class Resolver implements IResolver {
 
         collectBase(obj['__base__']);
         for (const key of Object.keys(obj)) {
-            if (!this.isMetaDataField(key)) {
+            if (!this.shouldSkipField(key)) {
                 merged[key] = obj[key];
             }
         }
@@ -232,7 +230,7 @@ export class Resolver implements IResolver {
         }
 
         for (const key of Object.keys(source)) {
-            if (this.isMetaDataField(key)) {
+            if (this.shouldSkipField(key)) {
                 continue;
             }
 
@@ -267,9 +265,8 @@ export class Resolver implements IResolver {
 
         const loc = callerLine > 0 ? `${callerFile}:${callerLine}` : callerFile;
 
-        if ((error as any).__located__) {
-            const locatedFile = (error as any).__locatedFile__;
-            if (locatedFile !== callerFile && callerFile) {
+        if (error instanceof LocatedError) {
+            if (error.locatedFile !== callerFile && callerFile) {
                 throw this.makeLocatedError(`  [${loc}]\n${error.message}`, error.message, callerFile);
             }
             throw error;

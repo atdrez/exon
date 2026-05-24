@@ -47,7 +47,7 @@ describe('parser errors', () => {
 
     it('throws when more than one root object appears in a file', () => {
         expect(() => compile(`{ x: 1 } { y: 2 }`))
-            .toThrow('Unexpected token found after root object declaraction');
+            .toThrow('Unexpected token found after root object declaration');
     });
 });
 

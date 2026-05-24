@@ -5,9 +5,47 @@ import { Token  } from "./Token";
 import { TokenType } from "./TokenType";
 import { LexerError  } from "./LexerError";
 
-const CH_LF = 10;
-const CH_SLASH = 47;
-const CH_STAR = 42;
+const CH_TAB        =   9;
+const CH_LF         =  10;
+const CH_CR         =  13;
+const CH_SPACE      =  32;
+const CH_DQUOTE     =  34;
+const CH_STAR       =  42;
+const CH_COMMA      =  44;
+const CH_MINUS      =  45;
+const CH_DOT        =  46;
+const CH_SLASH      =  47;
+const CH_0          =  48;
+const CH_1          =  49;
+const CH_2          =  50;
+const CH_3          =  51;
+const CH_4          =  52;
+const CH_5          =  53;
+const CH_6          =  54;
+const CH_7          =  55;
+const CH_8          =  56;
+const CH_9          =  57;
+const CH_COLON      =  58;
+const CH_SEMICOLON  =  59;
+const CH_AT         =  64;
+const CH_A          =  65;
+const CH_Z          =  90;
+const CH_LBRACKET   =  91;
+const CH_BACKSLASH  =  92;
+const CH_RBRACKET   =  93;
+const CH_UNDERSCORE =  95;
+const CH_a          =  97;
+const CH_e          = 101;
+const CH_f          = 102;
+const CH_l          = 108;
+const CH_n          = 110;
+const CH_r          = 114;
+const CH_s          = 115;
+const CH_t          = 116;
+const CH_u          = 117;
+const CH_z          = 122;
+const CH_LBRACE     = 123;
+const CH_RBRACE     = 125;
 
 export class Lexer {
     #buffer: Buffer;
@@ -16,7 +54,6 @@ export class Lexer {
     #dirName: string;
     #fileName: string;
     #lastBufferIndex: number = 0;
-    #usingNamespaces: string[] = [];
 
     public get available() : boolean {
         return this.#bufferIndex < this.#buffer.length;
@@ -34,20 +71,16 @@ export class Lexer {
         return this.#dirName;
     }
 
-    public get usingNamespaces() : readonly string[] {
-        return this.#usingNamespaces;
-    }
-
-    public addUsing(namespace: string) : void {
-        this.#usingNamespaces.push(namespace);
-    }
-
     public constructor(input: Buffer, fileName: string) {
         this.#buffer = input;
         this.#fileName = fileName;
         this.#dirName = Path.dirname(fileName);
     }
 
+    // Restores the buffer position to the start of the last token read so
+    // the next readToken() call returns the same token again.
+    // Note: #lineIndex is NOT restored. Callers must only put back tokens
+    // that contain no newlines (all single-line tokens satisfy this).
     public putTokenBack() : void {
         this.#bufferIndex = this.#lastBufferIndex;
     }
@@ -61,7 +94,7 @@ export class Lexer {
         while (bufferIndex < bufferLength) {
             let ch = buffer[bufferIndex];
 
-            if (ch === 32 || ch === 9 || ch === 13 || ch === 10) {
+            if (ch === CH_SPACE || ch === CH_TAB || ch === CH_CR || ch === CH_LF) {
                 if (ch === CH_LF)
                     this.#lineIndex++;
 
@@ -126,43 +159,43 @@ export class Lexer {
         let ch = buffer[startIndex];
 
         switch (ch) {
-        case 44: // ','
+        case CH_COMMA:
             this.#bufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.Comma, startIndex, startIndex);
 
-        case 58: // ':'
+        case CH_COLON:
             this.#bufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.Colon, startIndex, startIndex);
 
-        case 45: // '-'
+        case CH_MINUS:
             this.#bufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.Minus, startIndex, startIndex);
 
-        case 59: // ';'
+        case CH_SEMICOLON:
             this.#bufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.Semicolon, startIndex, startIndex);
 
-        case 64: // '@'
+        case CH_AT:
             this.#bufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.At, startIndex, startIndex);
 
-        case 91: // '['
+        case CH_LBRACKET:
             this.#bufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.LeftBracket, startIndex, startIndex);
 
-        case 93: // ']'
+        case CH_RBRACKET:
             this.#bufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.RightBracket, startIndex, startIndex);
 
-        case 123: // '{'
+        case CH_LBRACE:
             this.#bufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.LeftCurlyBracket, startIndex, startIndex);
 
-        case 125: // '}'
+        case CH_RBRACE:
             this.#bufferIndex = bufferIndex + 1;
             return new Token(buffer, TokenType.RightCurlyBracket, startIndex, startIndex);
 
-        case 34: { // '"'
+        case CH_DQUOTE: {
             bufferIndex++;
 
             if (bufferIndex >= bufferLength) {
@@ -170,8 +203,8 @@ export class Lexer {
             }
 
             // check for multiline string """
-            if (buffer[bufferIndex] === 34) {
-                if (bufferIndex + 1 >= bufferLength || buffer[bufferIndex + 1] !== 34) {
+            if (buffer[bufferIndex] === CH_DQUOTE) {
+                if (bufferIndex + 1 >= bufferLength || buffer[bufferIndex + 1] !== CH_DQUOTE) {
                     // empty single-line string ""
                     this.#bufferIndex = bufferIndex + 1;
                     return new Token(buffer, TokenType.String, startIndex + 1, bufferIndex - 1);
@@ -191,8 +224,8 @@ export class Lexer {
                     if (ch === CH_LF)
                         this.#lineIndex++;
 
-                    if (ch === 34 && bufferIndex + 2 < bufferLength &&
-                        buffer[bufferIndex + 1] === 34 && buffer[bufferIndex + 2] === 34) {
+                    if (ch === CH_DQUOTE && bufferIndex + 2 < bufferLength &&
+                        buffer[bufferIndex + 1] === CH_DQUOTE && buffer[bufferIndex + 2] === CH_DQUOTE) {
                         break;
                     }
 
@@ -210,10 +243,10 @@ export class Lexer {
             // read single-line string
             while (true) {
                 if (!escaped) {
-                    if (ch === 34) // end of string
+                    if (ch === CH_DQUOTE) // end of string
                         break;
 
-                    if (ch === 92) { // '\'
+                    if (ch === CH_BACKSLASH) {
                         escaped = true;
                         bufferIndex++;
                         continue;
@@ -226,8 +259,7 @@ export class Lexer {
                     throw new LexerError("Unexpected end of buffer", this.#fileName, this.#lineIndex);
                 }
 
-                // LF
-                if (ch === 10) {
+                if (ch === CH_LF) {
                     throw new LexerError("String could not have line break", this.#fileName, this.#lineIndex);
                 }
 
@@ -240,16 +272,8 @@ export class Lexer {
         }
 
         // digits 0-9
-        case 48:
-        case 49:
-        case 50:
-        case 51:
-        case 52:
-        case 53:
-        case 54:
-        case 55:
-        case 56:
-        case 57: {
+        case CH_0: case CH_1: case CH_2: case CH_3: case CH_4:
+        case CH_5: case CH_6: case CH_7: case CH_8: case CH_9: {
             let isValidChar = true;
 
             while (isValidChar) {
@@ -258,9 +282,8 @@ export class Lexer {
                 if (bufferIndex >= bufferLength)
                     break;
 
-                // 0-9 .
                 ch = buffer[bufferIndex];
-                isValidChar = (ch >= 48 && ch <= 57) || (ch === 46);
+                isValidChar = (ch >= CH_0 && ch <= CH_9) || ch === CH_DOT;
             }
 
             this.#bufferIndex = bufferIndex;
@@ -269,8 +292,9 @@ export class Lexer {
 
         // identifiers
         default: {
-             // A-Z a-z _ * .
-            let isValidChar = ((ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || (ch === 95) || (ch === 42) || (ch === 46));
+            // valid identifier start: A-Z a-z _ * .
+            let isValidChar = (ch >= CH_A && ch <= CH_Z) || (ch >= CH_a && ch <= CH_z)
+                           || ch === CH_UNDERSCORE || ch === CH_STAR || ch === CH_DOT;
 
             if (!isValidChar) {
                 throw new LexerError("Unexpected character: " + String.fromCharCode(ch),
@@ -283,9 +307,11 @@ export class Lexer {
                 if (bufferIndex >= bufferLength)
                     break;
 
-                // A-Z a-z _ 0-9 . * -
+                // valid identifier continuation: A-Z a-z _ 0-9 . * -
                 ch = buffer[bufferIndex];
-                isValidChar = ((ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || (ch === 95) || (ch >= 48 && ch <= 57) || (ch === 46) || (ch === 42) || (ch === 45));
+                isValidChar = (ch >= CH_A && ch <= CH_Z) || (ch >= CH_a && ch <= CH_z)
+                           || ch === CH_UNDERSCORE || (ch >= CH_0 && ch <= CH_9)
+                           || ch === CH_DOT || ch === CH_STAR || ch === CH_MINUS;
             }
 
             this.#bufferIndex = bufferIndex;
@@ -294,20 +320,22 @@ export class Lexer {
 
             if (identifierLength === 4) {
                 // true
-                if (buffer[startIndex] === 116 && buffer[startIndex + 1] === 114 &&
-                    buffer[startIndex + 2] === 117 && buffer[startIndex + 3] === 101)
+                if (buffer[startIndex] === CH_t && buffer[startIndex + 1] === CH_r &&
+                    buffer[startIndex + 2] === CH_u && buffer[startIndex + 3] === CH_e) {
                     return new Token(buffer, TokenType.True, startIndex, bufferIndex - 1);
-
+                }
                 // null
-                if (buffer[startIndex] === 110 && buffer[startIndex + 1] === 117 &&
-                    buffer[startIndex + 2] === 108 && buffer[startIndex + 3] === 108)
+                if (buffer[startIndex] === CH_n && buffer[startIndex + 1] === CH_u &&
+                    buffer[startIndex + 2] === CH_l && buffer[startIndex + 3] === CH_l) {
                     return new Token(buffer, TokenType.Null, startIndex, bufferIndex - 1);
+                }
             } else if (identifierLength === 5) {
                 // false
-                if (buffer[startIndex] === 102 && buffer[startIndex + 1] === 97 &&
-                    buffer[startIndex + 2] === 108 && buffer[startIndex + 3] === 115 &&
-                    buffer[startIndex + 4] === 101)
+                if (buffer[startIndex] === CH_f && buffer[startIndex + 1] === CH_a &&
+                    buffer[startIndex + 2] === CH_l && buffer[startIndex + 3] === CH_s &&
+                    buffer[startIndex + 4] === CH_e) {
                     return new Token(buffer, TokenType.False, startIndex, bufferIndex - 1);
+                }
             }
 
             return new Token(buffer, TokenType.Identifier, startIndex, bufferIndex - 1);

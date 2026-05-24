@@ -8,3 +8,12 @@ export class ResolverError extends Error {
         this.userMessage = userMessage;
     }
 }
+
+export class LocatedError extends ResolverError {
+    public readonly locatedFile: string;
+
+    constructor(systemMessage: string, userMessage: string, locatedFile: string) {
+        super(systemMessage, userMessage);
+        this.locatedFile = locatedFile;
+    }
+}
