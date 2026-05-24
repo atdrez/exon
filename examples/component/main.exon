@@ -52,14 +52,12 @@ using fn.*
     }
 
     *** data ***
-
     data: shop.data {
         // override book price
         book_price: 25
     }
 
     *** apply tax ***
-
     book_total: shop.total {
         price: @root.data.book_price
         tax: @root.data.tax_rate
@@ -71,12 +69,10 @@ using fn.*
     }
 
     *** clamp a raw score to [0, 100] ***
-
     raw_score:    115
     bounded_score: math.bound { value: @root.raw_score  lo: 0  hi: 100 }
 
     *** build report lines using format.entry ***
-
     line_book:  format.entry { label: "Book total"  value: @root.book_total }
     line_shoe:  format.entry { label: "Shoe total"  value: @root.shoe_total }
     line_score: format.entry { label: "Score"       value: @root.bounded_score }

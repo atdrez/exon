@@ -1,0 +1,15 @@
+using fn.*
+
+{
+    result: js.eval {
+        content: "return Math.PI * 2"
+    }
+
+    hash: js.eval {
+        content: "return Math.random()"
+    }
+
+    answer: js.eval {
+        content: string.join { "return Math.abs(" neg { add { 40 2 } } ")" }
+    }
+}

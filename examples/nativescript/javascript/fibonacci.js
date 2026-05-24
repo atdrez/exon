@@ -8,3 +8,6 @@ module.exports.resolve = function(obj, context) {
 
     return fib(obj.value);
 };
+
+// Optional: return true if the component should receive unresolved params
+module.exports.isDeferred = function() { return false; };

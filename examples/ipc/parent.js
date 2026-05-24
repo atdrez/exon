@@ -1,6 +1,5 @@
-// SPDX-License-Identifier: MIT
 // Demonstrates bidirectional IPC with an exon worker.
-// Run with: node samples/ipc/parent.js
+// Run with: node examples/ipc/parent.js
 
 const { fork } = require('child_process');
 const path = require('path');

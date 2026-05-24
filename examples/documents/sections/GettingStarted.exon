@@ -7,7 +7,7 @@ extract {
 
     br{ count: 2 }
 
-    blockquote { "npx tsc && node bin/main.js samples/Document.exon" }
+    blockquote { "npx tsc && node bin/main.js examples/documents/main.exon" }
 
     br{ count: 2 }
 

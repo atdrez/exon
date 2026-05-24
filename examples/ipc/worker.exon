@@ -3,7 +3,7 @@ IPC worker - receives a number from the parent process,
 computes its square, and sends the result back.
 
 Run via parent.js (do not run directly):
-  node samples/ipc/parent.js
+  node examples/ipc/parent.js
 ***
 
 using fn.*
@@ -25,7 +25,7 @@ using fn.*
 
             arguments: string.split { @root.input separator: " " }
 
-            // expect to receive cmd + param
+            // expect to receive cmd followed by param
             command: get { target: @self.arguments index: 0 }
             parameter: get { target: @self.arguments index: 1 }
 

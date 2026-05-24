@@ -1,13 +1,5 @@
 {
-    _load: fn.sequence {
-        fn.native {
-            id: "mylibname.argv"
-            path: "javascript/argv.js"
-        }
-        fn.native {
-            id: "mylibname.string.join"
-            path: "javascript/stringJoin.js"
-        }
+    fn.sequence {
         fn.native {
             id: "mylibname.foreach"
             path: "javascript/foreach.js"
@@ -19,25 +11,10 @@
     }
 
     fibonacci_sequence: mylibname.foreach {
-        data: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        data: [1, 2, 3, 4, 5, 6, 7, 8]
         do: fn.string.join@v {
             num: fn.parameter {"value"}
             "Fibonacci number at #" @v.num " is " mylibname.math.fibonacci { value: @v.num }
         }
     }
-
-    fibonacci_sequence_joined: mylibname.string.join {
-        separator: ", "
-        fn.foreach {
-            data: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-            do: fn.sequence@k {
-                num: fn.parameter {"value"}
-                mylibname.math.fibonacci { value: @k.num }
-            }
-        }
-    }
-
-    script_path: mylibname.argv { 2 }
-
-    application_arguments: mylibname.argv {}
 }

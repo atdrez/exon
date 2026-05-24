@@ -1,7 +1,7 @@
 ***
 List folders and files at 2 depth
 
-./run.sh -r samples/path/listdir.exon
+./run.sh -r examples/path/listdir.exon
 ***
 
 using fn.*
