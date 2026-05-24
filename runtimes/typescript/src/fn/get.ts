@@ -28,17 +28,16 @@ export default class Component extends Base {
         const isIndex = (obj.index !== undefined);
         const isProperty = (obj.property !== undefined);
 
-        if (isIndex && isProperty)
-             throw new Error(`${this.name()} either property or index should be defined`);
-
         if (isIndex) {
             if (typeof obj.index !== "number")
                 throw new Error(`${this.name()}.number invalid`);
 
-            if (!Array.isArray(obj.target))
-                 throw new Error(`${this.name()}.target is not an array`);
+            const array = isProperty ? obj.target[obj.property] : obj.target;
 
-            return obj.target[obj.index];
+            if (!Array.isArray(array))
+                throw new Error(`${this.name()}.target is not an array`);
+
+            return array[obj.index];
         }
 
         if (isProperty) {

@@ -10,11 +10,22 @@ export default class Component extends Base {
         if (!(obj.target instanceof Object))
             throw new Error(`${this.name()}.target invalid`);
 
-        if (typeof obj.property !== "string")
-            throw new Error(`${this.name()}.property invalid`);
-
         if (obj.value === undefined)
             throw new Error(`${this.name()}.value invalid`);
+
+        const hasProperty = typeof obj.property === 'string';
+        const hasIndex = typeof obj.index === 'number';
+
+        if (!hasProperty && !hasIndex)
+            throw new Error(`${this.name()}.property invalid`);
+
+        if (hasIndex) {
+            const array = hasProperty ? obj.target[obj.property] : obj.target;
+            if (!Array.isArray(array))
+                throw new Error(`${this.name()}.target is not an array`);
+            array[obj.index] = obj.value;
+            return;
+        }
 
         const existing = obj.target[obj.property];
 

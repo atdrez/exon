@@ -24,15 +24,17 @@ function bindRaw(raw: any, context: Context): any {
 class PropertyValue implements IPropertyScript {
     #getter: any;
     #setter: any;
+    #init: any;
     #context: Context;
     #location: {
         file: string;
         line: number;
     };
 
-    constructor(rawGet: any, rawSet: any, context: Context) {
+    constructor(rawGet: any, rawSet: any, rawInit: any, context: Context) {
         this.#getter = rawGet;
         this.#setter = rawSet;
+        this.#init = rawInit;
         this.#context = context;
         this.#location = {
             file: context.location.file,
@@ -74,6 +76,16 @@ class PropertyValue implements IPropertyScript {
         };
     }
 
+    public runInit(): void {
+        if (this.#init === undefined) { return; }
+        try {
+            const currentValue = this.#context.resolve(this.#getter);
+            this.#context.resolve(this.#init, { value: currentValue });
+        } catch (e) {
+            this.#context.rethrow(e, this.#location);
+        }
+    }
+
     public toJSON(): any {
         return this.#context.resolve(this.#getter);
     }
@@ -98,6 +110,8 @@ export default class Component implements IPropertyScript {
 
     public resolve(obj: any, context: Context): any {
         const bind = (raw: any) => bindRaw(raw, context);
-        return new PropertyValue(bind(obj.get), bind(obj.set), context);
+        const pv = new PropertyValue(bind(obj.get), bind(obj.set), bind(obj.init), context);
+        pv.runInit();
+        return pv;
     }
 }
