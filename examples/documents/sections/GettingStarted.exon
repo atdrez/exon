@@ -19,7 +19,7 @@ extract {
     h3{"Output Formats"}
 
     "Set the " b{"FMT"} " environment variable to switch output formats. "
-    "For HTML output: " b{"FMT=html ./run.sh " fn.process.argv {2} } // script name
+    "For HTML output: " b{"FMT=html ./run.sh " fn.process.argv {0} } // script name
 
     br{ count: 2 }
 }

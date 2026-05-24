@@ -1,21 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-import  * as argv from "argv";
 import * as IPC from "./ipc";
 import { Parser } from "./Parser";
 import { Resolver } from "./Resolver";
 import { RuntimeOptions } from "./RuntimeOptions";
 import { ScriptRepository } from "./ScriptRepository";
 import { IScriptRepository } from "./IScriptRepository";
-
-const options = [
-    { name: 'extended', short: 'e', type: 'boolean'},
-    { name: 'path', short: 'p', type: 'list,path'},
-    { name: 'test', short: 't', type: 'boolean'},
-    { name: 'run', short: 'r', type: 'boolean'},
-    { name: 'channel', short: 'c', type: 'boolean'},
-    { name: 'bare', short: 'b', type: 'boolean'},
-];
+import { parseArgs } from "./parseArgs";
 
 function printOutput(result: any) {
     if (result instanceof Object) {
@@ -29,8 +20,8 @@ function parseFile(manager: IScriptRepository, paths: string[], fileName: string
     return new Parser(manager, paths).parse(fileName);
 }
 
-function runChannel(manager: IScriptRepository, paths: string[], fileName: string) {
-    const channelOptions = new RuntimeOptions({ run: true, test: false });
+function runChannel(manager: IScriptRepository, paths: string[], fileName: string, scriptArgv: string[]) {
+    const channelOptions = new RuntimeOptions({ run: true, test: false }, scriptArgv);
 
     process.on('message', (msg: any) => {
         IPC.setMessage(msg);
@@ -48,14 +39,14 @@ function runChannel(manager: IScriptRepository, paths: string[], fileName: strin
     }
 }
 
-function runNormal(manager: IScriptRepository, paths: string[], fileName: string, opts: any) {
+function runNormal(manager: IScriptRepository, paths: string[], fileName: string, opts: any, scriptArgv: string[]) {
     try {
         const result = parseFile(manager, paths, fileName);
 
         if (opts.extended) {
             printOutput(result);
         } else {
-            const options = new RuntimeOptions(opts);
+            const options = new RuntimeOptions(opts, scriptArgv);
             const resolver = new Resolver(manager, options);
             const output = resolver.resolve(result);
 
@@ -72,10 +63,11 @@ function runNormal(manager: IScriptRepository, paths: string[], fileName: string
     }
 }
 
-const params = argv.option(options).run();
+const params = parseArgs(process.argv.slice(2));
 
 const fileName : string = params.targets[0];
 const paths : string[] = params.options.path;
+const scriptArgv : string[] = params.targets;
 
 const manager = new ScriptRepository();
 
@@ -90,7 +82,7 @@ if (!params.options.bare) {
 }
 
 if (params.options.channel) {
-    runChannel(manager, paths, fileName);
+    runChannel(manager, paths, fileName, scriptArgv);
 } else {
-    runNormal(manager, paths, fileName, params.options);
+    runNormal(manager, paths, fileName, params.options, scriptArgv);
 }

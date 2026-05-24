@@ -9,13 +9,13 @@ using fn.*
 
 sequence {
     assert {
-        defined { process.argv {3} }
+        defined { process.argv {0} }
         message: "Script argument is missing"
     }
 
     jsfile: "/../../runtimes/typescript/bin/main.js"
 
-    dir: path.dirname { process.argv {3} }
+    dir: path.dirname { process.argv {0} }
 
     cmd: string.join { "node " @root.dir @root.jsfile }
 

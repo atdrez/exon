@@ -20,11 +20,11 @@ function makeManager() {
 
 export type ExtraFiles = Record<string, string>;
 
-export function parseAndResolve(filePath: string, searchPaths: string[] = [samplesDir]): any {
+export function parseAndResolve(filePath: string, searchPaths: string[] = [samplesDir], argv: string[] = []): any {
     const manager = makeManager()
     const parser = new Parser(manager, searchPaths)
     const ast = parser.parse(filePath)
-    const options = new RuntimeOptions({ run: false, test: false })
+    const options = new RuntimeOptions({ run: false, test: false }, argv)
     const resolver = new Resolver(manager, options)
     return resolver.resolve(ast)
 }
@@ -44,6 +44,17 @@ export function compile(source: string, extraFiles?: ExtraFiles): any {
         }
 
         return parseAndResolve(mainFile);
+    } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+}
+
+export function compileWithArgv(source: string, argv: string[]): any {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'exon-test-'));
+    try {
+        const mainFile = path.join(dir, 'Main.exon');
+        fs.writeFileSync(mainFile, source);
+        return parseAndResolve(mainFile, [samplesDir], argv);
     } finally {
         fs.rmSync(dir, { recursive: true, force: true });
     }

@@ -16,17 +16,17 @@ using fn.process.exec
 
 {
     fn.assert {
-      fn.defined { fn.process.argv {3} }
+      fn.defined { fn.process.argv {0} }
       message: "Script argument is missing"
     }
 
-    dir: fn.path.dirname { fn.process.argv {3} }
-  
+    dir: fn.path.dirname { fn.process.argv {0} }
+
     srcDir: fn.string.join { @root.dir "/src" }
     outDir: fn.string.join { @root.dir "/bin" }
-  
+
     // use target passed via args, or fallback to hello
-    target: fn.or { fn.process.argv { 4 } "hello" }
+    target: fn.or { fn.process.argv { 1 } "hello" }
 
     // discover source and header files
     cFiles: discover { dir: @root.srcDir path: "*.c" }

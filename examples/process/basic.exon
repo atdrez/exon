@@ -1,6 +1,7 @@
 using fn.*
 
 {
+    arguments: process.argv{}
     directoryList: string.split {
         process.exec { "ls" } separator: "\n"
     }
