@@ -1,7 +1,6 @@
 
 using fn.*
-using ..lib.it
-using ..lib.describe
+using ...exonmods.fne.test.*
 
 {
     i50: property.gauge {
@@ -134,6 +133,46 @@ using ..lib.describe
             it {
                 "Assign wrong email pattern should raise exception"
                 @emailPatternException
+            }
+        }
+
+        describe {
+            description: "Init delegate..."
+
+            // init should reject non-string at construction time
+            try@initStringTypeException {
+                ...exonmods.fne.property.string { 10 }
+                then: false
+                catch: true
+            }
+
+            it {
+                "Init should reject non-string for string property"
+                @initStringTypeException
+            }
+
+            // init should accept a valid string
+            try@initStringOk {
+                ...exonmods.fne.property.string { "hello" }
+                then: true
+                catch: false
+            }
+
+            it {
+                "Init should accept valid string for string property"
+                @initStringOk
+            }
+
+            // init should reject non-number for number property
+            try@initNumberTypeException {
+                ...exonmods.fne.property.number { "abc" }
+                then: false
+                catch: true
+            }
+
+            it {
+                "Init should reject non-number for number property"
+                @initNumberTypeException
             }
         }
     }

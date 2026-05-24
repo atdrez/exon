@@ -1,0 +1,52 @@
+***
+Provides type checking for number properties
+
+Important note:
+  To store property content into __content__, always use get/set with property and index
+  fields, in order to modify the array element directly. By design, Exon copies the arrays
+  when resolving parameter transformations.
+***
+
+using fn.*
+
+property {
+    __content__: [0]
+
+    get: get {
+        target: @root
+        property: "__content__"
+        index: 0
+    }
+
+    set: set {
+        target: @root
+        property: "__content__"
+        index: 0
+
+        value: sequence {
+            assert {
+                number.is { parameter { "value" } }
+                message: "Invalid type: must be number"
+            }
+            parameter { "value" }
+        }
+    }
+
+    init: set {
+        target: @root
+        property: "__content__"
+        index: 0
+
+        value: sequence {
+            assert {
+                and {
+                    eq { count { @root.__content__ } 1}
+                    number.is { get { target: @root property: "__content__" index: 0 } }
+                }
+                message: "Wrong initialization"
+            }
+
+            get { target: @root property: "__content__" index: 0 }
+        }
+    }
+}

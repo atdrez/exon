@@ -1,6 +1,5 @@
 using fn.*
-using ..lib.it
-using ..lib.describe
+using ...exonmods.fne.test.*
 
 {
     r: "red"

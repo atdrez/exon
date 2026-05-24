@@ -1,6 +1,5 @@
 using fn.eq
-using ..lib.it
-using ..lib.describe
+using ...exonmods.fne.test.*
 
 {
 

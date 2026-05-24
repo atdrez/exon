@@ -1,6 +1,5 @@
 using fn.*
-using ..lib.it
-using ..lib.describe
+using ...exonmods.fne.test.*
 
 {
     nameList: [ "John", "Doe" ]
@@ -461,7 +460,7 @@ using ..lib.describe
             description: "Properties"
 
             Object@props {
-                s01: property.lib.string { _value: "hello" }
+                s01: ...exonmods.fne.property.string { "hello" }
             }
 
             it {

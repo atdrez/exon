@@ -26,4 +26,17 @@ property {
             math.clamp { parameter { "value" } @root.min @root.max }
         }
     }
+
+    init: set {
+        target: @root
+        property: "_value"
+        value: sequence {
+            assert {
+                number.is { parameter { "value" } }
+                message: "Invalid type: must be number"
+            }
+            // return value clamped
+            math.clamp { parameter { "value" } @root.min @root.max }
+        }
+    }
 }

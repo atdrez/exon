@@ -12,10 +12,7 @@ testing:
 using lib.*
 using fn.eq
 using fn.sequence
-using ...tests.lib.it
-using ...tests.lib.describe
-using ...tests.lib.toCatch
-using ...tests.lib.toNotCatch
+using ...exonmods.fne.test.*
 
 {
     body {

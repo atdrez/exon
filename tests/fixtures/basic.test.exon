@@ -7,7 +7,7 @@ Usage:
 ***
 
 using fn.*
-using ..lib.*
+using ...exonmods.fne.test.*
 
 {
     name: "John"

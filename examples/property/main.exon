@@ -34,4 +34,8 @@ via a binding.
     }
 
     addition: fn.add { @root.i35.value 10 }
+
+    num_value: ...exonmods.fne.property.number { 10 }
+
+    str_value: ...exonmods.fne.property.string { "hello" }
 }
