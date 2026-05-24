@@ -70,6 +70,7 @@ import LangMod from "./lang/mod";
 import LangPow from "./lang/pow";
 import LangXor from "./lang/xor";
 import LangNeg from "./lang/neg";
+import LangLazy from "./lang/lazy";
 import LangDefined from "./lang/defined";
 import LangTypeof from "./lang/typeof";
 import LangClassname from "./lang/classname";
@@ -132,7 +133,7 @@ export function components(): any {
         LangAdd, LangSub, LangMul, LangDiv, LangMod, LangPow,
         LangNot, LangXor, LangNeg,
         LangDefined, LangTypeof, LangClassname, LangInstanceof, LangIn,
-        LangCoalesce, LangCond,
+        LangCoalesce, LangCond, LangLazy,
 
         // ipc
         IpcGetMessage, IpcSendMessage,
