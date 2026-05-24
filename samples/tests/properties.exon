@@ -1,0 +1,140 @@
+
+using fn.*
+using tests.lib.it
+using tests.lib.describe
+
+{
+    i50: property.gauge {
+
+    }
+
+    i33: property.gauge {
+        value: 33
+    }
+
+    in15: property.gauge {
+        value: -15
+    }
+
+    i160: property.gauge {
+        value: 160
+    }
+
+    email01: property.email {
+
+    }
+
+    email02: property.email {
+        value: "lorem@ipsum.com"
+    }
+
+    i33plus10: add { @root.i33.value 10 }
+
+    __tests__: {
+        describe {
+            description: "Property assignments..."
+
+            it {
+                "i50 should be 50"
+                eq { @root.i50.value 50 }
+            }
+
+            it {
+                "i33 should be 33"
+                eq { @root.i33.value 33 }
+            }
+
+            it {
+                "in15 should be 0"
+                eq { @root.in15.value 0 }
+            }
+
+            it {
+                "i160 should be 100"
+                eq { @root.i160.value 100 }
+            }
+        }
+
+        describe {
+            description: "Using get with property..."
+
+            // store variable
+            get@test_get { target: @root.i33 property: "value" }
+
+            it {
+                string.join {
+                    "get(i33) should be 33 (received: " @test_get ")"
+                }
+                eq { @test_get 33 }
+            }
+        }
+
+        describe {
+            description: "Property compositions..."
+
+            it {
+                "i33plus10 should be 43"
+                eq { @root.i33plus10 43 }
+            }
+
+            mul@test_mul { @root.i160.value 3 }
+
+            it {
+                "i160 * 3 should be 300"
+                eq { @test_mul 300 }
+            }
+
+            // try catch and store boolean
+            try@xException {
+                property.gauge {
+                    value: "abc"
+                }
+                then: false
+                catch: true
+            }
+
+            it {
+                "Assign wrong type to number property should raise exception"
+                @xException
+            }
+        }
+
+        describe {
+            description: "String properties..."
+
+            it {
+                "email01 should be equal to 'foo@bar.com'"
+                eq { @root.email01.value "foo@bar.com" }
+            }
+
+            it {
+                "email02.value should be equal to 'Lorem Ipsum'"
+                eq { @root.email02.value "lorem@ipsum.com" }
+            }
+
+            // test email string type
+            try@emailTypeException {
+                property.email { value: 10 }
+                then: false
+                catch: true
+            }
+
+            it {
+                "Assign wrong email type should raise exception"
+                @emailTypeException
+            }
+
+            // test email pattern
+            try@emailPatternException {
+                property.email { value: "invalidemail" }
+                then: false
+                catch: true
+            }
+
+            it {
+                "Assign wrong email pattern should raise exception"
+                @emailPatternException
+            }
+        }
+    }
+}

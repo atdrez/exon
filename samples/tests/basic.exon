@@ -1,0 +1,78 @@
+***
+When __tests__ section is present and -t parameter is passed,
+the tests will run without outputing the main exon file.
+
+Usage:
+  ./run.sh -t samples/Testing.exon
+***
+
+using fn.*
+using lib.*
+
+{
+    name: "John"
+    surname: "Doe"
+
+    fullName: string.join { @root.name @root.surname separator: " "}
+
+    age: 35
+    yeasForRetirement: 20
+
+    retirementAge: add { @root.age @root.yeasForRetirement }
+
+    __tests__: {
+        describe {
+            description: "Name checking"
+
+            it {
+                "name and surname should be strings"
+                and {
+                    string.is { @root.name }
+                    string.is { @root.surname }
+                }
+            }
+
+            it {
+                "fullName should be 'John Doe'"
+                eq { @root.fullName "John Doe" }
+            }
+        }
+
+        describe {
+            description: "Age checking"
+
+            it {
+                "age should be 35"
+                eq { @root.age 35 }
+            }
+
+            it {
+                "yeasForRetirement should be 20"
+                eq { @root.yeasForRetirement 20 }
+            }
+
+            it {
+                "retirementAge should be 55"
+                eq { @root.retirementAge 55 }
+            }
+        }
+
+        describe {
+            description: "Error handling"
+
+            it {
+                "calling add correctly, exception not expected"
+                toNotCatch {
+                    add { @root.age 10 }
+                }
+            }
+
+            it {
+                "calling add with single argument, exception expected"
+                toCatch {
+                    add { @root.age }
+                }
+            }
+        }
+    }
+}

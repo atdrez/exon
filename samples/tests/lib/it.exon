@@ -1,0 +1,17 @@
+fn.wrapper {
+    content: fn.println {
+        fn.if {
+            condition: fn.get {
+                target: @root.__content__
+                index: 1
+            }
+            then: " [OK]\t\t"
+            else: " [FAIL]\t\t"
+        }
+
+        fn.get {
+            target: @root.__content__
+            index: 0
+        }
+    } 
+}

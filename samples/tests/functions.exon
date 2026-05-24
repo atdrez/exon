@@ -1,0 +1,565 @@
+using fn.*
+using tests.lib.it
+using tests.lib.describe
+
+{
+    nameList: [ "John", "Doe" ]
+
+    __tests__: {
+        *** MATH ***
+        describe {
+            description: "Math"
+
+            it {
+                "10 + 20 = 30"
+                eq { add { 10 20 } 30 }
+            }
+
+            it {
+                "18 - 12 = 6"
+                eq { add { 18 - 12 } 6 }
+            }
+
+            it {
+                "12 - 19 = -7"
+                eq { add { 12 - 19 } -7 }
+            }
+
+            it {
+                "4 * 3 = 12"
+                eq { mul { 4 3 } 12 }
+            }
+
+            it {
+                "4 * -5 = -20"
+                eq { mul { 4 -5 } -20 }
+            }
+
+            it {
+                "20 / 4 = 5"
+                eq { div { 20 4 } 5 }
+            }
+
+            it {
+                "(10 * 5) - 5 = 45"
+                eq {
+                    45
+                    sub { mul { 10 5 } 5 }
+                }
+            }
+
+            it {
+                "2 + ((10 * 5) - 5) / 5 = 11"
+                eq {
+                    11
+                    add {
+                        2
+                        div { sub { mul { 10 5 } 5 } 5 }
+                    }
+                }
+            }
+
+            it {
+                "min (12, 50, 80) is 12"
+                eq { math.min {12 50 80} 12 }
+            }
+
+            it {
+                "max (12, 50, 80) is 80"
+                eq { math.max {12 50 80} 80 }
+            }
+
+            it {
+                "clamp (12, 50, 80) is 50"
+                eq { math.clamp {12 50 80} 50 }
+            }
+
+            it {
+                "clamp (65, 50, 80) is 65"
+                eq { math.clamp {65 50 80} 65 }
+            }
+
+            it {
+                "clamp (95, 50, 80) is 80"
+                eq { math.clamp {95 50 80} 80 }
+            }
+        }
+
+
+        *** LOGIC ***
+        describe {
+            description: "Logic"
+
+            *** NOT ***
+            it {
+                "!false == true"
+                not { false }
+            }
+
+            it {
+                "!true == false"
+                eq { not { true } false }
+            }
+
+
+            *** AND ***
+            it {
+                "(true and true) == true"
+                and { true true }
+            }
+
+            it {
+                "(true and false) == false"
+                not { and { true false } }
+            }
+
+            it {
+                "(false and false) == false"
+                not { and { false false } }
+            }
+
+            it {
+                "(true and null) == false"
+                not { and { true null } }
+            }
+
+            *** OR ***
+            it {
+                "(true or false) == true"
+                or { true false }
+            }
+
+            it {
+                "(false or false) == false"
+                not { or { false false } }
+            }
+
+            it {
+                "(null or false) == false"
+                not { or { null false } }
+            }
+        }
+
+
+        *** COMPARISON ***
+        describe {
+            description: "Comparison"
+
+            it {
+                "(10 == 10) is true"
+                eq { 10 10 }
+            }
+
+            it {
+                "(10 == 12) is false"
+                not { eq { 10 12 } }
+            }
+
+            it {
+                "(10 != 10) is false"
+                not { ne { 10 10 } }
+            }
+
+            it {
+                "(10 != 12) is true"
+                ne { 10 12 }
+            }
+
+            it {
+                "(10 < 12) is true"
+                lt { 10 12 }
+            }
+
+            it {
+                "(12 < 10) is false"
+                not { lt { 12 10 } }
+            }
+
+            it {
+                "(12 > 10) is true"
+                gt { 12 10 }
+            }
+
+            it {
+                "(10 > 12) is false"
+                not { gt { 10 12 } }
+            }
+
+            it {
+                "(10 <= 10) is true"
+                le { 10 10 }
+            }
+
+            it {
+                "(12 <= 10) is false"
+                not { le { 12 10 } }
+            }
+
+            it {
+                "(10 >= 10) is true"
+                ge { 10 10 }
+            }
+
+            it {
+                "(10 >= 12) is false"
+                not { ge { 10 12 } }
+            }
+        }
+
+
+        *** CONTROL FLOW ***
+        describe {
+            description: "Control Flow"
+
+            it {
+                "if (true) then"
+                if { condition: true  then: true }
+            }
+            it {
+                "if (false) else"
+                if { condition: false  then: false  else: true }
+            }
+
+            it {
+                "switch ('goal') case goal: "
+                switch { value: "goal"  goal: true }
+            }
+
+            it {
+                "switch ('fail') default: "
+                switch { value: "fail"  goal: false  __default: true }
+            }
+
+            it {
+                "sequence { 1 2 3 } == 3"
+                eq { sequence { 1 2 3 } 3 }
+            }
+        }
+
+        *** ERROR HANDLING ***
+        describe {
+            description: "Error handling"
+
+            it {
+                "try {} then"
+                try { pass {}  then: true  catch: false }
+            }
+
+            it {
+                "try {} catch"
+                try { raise { "error" }  then: false  catch: true }
+            }
+
+            it {
+                "try { assert {true} } then"
+                try { assert { true message: "error" }  then: true  catch: false }
+            }
+
+            it {
+                "try { assert {false} } then"
+                try { assert { false message: "error" }  then: false  catch: true }
+            }
+        }
+
+
+        *** STRINGS ***
+        describe {
+            description: "String"
+
+            it {
+                "string.is { 'ABC' } == true"
+                string.is { "ABC" }
+            }
+
+            it {
+                "string.is { 10 } == false"
+                not { string.is { 10 } }
+            }
+
+            it {
+                "string.join { 'A' 4 } is 'A 4'"
+                eq {
+                    "A4"
+                    string.join { "A" 4 }
+                }
+            }
+
+            it {
+                "string.parseInt { '15' } == 15"
+                eq { 15 string.parseInt { "15" } }
+            }
+
+            it {
+                "string.parseInt { '-22' } == -22"
+                eq { -22 string.parseInt { "-22" } }
+            }
+    
+            it {
+                "string.join { 'A' 'B' 'C' separator: ':' } is 'A:B:C'"
+                eq {
+                    "A:B:C"
+                    string.join { "A" "B" "C" separator: ":" }
+                }
+            }
+
+            it {
+                "string.split { 'A:B:C' separator: ':' } has 3 items"
+                eq { count { string.split { "A:B:C" separator: ":" } } 3 }
+            }
+
+            it {
+                "string.split first item is 'A'"
+                eq {
+                    "A"
+                    get { target: string.split { "A:B:C" separator: ":" } index: 0 }
+                }
+            }
+
+            it {
+                "nameList = ['John', 'Doe']"
+                and {
+                    // check if the list has 2 items
+                    eq { count { @root.nameList } 2 }
+
+                    eq {
+                        "John"
+                        get { target: @root.nameList index: 0 }
+                    }
+                    eq {
+                        "Doe"
+                        get { target: @root.nameList index: 1 }
+                    }
+                }
+            }
+        }
+
+
+        *** NUMBER ***
+        describe {
+            description: "Number"
+
+            it {
+                "number.is { 10 } == true"
+                number.is { 10 }
+            }
+
+            it {
+                "number.is { 'ABC' } == false"
+                not { number.is { "ABC" } }
+            }
+
+            it {
+                "number.is { false } == false"
+                not { number.is { false } }
+            }
+        }
+
+
+        *** IO ***
+        describe {
+            description: "IO"
+
+            it {
+                "load text file"
+                eq {
+                    "HELLO WORLD"
+                    file.load {
+                        path: "./helloworld.txt"
+                    }
+                }
+            }
+
+            it {
+                "process.env { 'PATH' } is not null"
+                ne { process.env { "PATH" } null }
+            }
+        }
+
+
+        *** JSON ***
+        describe {
+            description: "JSON"
+
+            json.decode@json_obj {
+                content: """{"name":"exon","version":1}"""
+            }
+
+            it {
+                "json.decode name == 'exon'"
+                eq {
+                    "exon"
+                    get { target: @json_obj  property: "name" }
+                }
+            }
+
+            it {
+                "json.decode version == 1"
+                eq {
+                    1
+                    get { target: @json_obj  property: "version" }
+                }
+            }
+
+            it {
+                "json.encode { { name: 'exon' } } == '{\"name\":\"exon\"}'"
+                eq {
+                    """{"name":"exon"}"""
+                    json.encode { { name: "exon" }  indent: 0 }
+                }
+            }
+        }
+
+
+        *** XML ***
+        describe {
+            description: "XML"
+
+            it {
+                "xml.encode { { tag: 'hello' } root: 'root' }"
+                eq {
+                    "<root><tag>hello</tag></root>"
+                    xml.encode { { tag: "hello" }  root: "root" }
+                }
+            }
+        }
+
+
+        *** YAML ***
+        describe {
+            description: "YAML"
+
+            it {
+                "yaml.encode { { name: 'exon' } }"
+                eq {
+                    "name: exon"
+                    yaml.encode { { name: "exon" } }
+                }
+            }
+        }
+
+
+        *** SCRIPTING ***
+        describe {
+            description: "Scripting"
+
+            it {
+                "javascript eval(10 + 32) = 42"
+                eq {
+                    42
+                    js.eval {
+                        content: "return $a + $b;"
+                        a: 10
+                        b: 32
+                    }
+                }
+            }
+        }
+
+
+        *** PROPERTIES ***
+        describe {
+            description: "Properties"
+
+            Object@props {
+                s01: property.lib.string { _value: "hello" }
+            }
+
+            it {
+                "string property init"
+                eq { @props.s01 "hello" }
+            }
+
+            set { target: @props  property: "s01"  value: "world" }
+
+            it {
+                "string property after set"
+                eq { @props.s01 "world" }
+            }
+
+            it {
+                "raise error when setting number to string property"
+                try {
+                    set { target: @props  property: "s01"  value: 10 }
+                    then: false
+                    catch: true
+                }
+            }
+        }
+
+
+        *** COLLECTIONS ***
+        describe {
+            description: "Collections"
+
+            map@map_obj {
+                keys:   [ "ok", "missing", "error" ]
+                values: [ 200,  404,       500     ]
+            }
+
+            it {
+                "map"
+
+                and {
+                    eq { @map_obj.ok 200 }
+                    eq { @map_obj.missing 404 }
+                    eq { @map_obj.error 500 }
+                }
+            }
+
+            merge@merge_obj {
+                { host: "A" port: 8080 }
+                { host: "B" ttl: 30 }
+            }
+
+            it {
+                "merge"
+
+                and {
+                    eq { @merge_obj.host "B" }
+                    eq { @merge_obj.port 8080 }
+                    eq { @merge_obj.ttl 30 }
+                }
+            }
+
+            // store foreach result
+            Object@foreach_obj {
+                content: foreach {
+                    data: [
+                        { id: 1 name: "A" },
+                        { id: 2 name: "B"  }
+                    ]
+                    do: Object@do01 {
+                        _obj: parameter { "value" }
+
+                        id: @do01._obj.id
+
+                        label: string.join {
+                            @do01._obj.id @do01._obj.name
+                            separator: "."
+                        }
+                    }
+                }
+            }
+
+            // get first foreach obj
+            get@foreach_obj_01 {
+                target: @foreach_obj.content
+                index: 0
+            }
+
+            // get second foreach obj
+            get@foreach_obj_02 {
+                target: @foreach_obj.content
+                index: 1
+            }
+
+            it {
+                "foreach"
+                and {
+                    eq { @foreach_obj_01.label "1.A" }
+                    eq { @foreach_obj_02.label "2.B" }
+                }
+            }
+        }
+    }
+}

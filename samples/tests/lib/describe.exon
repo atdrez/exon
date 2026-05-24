@@ -1,0 +1,14 @@
+fn.wrapper {
+    description: ""
+
+    content: fn.sequence {
+        fn.println { @root.description }
+
+        fn.println { "--------------------------------------------------------------------------------" }
+
+        @root.__content__
+
+        fn.println { "--------------------------------------------------------------------------------" }
+        fn.println { "" }
+    }
+}

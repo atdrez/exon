@@ -1,0 +1,7 @@
+fn.wrapper {
+    content: fn.try {
+        @root.__content__
+        catch: false
+        else: true
+    } 
+}
