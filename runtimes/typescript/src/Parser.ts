@@ -364,13 +364,18 @@ export class Parser {
 
             token = lexer.readToken();
 
-            // finish
             if (token.tokenType === TokenType.RightBracket)
                 break;
 
             if (token.tokenType !== TokenType.Comma)
                 throw new ParserError(`Invalid token found '${token.toString()}', expected: ','`,
                                       lexer);
+
+            // allow trailing comma: peek ahead and stop if the array is closed
+            token = lexer.readToken();
+            if (token.tokenType === TokenType.RightBracket)
+                break;
+            lexer.putTokenBack();
         }
 
         return result;

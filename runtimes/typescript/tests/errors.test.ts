@@ -69,6 +69,16 @@ describe('resolver errors', () => {
     });
 });
 
+describe('array syntax', () => {
+    it('accepts a trailing comma in an array', () => {
+        expect(compile(`{ x: [1, 2, 3,] }`)).toEqual({ x: [1, 2, 3] });
+    });
+
+    it('accepts a trailing comma with a single element', () => {
+        expect(compile(`{ x: [42,] }`)).toEqual({ x: [42] });
+    });
+});
+
 describe('native component validation errors', () => {
     it('fn.map throws when keys and values have different lengths', () => {
         expect(() =>
