@@ -1,0 +1,14 @@
+fn.js.eval {
+    __content__: []
+
+    content: """
+    const c = $__content__;
+    if (c.length < 2)
+        throw new Error("Invalid number of arguments");
+
+    let r = true;
+    for (let i = 0; i < c.length; i++)
+        r &&= c[i];
+    return r;
+    """
+}

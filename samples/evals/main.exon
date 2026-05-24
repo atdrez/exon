@@ -1,0 +1,27 @@
+using lib.* // this lib include javascript evals, prefer to use fn.native
+
+{
+    calc_10x3: mul { 10 3 }
+
+    comment: fn.string.split { separator: "\n"
+    """
+    if (12 + (30 - 10) == 32) and (calc_10x3 != 40) then:     
+        target_value = "is valid"                           
+    else                                                      
+        target_value = "is not valid"                       
+    """
+    }
+
+    target_value: if {
+        condition:
+            and {
+                // (12 + (30 - 10)) == 32
+                eq { add { 12 sub { 30 10 }  } 32 }
+                // calc_10x3 != 30
+                ne { @root.calc_10x3 40 }
+                
+            }
+        then: "is valid"
+        else: "is not valud"
+    }
+}

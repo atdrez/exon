@@ -1,0 +1,9 @@
+// load data from text file
+{
+    lines: fn.string.split{
+        fn.file.load {
+            path: "data/meta.txt"
+        }
+        separator: "\n"
+    }
+}

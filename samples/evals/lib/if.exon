@@ -1,0 +1,7 @@
+fn.js.eval {
+    condition: false
+    then: null
+    else: null
+
+    content: "return ($condition) ? ($then) : ($else)"
+}
