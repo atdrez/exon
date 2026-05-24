@@ -2,7 +2,7 @@
 
 import { Context } from "./Context";
 import { IResolver } from "./IResolver";
-import { LocatedError, ResolverError } from "./ResolverError";
+import { CallSite, LocatedError } from "./ResolverError";
 import { RuntimeOptions } from "./RuntimeOptions";
 import { IScriptRepository } from "./IScriptRepository";
 
@@ -12,21 +12,34 @@ export class Resolver implements IResolver {
     #params: { [key: string]: any } | undefined = undefined;
 
     static readonly #METADATA_KEYS = new Set([
-        '__name__', '__file__', '__line__', '__id__', '__idFile__', '__ref__',
-        '__native__', '__base__', '__bind__'
+        '__name__',    // base filename (no extension) of the root object in each file
+        '__file__',    // source file path where the object was parsed
+        '__line__',    // source line number where the object was parsed
+        '__id__',      // declared identifier; enables cross-object @ref lookups
+        '__idFile__',  // file where __id__ was declared; scopes IDs per file in the registry
+        '__ref__',     // marks this object as a binding reference
+        '__native__',  // native component name to invoke during resolution
+        '__base__',    // parsed base-type object (inheritance)
+        '__bind__',    // binding target for @ref declarations
     ]);
+    // Keys intentionally absent from METADATA_KEYS:
+    //   __content__:     field that holds child elements declared inside an object body;
+    //                    (e.g: Object {1 2 3} is the same as Object{__content__: [1, 2, 3]}
+    //   __tests__:       block of test assertions embedded in the exon file; resolved normally when
+    //                    testMode is on (-t flag), suppressed entirely otherwise;
+    //   __preresolved__: sentinel set by deferred scripts (e.g. fn.property) to cache a result;
+    //   __bindFile__:    file where an @ref binding was written; always lives inside a
+    //                    { __bind__, __bindFile__ } value object (never a top-level field);
 
     constructor(manager: IScriptRepository, options: RuntimeOptions) {
         this.#context = new Context(this, manager, options);
     }
 
-    private isMetaDataField(key: string): boolean {
-        return Resolver.#METADATA_KEYS.has(key);
-    }
-
     private shouldSkipField(key: string): boolean {
-        return this.isMetaDataField(key)
-            || (key === '__tests__' && !this.#context.options.testMode);
+        if (Resolver.#METADATA_KEYS.has(key))
+            return true;
+
+        return (key === '__tests__' && !this.#context.options.testMode);
     }
 
     private registerIdInFile(id: string, file: string, value: any): void {
@@ -60,10 +73,6 @@ export class Resolver implements IResolver {
         if ('__name__' in base) {
             this.registerIdInFile('root', base['__file__'] ?? '', target);
         }
-    }
-
-    private makeLocatedError(message: string, inner: string, file: string): LocatedError {
-        return new LocatedError(message, inner, file);
     }
 
     public resolve(obj: any, params?: { [key: string]: any }): any {
@@ -263,16 +272,16 @@ export class Resolver implements IResolver {
             throw error;
         }
 
-        const loc = callerLine > 0 ? `${callerFile}:${callerLine}` : callerFile;
-
         if (error instanceof LocatedError) {
             if (error.locatedFile !== callerFile && callerFile) {
-                throw this.makeLocatedError(`  [${loc}]\n${error.message}`, error.message, callerFile);
+                const site: CallSite = { file: callerFile, line: callerLine };
+                throw new LocatedError(error.userMessage, callerFile, [site, ...error.callStack]);
             }
             throw error;
         }
 
-        throw this.makeLocatedError(`  [${loc}]: ${error.message}`, error.message, callerFile);
+        const site: CallSite = { file: callerFile, line: callerLine };
+        throw new LocatedError(error.message, callerFile, [site]);
     }
 
     public resolveBinding(path: string, file: string): any {
