@@ -1,24 +1,30 @@
 #!/bin/bash
 
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+NODE="node"
+MAIN="$REPO_DIR/runtimes/typescript/bin/main.js"
+EXAMPLES="$REPO_DIR/examples"
+FIXTURES="$REPO_DIR/tests/fixtures"
+
 if [ "$1" = "-r" ]; then
     ok=0
     fail=0
     while IFS= read -r f; do
-        if node runtimes/typescript/bin/main.js -t -p examples "$f" >/dev/null 2>&1; then
+        if "$NODE" "$MAIN" -t -p "$EXAMPLES" "$f" >/dev/null 2>&1; then
             printf "\033[0;32m[OK]\033[0m\t%s\n" "$f"
             ok=$((ok + 1))
         else
             printf "\033[0;31m[ERROR]\033[0m\t%s\n" "$f"
             fail=$((fail + 1))
         fi
-    done < <(find examples -name "*.exon" | sort)
+    done < <(find "$EXAMPLES" -name "*.exon" | sort)
 
     color=$( [ "$fail" -gt 0 ] && echo "\033[0;31m" || echo "\033[0;32m" )
     printf "\n${color}Results: %d ok, %d errors\033[0m\n" "$ok" "$fail"
     [ "$fail" -gt 0 ] && exit 1 || exit 0
 else
-    for f in tests/fixtures/*.exon; do
-        node runtimes/typescript/bin/main.js -t -p examples "$f" 2>&1
+    for f in "$FIXTURES"/*.exon; do
+        "$NODE" "$MAIN" -t -p "$EXAMPLES" "$f" 2>&1
     done | awk '
         /\[OK\]/   { ok++;   gsub(/\[OK\]/,   "\033[0;32m[OK]\033[0m") }
         /\[FAIL\]/ { fail++; gsub(/\[FAIL\]/, "\033[0;31m[FAIL]\033[0m") }
