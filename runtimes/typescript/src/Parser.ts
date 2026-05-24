@@ -14,6 +14,7 @@ export class Parser {
 
     #paths: string[];
     #scriptManager: IScriptRepository;
+    #parsingFiles: Set<string> = new Set();
 
     public constructor(manager: IScriptRepository, paths: string[] = []) {
         this.#paths = paths;
@@ -22,6 +23,8 @@ export class Parser {
 
     public parse(fileName: string) : any {
         const absoluteFilePath = Path.resolve(fileName);
+        this.#parsingFiles.clear();
+        this.#parsingFiles.add(absoluteFilePath);
         const input = FileSystem.readFileSync(absoluteFilePath);
         return this.parseFromBuffer(input, absoluteFilePath);
     }
@@ -79,12 +82,22 @@ export class Parser {
     private findAndParseObject(objectName: string, dirName: string) : any {
         const fileName = this.resolveFileName(objectName, dirName);
 
-        const input = FileSystem.readFileSync(fileName);
-        const lexer = new Lexer(input, fileName);
+        if (this.#parsingFiles.has(fileName)) {
+            const cycle = [...this.#parsingFiles, fileName].join(' -> ');
+            throw new Error(`Circular import detected: ${cycle}`);
+        }
 
-        this.extractUsingDirectives(lexer);
+        this.#parsingFiles.add(fileName);
+        try {
+            const input = FileSystem.readFileSync(fileName);
+            const lexer = new Lexer(input, fileName);
 
-        return this.parseObject(lexer, true);
+            this.extractUsingDirectives(lexer);
+
+            return this.parseObject(lexer, true);
+        } finally {
+            this.#parsingFiles.delete(fileName);
+        }
     }
 
     private extractUsingDirectives(lexer: Lexer): void {
@@ -253,10 +266,6 @@ export class Parser {
         return result;
     }
 
-    private static unescape(value: string) {
-        return value.replace(/\\"/g, '"');
-    }
-
     private parseValue(lexer: Lexer) : any {
         let token = lexer.readToken();
 
@@ -275,7 +284,7 @@ export class Parser {
 
         case TokenType.String:
         case TokenType.MultilineString:
-            return Parser.unescape(token.toString());
+            return token.toString();
 
         case TokenType.True:
             return true;

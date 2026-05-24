@@ -279,6 +279,16 @@ export class Resolver implements IResolver {
     }
 
     public resolveBinding(path: string, file: string): any {
+        return this.resolveBindingImpl(path, file, new Set());
+    }
+
+    private resolveBindingImpl(path: string, file: string, visited: Set<string>): any {
+        const key = `${file}::${path}`;
+        if (visited.has(key)) {
+            throw new Error(`Circular binding reference: @${path}`);
+        }
+        visited.add(key);
+
         const parts = path.split('.');
         const id = parts[0];
         const fileMap = this.#idRegistry.get(file);
@@ -292,7 +302,7 @@ export class Resolver implements IResolver {
 
         for (let i = 1; i < parts.length; i++) {
             if (this.#context.isObjectBinding(result)) {
-                result = this.resolveBinding(result['__bind__'], result['__bindFile__'] ?? file);
+                result = this.resolveBindingImpl(result['__bind__'], result['__bindFile__'] ?? file, visited);
             }
 
             if (result === undefined || result === null) {
@@ -303,7 +313,7 @@ export class Resolver implements IResolver {
         }
 
         if (this.#context.isObjectBinding(result)) {
-            return this.resolveBinding(result['__bind__'], result['__bindFile__'] ?? file);
+            return this.resolveBindingImpl(result['__bind__'], result['__bindFile__'] ?? file, visited);
         }
 
         if (Array.isArray(result)) {
