@@ -1,0 +1,14 @@
+***
+OS information via fn.os.*
+
+./run.sh examples/os/main.exon
+***
+
+using fn.*
+
+{
+    platform: os.platform {}
+    arch:     os.arch {}
+    type:     os.type {}
+    release:  os.release {}
+}

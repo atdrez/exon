@@ -81,6 +81,10 @@ import LangCond from "./lang/cond";
 import IpcGetMessage from "./ipc/getMessage";
 import IpcSendMessage from "./ipc/sendMessage";
 import Preprocess from "./preprocess";
+import OsPlatform from "./os/platform";
+import OsArch from "./os/arch";
+import OsType from "./os/type";
+import OsRelease from "./os/release";
 
 export function components(): any {
     return [
@@ -139,6 +143,9 @@ export function components(): any {
         IpcGetMessage, IpcSendMessage,
 
         // preprocessor
-        Preprocess
+        Preprocess,
+
+        // os
+        OsPlatform, OsArch, OsType, OsRelease
     ];
 }
