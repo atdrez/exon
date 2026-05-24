@@ -3,20 +3,19 @@
 import { TokenType } from "./TokenType";
 
 export class Token {
-    public get tokenType() : TokenType {
-        return this.#tokenType;
-    }
+    public readonly tokenType: TokenType;
 
     #buffer: Buffer;
     #startIndex: number;
     #endIndex: number;
-    #tokenType: number;
+    #tokenValue: string | undefined;
 
     constructor(buffer: Buffer, tokenType: TokenType, start: number, end: number) {
         this.#buffer = buffer;
         this.#startIndex = start;
         this.#endIndex = end;
-        this.#tokenType = tokenType;
+        this.tokenType = tokenType;
+        this.#tokenValue = undefined;
     }
 
     public getChar(index: number): number {
@@ -32,10 +31,15 @@ export class Token {
         if (this.tokenType === TokenType.None)
             return "<invalid>";
 
+        if (this.#tokenValue !== undefined)
+            return this.#tokenValue;
+
         const raw = this.#buffer.toString("utf-8", this.#startIndex, this.#endIndex + 1);
 
-        if (this.tokenType !== TokenType.String)
+        if (this.tokenType !== TokenType.String) {
+            this.#tokenValue = raw;
             return raw;
+        }
 
         let result = "";
         let i = 0;
@@ -55,6 +59,8 @@ export class Token {
             }
             i++;
         }
+
+        this.#tokenValue = result;
         return result;
     }
 }
