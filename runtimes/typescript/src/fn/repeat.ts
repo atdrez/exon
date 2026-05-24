@@ -19,10 +19,13 @@ export default class Component extends Base {
         if (typeof num !== "number")
             throw new Error(`${this.name()}.count should be a valid number`);
 
-        const statement = obj.content;
-
-        if (statement === undefined)
+        if (obj.content === undefined)
             throw new Error(`${this.name()}.content property is invalid`);
+
+        let statement = obj.content;
+
+        if (typeof statement === "object")
+            statement = context.resolve(obj.content);
 
         const result: any[] = [];
 
