@@ -23,33 +23,33 @@ Two examples follow:
 //#exon
 /*
 fn.cond {
+
     fn.eq{fn.process.env{"ENV"} "production"}
-    """
-    function say_hello() {
-        return "Hello World from PROD"
-    }
-    """
+"""
+function say_hello() {
+    return "Hello World from PROD"
+}
+"""
 
     fn.eq{fn.process.env{"ENV"} "development"}
-    """
-    function say_hello() {
-        return "Hello World from DEV"
-    }
-    """
+"""
+function say_hello() {
+    return "Hello World from DEV"
+}
+"""
 
     // default say hello
-    """
-    function say_hello() {
-        return "Hello World"
-    }
-    """
+"""
+function say_hello() {
+    return "Hello World"
+}
+"""
 }
 */
 
-    function say_hello() {
-        return "Hello World"
-    }
-    
+function say_hello() {
+    return "Hello World"
+}
 //#endexon
 
 console.log(say_hello());
@@ -63,11 +63,11 @@ function add(a, b) {
 fn.if {
     condition:
         fn.eq{fn.process.env{"ENV"} "development"}
-    then: """
-    const x = 10, y = 30;
-    console.log(`${x} + ${y} = ${add(x, y)}`);
-    """
-
+    then:
+"""
+const x = 10, y = 30;
+console.log(`${x} + ${y} = ${add(x, y)}`);
+"""
     // default to no code, or a comment
     else: fn.string.join {
         "// This is a reserved area that would print ("
