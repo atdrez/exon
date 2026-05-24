@@ -364,7 +364,12 @@ export class Resolver implements IResolver {
 
         if (typeof value === 'object' && value !== null) {
             if (value['__bind__'] !== undefined) {
-                return this.resolveBinding(value['__bind__'], value['__bindFile__'] ?? '');
+                const bound = this.resolveBinding(value['__bind__'], value['__bindFile__'] ?? '');
+                if (typeof bound === 'object' && bound !== null && !Array.isArray(bound)
+                    && ('__base__' in bound || '__native__' in bound || '__file__' in bound)) {
+                    return this.resolveImpl(bound);
+                }
+                return bound;
             }
 
             if ('__preresolved__' in value) {
