@@ -4,7 +4,7 @@ Exon preprocessor.
 Check commented section in ./test.js.
 
 Executing preprocessor:
-  node bin/main.js -r samples/preprocessor/main.exon
+  ./ts-run.sh -r samples/preprocessor/main.run.exon
 ***
 
 using fn.*

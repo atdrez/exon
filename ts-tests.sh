@@ -10,7 +10,12 @@ if [ "$1" = "-r" ]; then
     ok=0
     fail=0
     while IFS= read -r f; do
-        if "$NODE" "$MAIN" -t -p "$EXAMPLES" "$f" >/dev/null 2>&1; then
+        if [[ "$f" == *.run.exon ]]; then
+            cmd=("$NODE" "$MAIN" -r "$f" -p "$EXAMPLES")
+        else
+            cmd=("$NODE" "$MAIN" -t -p "$EXAMPLES" "$f")
+        fi
+        if "${cmd[@]}" >/dev/null 2>&1; then
             printf "\033[0;32m[OK]\033[0m\t%s\n" "$f"
             ok=$((ok + 1))
         else

@@ -1,3 +1,3 @@
 import { describeExonFile } from './helpers'
 
-describeExonFile('bindings.exon')
+describeExonFile('bindings.test.exon')

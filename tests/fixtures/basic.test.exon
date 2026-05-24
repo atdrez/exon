@@ -3,7 +3,7 @@ When __tests__ section is present and -t parameter is passed,
 the tests will run without outputing the main exon file.
 
 Usage:
-  ./run.sh -t ../../tests/fixtures/basic.exon
+  ./run.sh -t ../../tests/fixtures/basic.test.exon
 ***
 
 using fn.*

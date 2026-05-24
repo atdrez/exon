@@ -47,7 +47,7 @@ fn.cond {
 */
 
     function say_hello() {
-        return "Hello World from PROD"
+        return "Hello World"
     }
     
 //#endexon

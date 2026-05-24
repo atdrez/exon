@@ -1,3 +1,3 @@
 import { describeExonFile } from './helpers'
 
-describeExonFile('properties.exon')
+describeExonFile('properties.test.exon')

@@ -4,10 +4,10 @@ Discovers all .c and .h files in srcDir and compiles them with gcc.
 It can be extended via native script or custom components (check ./emake folder)
 
 Build (passing the output name):
-  ./ts-run.sh -r examples/buildsystem/build.exon
+  ./ts-run.sh -r examples/buildsystem/build.run.exon
 
 Build with custom compiler and custom output name:
-  EMAKE_C_COMPILER=cc ./ts-run.sh -r examples/buildsystem/build.exon <output_name>
+  EMAKE_C_COMPILER=cc ./ts-run.sh -r examples/buildsystem/build.run.exon <output_name>
 ***
 
 using emake.*
