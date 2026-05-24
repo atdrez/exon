@@ -15,6 +15,8 @@ export class Parser {
     #paths: string[];
     #scriptManager: IScriptRepository;
     #parsingFiles: Set<string> = new Set();
+    #parseCache: Map<string, any> = new Map();
+    #existsCache: Map<string, boolean> = new Map();
 
     public constructor(manager: IScriptRepository, paths: string[] = []) {
         this.#paths = paths;
@@ -43,6 +45,15 @@ export class Parser {
         return result;
     }
 
+    private fileExists(filePath: string): boolean {
+        let result = this.#existsCache.get(filePath);
+        if (result === undefined) {
+            result = FileSystem.existsSync(filePath);
+            this.#existsCache.set(filePath, result);
+        }
+        return result;
+    }
+
     private resolveFileName(objectName: string, dirName: string) : string {
         let resolvedDir = dirName;
         let name = objectName;
@@ -61,7 +72,7 @@ export class Parser {
         const basePath = name.split(".").join("/");
         const fileName = Path.join(resolvedDir, basePath + Parser.#extension);
 
-        if (FileSystem.existsSync(fileName))
+        if (this.fileExists(fileName))
             return fileName;
 
         if (objectName.startsWith('..'))
@@ -72,7 +83,7 @@ export class Parser {
         for (const path of this.#paths) {
             const resolvedPath = Path.join(path, relativePath);
 
-            if (FileSystem.existsSync(resolvedPath))
+            if (this.fileExists(resolvedPath))
                 return resolvedPath;
         }
 
@@ -81,6 +92,11 @@ export class Parser {
 
     private findAndParseObject(objectName: string, dirName: string) : any {
         const fileName = this.resolveFileName(objectName, dirName);
+
+        const cached = this.#parseCache.get(fileName);
+        if (cached !== undefined) {
+            return cached;
+        }
 
         if (this.#parsingFiles.has(fileName)) {
             const cycle = [...this.#parsingFiles, fileName].join(' -> ');
@@ -94,7 +110,9 @@ export class Parser {
 
             const usingNamespaces = this.extractUsingDirectives(lexer);
 
-            return this.parseObject(lexer, usingNamespaces, true);
+            const result = this.parseObject(lexer, usingNamespaces, true);
+            this.#parseCache.set(fileName, result);
+            return result;
         } finally {
             this.#parsingFiles.delete(fileName);
         }
