@@ -1,0 +1,50 @@
+***
+List folders and files at 2 depth
+
+./run.sh -r samples/path/listdir.exon
+***
+
+using fn.*
+using lib.printPath
+
+{
+    foreach {
+        data: string.split {
+            *** list in root folder ***
+            process.exec { "ls" } separator: "\n"
+        }
+        do: Object@firstDo {
+            filename: parameter { "value" }
+
+            filenames: string.split {
+                process.exec { "ls " @firstDo.filename }
+                separator: "\n"
+            }
+
+            isDirectory: path.isdir { @firstDo.filename }
+
+            printPath {
+                name: @firstDo.filename
+                isDir: @firstDo.isDirectory
+            }
+
+            if {
+                condition: @firstDo.isDirectory
+                then: foreach {
+                    *** list files inner folder ***
+                    data: @firstDo.filenames
+                    do: Object@secondDo {
+                        filename: parameter { "value" }
+                        filepath: string.join { @firstDo.filename "/" @secondDo.filename }
+   
+                        printPath {
+                            name: @secondDo.filename
+                            prefix: "    "
+                            isDir: path.isdir { @secondDo.filepath }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

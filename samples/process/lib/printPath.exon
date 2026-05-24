@@ -1,0 +1,21 @@
+using fn.*
+
+wrapper {
+    name: ""
+    prefix: ""
+    isDir: false
+
+    content: println {
+        if {
+            condition: string.isEmpty { @root.name }
+            then: ""
+            else: if {
+                condition: @root.isDir
+                then:
+                    string.join { @root.prefix @root.name "/" }
+                else:
+                    string.join { @root.prefix @root.name }
+            }
+        }
+    }
+}

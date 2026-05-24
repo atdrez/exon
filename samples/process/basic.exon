@@ -1,0 +1,17 @@
+using fn.*
+
+{
+    directoryList: string.split {
+        process.exec { "ls" } separator: "\n"
+    }
+
+    markdownFiles: foreach {
+        data: @root.directoryList
+        do: if {
+            condition:
+                string.endsWith { parameter { "value" } ".md" }
+            then: 
+                parameter { "value" }
+        }
+    }
+}

@@ -1,0 +1,69 @@
+***
+IPC worker - receives a number from the parent process,
+computes its square, and sends the result back.
+
+Run via parent.js (do not run directly):
+  node samples/ipc/parent.js
+***
+
+using fn.*
+
+{
+    fn.native {
+        id: "lib.fetch"
+        path: "js/fetch_url.js"
+    }
+
+    input: ipc.getmessage {}
+
+    try {
+        sequence@self {
+            _checkMessage: if {
+                condition: not { string.is { @root.input } }
+                then: raise { "invalid message" }
+            }
+
+            arguments: string.split { @root.input separator: " " }
+
+            // expect to receive cmd + param
+            command: get { target: @self.arguments index: 0 }
+            parameter: get { target: @self.arguments index: 1 }
+
+            if {
+                condition: not {
+                    and {
+                        string.is { @self.command }
+                        string.is { @self.parameter }
+                    }
+                }
+                then: raise { "invalid parameters" }
+            }
+
+            switch {
+                value: @self.command
+
+                fetch: ipc.sendmessage {
+                    {
+                        input: @root.input
+                        result: lib.fetch { url: @self.parameter }
+                    }
+                }
+
+                square: ipc.sendmessage {
+                    { input: @root.input result: mul { @self.parameter @self.parameter } }
+                }
+
+                __default: raise { "invalid command received" }
+            }
+        }
+        catch: sequence@error {
+            value: parameter { "value" }
+            ipc.sendmessage {
+                {
+                    input: @root.input
+                    result: string.join { "error: " @error.value }
+                }
+            }
+        }
+    }
+}
