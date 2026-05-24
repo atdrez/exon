@@ -1,13 +1,22 @@
 {
   "name": "exon",
   "version": "1.0.0",
-  "description": "",
+  "description": "Exon language",
   "main": "bin/main.js",
+  "bin": {
+    "exon": "./exon.js"
+  },
+  "files": [
+    "bin/**/*.js",
+    "bin/**/*.js.map",
+    "exon.js"
+  ],
   "scripts": {
     "start": "node bin/main.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "build": "npm run lint && npx tsc",
+    "prepare": "npx tsc",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -17,6 +26,7 @@
   },
   "devDependencies": {
     "eslint": "^10.4.0",
+    "typescript": "^5.0.0",
     "typescript-eslint": "^8.59.4",
     "vitest": "^4.1.6"
   }
