@@ -1,0 +1,45 @@
+***
+A simple layout generator for Tcl/Tk apps.
+
+Generating the python layout files:
+  ./run-ts.sh -r examples/gui/main.exon
+***
+
+using fn.*
+
+sequence {
+    assert {
+        defined { process.argv {3} }
+        message: "Script argument is missing"
+    }
+
+    jsfile: "/../../runtimes/typescript/bin/main.js"
+
+    dir: path.dirname { process.argv {3} }
+
+    cmd: string.join { "node " @root.dir @root.jsfile }
+
+    outdir: string.join { @root.dir "/py/gen/" }
+
+    files: {
+        top_frame: "top_frame.py"
+        counter_frame: "counter_frame.py"
+    }
+
+    foreach {
+        data: @root.files
+        do: sequence@seq {
+            entry: parameter { "value" }
+
+            fn.process.exec {
+                @root.cmd " " @root.dir "/" @seq.entry.key ".exon > " @root.outdir @seq.entry.value
+            }
+
+            fn.println { "Python files generated: " @root.outdir @seq.entry.value }
+        }
+    }
+
+    fn.println {
+        "After generating the files, run python py/main.py"
+    }
+}

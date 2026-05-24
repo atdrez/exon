@@ -1,0 +1,32 @@
+***
+Markdown:
+  ./ts-run.sh examples/documents/main.exon
+
+Html:
+  FMT=html ./ts-run.sh examples/documents/main.exon
+***
+
+using lib.*
+using lib.native.multiline
+
+page {
+    h1{"Exon - Extensible Object Notation"}
+
+    // trim the left spacing of a multiline string
+    multiline {
+        """Exon is an extensible configuration and data definition language.
+        It parses .exon files into an object graph that developers can serialize to any format like JSON, XML, YAML, or
+        any domain-specific output. The native component system is also extensible, allowing developers to add custom
+        transformation classes and domain-specific functionality on top of the built-in ones.
+        """
+    }
+
+    // include section/QuickExample.exon
+    sections.QuickExample {}
+
+    // include section/GettingStarted.exon
+    sections.GettingStarted {}
+
+    // // include section/Resources.exon
+    sections.Resources {}
+}

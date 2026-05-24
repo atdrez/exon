@@ -1,0 +1,47 @@
+***
+Output data:
+  ./ts-run.sh examples/flowcontrol/foreach.exon
+
+Just run (do not output structure):
+  ./ts-run.sh -r examples/flowcontrol/foreach.exon
+***
+
+using fn.*
+
+{
+    name: "ForEach Sample"
+
+    countdown: foreach {
+        data: reverse { [1, 2, 3, 4, 5] }
+        do: Object@foreach01 {
+            id: parameter { "value" }
+
+            // print countdown, if in run/test mode
+            _print: println { string.join { "Counter=" @foreach01.id } }
+        }
+    }
+
+    // create N elements
+    iteration: foreach {
+        data: [
+            {
+                id: 1
+                name: "John"
+                surname: "Doe"
+            },
+            {
+                id: 2
+                name: "Jane"
+                surname: "Doe"
+            }
+        ]
+        do: {
+            id: get { target: parameter { "value" } property: "id" }
+            fullname: fn.string.join {
+                get { target: parameter { "value" } property: "name" }
+                get { target: parameter { "value" } property: "surname" }
+                separator: " "
+            }
+        }
+    }
+}

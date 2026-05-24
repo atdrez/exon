@@ -1,0 +1,101 @@
+using fn.eq
+using ..lib.it
+using ..lib.describe
+
+{
+
+    defaultDb: basic.models.Database { }
+
+    customDb: basic.models.Database {
+        name: "mydb"
+        poolSize: 20
+    }
+
+    baseNum: property.gauge { }
+
+    overriddenNum: property.gauge {
+        value: 75
+    }
+
+    clampedLow: property.gauge {
+        value: -10
+    }
+
+    clampedHigh: property.gauge {
+        value: 200
+    }
+
+    __tests__: {
+        describe {
+            description: "Inheritance - base defaults"
+
+            it {
+                "defaultDb.host inherits 'localhost'"
+                eq{ @root.defaultDb.host "localhost" }
+            }
+
+            it {
+                "defaultDb.port inherits 5432"
+                eq{ @root.defaultDb.port 5432 }
+            }
+
+            it {
+                "defaultDb.poolSize inherits 5"
+                eq{ @root.defaultDb.poolSize 5 }
+            }
+
+            it {
+                "defaultDb.name inherits empty string"
+                eq{ @root.defaultDb.name "" }
+            }
+        }
+
+        describe {
+            description: "Inheritance - property override"
+
+            it {
+                "customDb.name overridden to 'mydb'"
+                eq{ @root.customDb.name "mydb" }
+            }
+
+            it {
+                "customDb.poolSize overridden to 20"
+                eq{ @root.customDb.poolSize 20 }
+            }
+
+            it {
+                "customDb.host still inherited as 'localhost'"
+                eq{ @root.customDb.host "localhost" }
+            }
+
+            it {
+                "customDb.port still inherited as 5432"
+                eq{ @root.customDb.port 5432 }
+            }
+        }
+
+        describe {
+            description: "Inheritance - typed property defaults"
+
+            it {
+                "baseNum.value uses inherited default (50)"
+                eq{ @root.baseNum.value 50 }
+            }
+
+            it {
+                "overriddenNum.value is 75"
+                eq{ @root.overriddenNum.value 75 }
+            }
+
+            it {
+                "clampedLow.value clamped to 0"
+                eq{ @root.clampedLow.value 0 }
+            }
+
+            it {
+                "clampedHigh.value clamped to 100"
+                eq{ @root.clampedHigh.value 100 }
+            }
+        }
+    }
+}

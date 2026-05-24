@@ -1,0 +1,279 @@
+using fn.*
+using ..lib.it
+using ..lib.describe
+
+{
+
+    *** state for while loop ***
+    counter: 0
+
+    repeated: repeat {
+        content: "item"
+        count: 3
+    }
+
+    whileResult: while {
+        condition: lt { @root.counter 3 }
+        do: {
+            val: @root.counter
+            _inc: set {
+                target: @root
+                property: "counter"
+                value: add { @root.counter 1 }
+            }
+        }
+    }
+
+    __tests__: {
+
+        *** repeat ***
+        describe {
+            description: "repeat"
+
+            it {
+                "repeat count=3 produces array of length 3"
+                eq { count { @root.repeated } 3 }
+            }
+
+            it {
+                "repeat first element equals content"
+                eq { get { target: @root.repeated  index: 0 } "item" }
+            }
+
+            it {
+                "repeat third element equals content"
+                eq { get { target: @root.repeated  index: 2 } "item" }
+            }
+        }
+
+
+        *** while ***
+        describe {
+            description: "while"
+
+            get@whileItem0 { target: @root.whileResult  index: 0 }
+            get@whileItem1 { target: @root.whileResult  index: 1 }
+            get@whileItem2 { target: @root.whileResult  index: 2 }
+
+            it {
+                "while runs exactly 3 iterations"
+                eq { count { @root.whileResult } 3 }
+            }
+
+            it {
+                "while first iteration val is 0"
+                eq { @whileItem0.val 0 }
+            }
+
+            it {
+                "while second iteration val is 1"
+                eq { @whileItem1.val 1 }
+            }
+
+            it {
+                "while third iteration val is 2"
+                eq { @whileItem2.val 2 }
+            }
+        }
+
+
+        *** regex.test ***
+        describe {
+            description: "regex.test"
+
+            it {
+                "regex.test matches email pattern"
+                regex.test {
+                    "user@example.com"
+                    pattern: "^[^@]+@[^@]+$"
+                }
+            }
+
+            it {
+                "regex.test rejects non-matching string"
+                not {
+                    regex.test {
+                        "notanemail"
+                        pattern: "^[^@]+@[^@]+$"
+                    }
+                }
+            }
+
+            it {
+                "regex.test case-insensitive flag"
+                regex.test {
+                    "HELLO"
+                    pattern: "^hello$"
+                    flags: "i"
+                }
+            }
+
+            it {
+                "regex.test digit pattern"
+                regex.test {
+                    "12345"
+                    pattern: "^\\d+$"
+                }
+            }
+        }
+
+
+        *** string.trim ***
+        describe {
+            description: "string.trim"
+
+            it {
+                "string.trim removes leading spaces"
+                eq { string.trim { "   hello" } "hello" }
+            }
+
+            it {
+                "string.trim removes trailing spaces"
+                eq { string.trim { "hello   " } "hello" }
+            }
+
+            it {
+                "string.trim removes both sides"
+                eq { string.trim { "  hello world  " } "hello world" }
+            }
+
+            it {
+                "string.trim on already-trimmed string"
+                eq { string.trim { "abc" } "abc" }
+            }
+        }
+
+
+        *** string.isEmpty ***
+        describe {
+            description: "string.isEmpty"
+
+            it {
+                "string.isEmpty on empty string is true"
+                string.isEmpty { "" }
+            }
+
+            it {
+                "string.isEmpty on non-empty string is false"
+                not { string.isEmpty { "hello" } }
+            }
+
+            it {
+                "string.isEmpty on whitespace is false"
+                not { string.isEmpty { " " } }
+            }
+        }
+
+
+        *** string.length ***
+        describe {
+            description: "string.length"
+
+            it {
+                "string.length of 'hello' is 5"
+                eq { string.length { "hello" } 5 }
+            }
+
+            it {
+                "string.length of empty string is 0"
+                eq { string.length { "" } 0 }
+            }
+
+            it {
+                "string.length of 'AB' is 2"
+                eq { string.length { "AB" } 2 }
+            }
+        }
+
+
+        *** count ***
+        describe {
+            description: "count"
+
+            it {
+                "count of 3-element array is 3"
+                eq { count { [ "a", "b", "c" ] } 3 }
+            }
+
+            it {
+                "count of empty array is 0"
+                eq { count { [] } 0 }
+            }
+
+            it {
+                "count of 1-element array is 1"
+                eq { count { [ 42 ] } 1 }
+            }
+        }
+
+
+        *** reverse ***
+        describe {
+            description: "reverse"
+
+            reverse@rev123 { [1, 2, 3] }
+
+            it {
+                "reverse of [1,2,3] has 3 elements"
+                eq { count { @rev123 } 3 }
+            }
+
+            it {
+                "reverse first element is 3"
+                eq { get { target: @rev123  index: 0 } 3 }
+            }
+
+            it {
+                "reverse middle element is 2"
+                eq { get { target: @rev123  index: 1 } 2 }
+            }
+
+            it {
+                "reverse last element is 1"
+                eq { get { target: @rev123  index: 2 } 1 }
+            }
+        }
+
+
+        *** path.isfile ***
+        describe {
+            description: "path.isfile"
+
+            it {
+                "path.isfile on existing file is true"
+                path.isfile { "./helloworld.txt" }
+            }
+
+            it {
+                "path.isfile on non-existing file is false"
+                not { path.isfile { "nonexistent_file_xyz.json" } }
+            }
+
+            it {
+                "path.isfile on directory is false"
+                not { path.isfile { "../fixtures" } }
+            }
+        }
+
+
+        *** path.isdir ***
+        describe {
+            description: "path.isdir"
+
+            it {
+                "path.isdir on existing directory is true"
+                path.isdir { "../fixtures" }
+            }
+
+            it {
+                "path.isdir on non-existing path is false"
+                not { path.isdir { "nonexistent_dir_xyz" } }
+            }
+
+            it {
+                "path.isdir on a file is false"
+                not { path.isdir { "helloworld.txt" } }
+            }
+        }
+    }
+}

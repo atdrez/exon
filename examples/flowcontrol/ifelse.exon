@@ -1,0 +1,59 @@
+// Usage example:
+// ENV=production LOG_LEVEL=debug ./ts-run.sh examples/flowcontrol/ifelse.exon
+
+using fn.*
+
+{
+    name: "IfElse Sample"
+
+    // if production, use api.example.com as host
+    host: if {
+        condition: eq { process.env { "ENV" } "production" }
+        then: "api.example.com"
+        else: "localhost"
+    }
+
+    // use env PORT if valid, or fallback to 8080
+    port: or { process.env { "PORT" } 8080 }
+
+    ***
+    if (ENV == production and LOG_LEVEL != debug) then
+        logLevel = "warn"
+    else
+        logLevel = "debug"
+    ***
+    logLevel: if {
+        condition: and {
+            eq { process.env { "ENV" } "production" }
+            ne { process.env { "LOG_LEVEL" } "debug" }
+        }
+        then: "warn"
+        else: "debug"
+    }
+
+    ***
+    cascaded if-else:
+    Throws exception when ENV=production LOG_LEVEL=info
+    ***
+    _check: if {
+        condition:
+            eq { process.env { "ENV" } "production" }
+        then: if {
+            condition: eq { process.env { "LOG_LEVEL" } "info" }
+
+            then: raise { "You are using info in production!" }
+        }
+    }
+
+    // encapsulated if
+    // This will be populated if ENV=development
+    debugInfo: extra.isDevel {
+        {
+            port: @root.port
+            version: {
+                major: 1
+                minor: 1
+            }
+        }
+    }
+}

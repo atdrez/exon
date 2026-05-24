@@ -1,0 +1,60 @@
+using fn.*
+using ..lib.it
+using ..lib.describe
+
+{
+    r: "red"
+    g: "green"
+
+    *** direct bindings ***
+    r_ref: @root.r
+
+    *** nested bindings ***
+    r_ref_ref: @root.r_ref
+
+    red_and_green: string.join {
+        @root.r " and " @root.g
+    }
+
+    red_and_green_ref: {
+        color: @root.red_and_green
+    }
+
+    __tests__: {
+        describe {
+            description: "Binding tests..."
+
+            it {
+                "r should be equal to 'red'"
+                eq { @root.r "red" }
+            }
+
+            it {
+                "g should be equal to 'green'"
+                eq { @root.g "green" }
+            }
+
+            // bindings
+            it {
+                "r should be equal to r_ref"
+                eq { @root.r @root.r_ref }
+            }
+            it {
+                "r_ref should be equal to r_ref_ref"
+                eq { @root.r_ref @root.r_ref_ref }
+            }
+
+            // check composed bindings
+            it {
+                "rg should be equal to 'red and green'"
+                eq { @root.red_and_green "red and green" }
+            }
+
+            // check nested ref
+            it {
+                "red_and_green_nested_ref.color should be equal to red_and_green"
+                eq { @root.red_and_green_ref.color @root.red_and_green }
+            }
+        }
+    }
+}
