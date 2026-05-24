@@ -1,0 +1,14 @@
+using fn.*
+
+fn.wrapper {
+    content: sequence@seq {
+        name: get { target: @root.__content__ index: 0 }
+        value: get { target: @root.__content__ index: 1 }
+
+        {
+            _d_input_interval: true
+            field: @seq.name
+            secondsInterval: @seq.value
+        }
+    }
+}

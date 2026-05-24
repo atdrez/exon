@@ -1,0 +1,15 @@
+using fn.*
+
+fn.wrapper {
+    content: sequence@seq {
+        left: get { target: @root.__content__ index: 0 }
+        right: get { target: @root.__content__ index: 1 }
+
+        {
+            _d_input_number: true
+            value1: @seq.left
+            operation: "smaller"
+            value2: @seq.right
+        }
+    }
+}

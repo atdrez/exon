@@ -1,0 +1,12 @@
+using fn.*
+
+wrapper {
+    content: {
+        name: @root.name
+        nodes: @root.__content__
+        connections: if {
+            condition: true
+            then: @root.connections // workaround to resolve connections
+        }
+    }
+}

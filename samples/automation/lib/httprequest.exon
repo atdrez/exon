@@ -1,0 +1,5 @@
+
+node {
+    type: "n8n-nodes-base.httpRequest"
+    typeVersion: 4
+}

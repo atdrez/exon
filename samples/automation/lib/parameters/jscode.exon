@@ -1,0 +1,10 @@
+using fn.*
+
+wrapper {
+    content: sequence {
+        get@value { target: @root.__content__ index: 0 }
+        assert { string.is{@value} message: "Invalid string"}
+
+        { jsCode: @value }
+    }
+}

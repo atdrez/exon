@@ -1,0 +1,10 @@
+using fn.*
+
+fn.wrapper {
+  target: null
+
+  content: {
+    target: @root.target
+    main: @root.__content__
+  }
+}

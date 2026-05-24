@@ -1,0 +1,22 @@
+using fn.*
+
+wrapper {
+    content: sequence {
+        Object@result {}
+
+        foreach {
+            data: @root.__content__
+            do: sequence@seq {
+                conn: parameter{"value"}
+                target: @seq.conn.target
+
+                set { target: @result property: @seq.target.name value: @seq.conn }
+
+                // delete target property from connection
+                del { target: @seq.conn property: "target" }
+            }
+        }
+
+        @result
+    }
+}

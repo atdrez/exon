@@ -1,0 +1,12 @@
+using fn.*
+
+wrapper {
+    content: {
+        type: "main"
+        node: sequence {
+            get@target { target: @root.__content__ index: 0 }
+            @target.name
+        }
+        index: get { target: @root.__content__ index: 1 }
+    }
+}

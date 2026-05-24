@@ -1,0 +1,36 @@
+using fn.*
+
+wrapper {
+    field: ""
+    types: {
+        string: "_d_input_string"
+        number: "_d_input_number"
+        interval: "_d_input_interval"
+    }
+
+    content: sequence@self {
+        Object@result{}
+        Object@values{}
+
+        foreach@for {
+            data: @root.types
+            do: sequence@seq {
+                entry: parameter{"value"}
+
+                values: filter {
+                    type: @seq.entry.value
+                    data: @root.__content__
+                }
+
+                cond {
+                    fn.count {@seq.values}
+                    set { target: @values property: @seq.entry.key value: @seq.values }
+                }
+            }
+        }
+
+        set { target: @result property: @root.field value: @values }
+
+        @result
+    }
+}

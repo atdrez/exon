@@ -1,0 +1,15 @@
+using fn.*
+
+foreach {
+    type: ""
+    do: sequence@seq {
+        v: parameter{"value"}
+        if {
+            condition: get { target: @seq.v property: @root.type }
+            then: sequence {
+                del { target: @seq.v property: @root.type }
+                @seq.v
+            }
+        }
+    }
+}

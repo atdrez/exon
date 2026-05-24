@@ -1,0 +1,246 @@
+{
+    "name": "Complex Sensor Flow",
+    "nodes": [
+        {
+            "id": "1",
+            "name": "Schedule Trigger",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1,
+            "position": [
+                200,
+                300
+            ],
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "seconds",
+                            "secondsInterval": 5
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": "2",
+            "name": "Generate Sensor Data",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                500,
+                300
+            ],
+            "parameters": {
+                "jsCode": "\n            return [{\n                json: {\n                    sensor: 'sensor-A',   \n                    temperature: Math.floor(Math.random() * 50), \n                    humidity: Math.floor(Math.random() * 100),\n                    timestamp: Date.now()\n                }\n            }];\n            "
+            }
+        },
+        {
+            "id": "3",
+            "name": "Temperature Check",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                800,
+                300
+            ],
+            "parameters": {
+                "conditions": {
+                    "number": [
+                        {
+                            "value1": "={{ $json.temperature }}",
+                            "operation": "smaller",
+                            "value2": 35
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": "4",
+            "name": "Normal Message",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3,
+            "position": [
+                1100,
+                200
+            ],
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "status",
+                            "value": "normal"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": "5",
+            "name": "Alert Message",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3,
+            "position": [
+                1100,
+                400
+            ],
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "status",
+                            "value": "ALERT"
+                        },
+                        {
+                            "name": "priority",
+                            "value": "critical"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": "6",
+            "name": "Format UI Message",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                800,
+                550
+            ],
+            "parameters": {
+                "jsCode": "\n            return [{\n                json: { message: `Sensor ${$json.sensor} Temp=${$json.temperature}C` }\n            }];\n            "
+            }
+        },
+        {
+            "id": "7",
+            "name": "UI Debug",
+            "type": "n8n-nodes-base.noOp",
+            "typeVersion": 1,
+            "position": [
+                1100,
+                550
+            ],
+            "parameters": {}
+        },
+        {
+            "id": "8",
+            "name": "Send To API",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4,
+            "position": [
+                1450,
+                300
+            ],
+            "parameters": {
+                "method": "POST",
+                "url": "https://example.com/api/sensor",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ $json }}"
+            }
+        },
+        {
+            "id": "9",
+            "name": "Response",
+            "type": "n8n-nodes-base.noOp",
+            "typeVersion": 1,
+            "position": [
+                1700,
+                300
+            ],
+            "parameters": {}
+        }
+    ],
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "type": "main",
+                        "node": "Generate Sensor Data",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Generate Sensor Data": {
+            "main": [
+                [
+                    {
+                        "type": "main",
+                        "node": "Temperature Check",
+                        "index": 0
+                    },
+                    {
+                        "type": "main",
+                        "node": "Format UI Message",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Temperature Check": {
+            "main": [
+                [
+                    {
+                        "type": "main",
+                        "node": "Normal Message",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "type": "main",
+                        "node": "Alert Message",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Normal Message": {
+            "main": [
+                [
+                    {
+                        "type": "main",
+                        "node": "Send To API",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Alert Message": {
+            "main": [
+                [
+                    {
+                        "type": "main",
+                        "node": "Send To API",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format UI Message": {
+            "main": [
+                [
+                    {
+                        "type": "main",
+                        "node": "UI Debug",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Send To API": {
+            "main": [
+                [
+                    {
+                        "type": "main",
+                        "node": "Response",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
