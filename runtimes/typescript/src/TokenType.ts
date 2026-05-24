@@ -19,4 +19,6 @@ export enum TokenType {
     RightCurlyBracket = 16,
     Minus = 17,
     At = 18,
+    Using = 19,
+    As = 20,
 }

@@ -37,6 +37,8 @@ const CH_UNDERSCORE =  95;
 const CH_a          =  97;
 const CH_e          = 101;
 const CH_f          = 102;
+const CH_g          = 103;
+const CH_i          = 105;
 const CH_l          = 108;
 const CH_n          = 110;
 const CH_r          = 114;
@@ -318,7 +320,12 @@ export class Lexer {
 
             const identifierLength = bufferIndex - startIndex;
 
-            if (identifierLength === 4) {
+            if (identifierLength === 2) {
+                // as
+                if (buffer[startIndex] === CH_a && buffer[startIndex + 1] === CH_s) {
+                    return new Token(buffer, TokenType.As, startIndex, bufferIndex - 1);
+                }
+            } else if (identifierLength === 4) {
                 // true
                 if (buffer[startIndex] === CH_t && buffer[startIndex + 1] === CH_r &&
                     buffer[startIndex + 2] === CH_u && buffer[startIndex + 3] === CH_e) {
@@ -335,6 +342,12 @@ export class Lexer {
                     buffer[startIndex + 2] === CH_l && buffer[startIndex + 3] === CH_s &&
                     buffer[startIndex + 4] === CH_e) {
                     return new Token(buffer, TokenType.False, startIndex, bufferIndex - 1);
+                }
+                // using
+                if (buffer[startIndex] === CH_u && buffer[startIndex + 1] === CH_s &&
+                    buffer[startIndex + 2] === CH_i && buffer[startIndex + 3] === CH_n &&
+                    buffer[startIndex + 4] === CH_g) {
+                    return new Token(buffer, TokenType.Using, startIndex, bufferIndex - 1);
                 }
             }
 

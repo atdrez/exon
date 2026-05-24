@@ -8,6 +8,8 @@ import { TokenType } from "./TokenType";
 import { ParserError } from "./ParserError";
 import { IScriptRepository } from "./IScriptRepository";
 
+type UsingEntry = { namespace: string; alias: string; isWildcard: boolean };
+
 export class Parser {
     static #extension = ".exon";
     static #defaultObjectName = "Object"
@@ -118,15 +120,15 @@ export class Parser {
         }
     }
 
-    private extractUsingDirectives(lexer: Lexer): string[] {
-        const namespaces: string[] = [];
+    private extractUsingDirectives(lexer: Lexer): UsingEntry[] {
+        const entries: UsingEntry[] = [];
 
         while (true) {
             const token = lexer.readToken();
 
-            if (token.tokenType !== TokenType.Identifier || token.toString() !== 'using') {
+            if (token.tokenType !== TokenType.Using) {
                 lexer.putTokenBack();
-                return namespaces;
+                return entries;
             }
 
             const nameToken = lexer.readToken();
@@ -134,38 +136,84 @@ export class Parser {
             if (nameToken.tokenType !== TokenType.Identifier)
                 throw new ParserError(`Expected namespace after 'using'`, lexer);
 
-            namespaces.push(nameToken.toString());
+            const namespace = nameToken.toString();
+            const parts = namespace.split('.');
+            const starIndex = parts.indexOf('*');
+
+            if (starIndex !== -1 && starIndex < parts.length - 1)
+                throw new ParserError(`'*' can only appear as the last segment of a namespace`, lexer);
+
+            if (parts.length === 1 && parts[0] === '*')
+                throw new ParserError(`'*' alone is not a valid namespace`, lexer);
+
+            const isWildcard = parts[parts.length - 1] === '*';
+            const asToken = lexer.readToken();
+
+            if (asToken.tokenType === TokenType.As) {
+                const aliasToken = lexer.readToken();
+
+                if (aliasToken.tokenType !== TokenType.Identifier)
+                    throw new ParserError(`Expected alias identifier after 'as'`, lexer);
+
+                const alias = aliasToken.toString();
+
+                if (alias === '*')
+                    throw new ParserError(`'*' is not a valid alias`, lexer);
+
+                entries.push({ namespace, alias, isWildcard });
+            } else {
+                lexer.putTokenBack();
+                const lastName = parts[parts.length - 1];
+                entries.push({ namespace, alias: lastName, isWildcard });
+            }
         }
     }
 
-    private resolveUsingName(objectName: string, usingNamespaces: readonly string[], dirName: string): string {
-        for (const ns of usingNamespaces) {
-            if (ns.endsWith('.*')) {
-                const prefix = ns.slice(0, -2);
-                const fullName = prefix + '.' + objectName;
+    private resolveUsingName(objectName: string, usingNamespaces: readonly UsingEntry[], dirName: string): string {
+        for (const entry of usingNamespaces) {
+            if (!entry.isWildcard) {
+                if (entry.alias === objectName) {
+                    // using fn.json.encode -> encode -> fn.json.encode
+                    return entry.namespace;
+                }
 
+                if (objectName.startsWith(entry.alias + '.')) {
+                    // using fn.json as myjson -> myjson.encode -> fn.json.encode
+                    return entry.namespace + '.' + objectName.slice(entry.alias.length + 1);
+                }
+
+                continue;
+            }
+
+            const prefix = entry.namespace.slice(0, -2);
+            let fullName : string | undefined = undefined;
+
+            if (entry.alias === '*') {
+                // using fn.* -> try fn.<objectName>
+                fullName = prefix + '.' + objectName;
+            } else if (objectName.startsWith(entry.alias + '.')) {
+                // using fn.json.* as myjson -> myjson.encode -> fn.json.encode
+                const suffix = objectName.slice(entry.alias.length + 1);
+                fullName = prefix + '.' + suffix;
+            }
+
+            if (fullName !== undefined) {
                 if (this.#scriptManager.contains(fullName))
                     return fullName;
-
+    
                 try {
                     this.resolveFileName(fullName, dirName);
                     return fullName;
                 } catch {
                     // not found via this namespace, try next
                 }
-            } else {
-                const parts = ns.split('.');
-                const alias = parts[parts.length - 1];
-
-                if (alias === objectName)
-                    return ns;
             }
         }
 
         return objectName;
     }
 
-    private parseObject(lexer: Lexer, usingNamespaces: string[], isRoot: boolean = false) : any {
+    private parseObject(lexer: Lexer, usingNamespaces: UsingEntry[], isRoot: boolean = false) : any {
         const token = lexer.readToken();
 
         if (token.tokenType === TokenType.LeftCurlyBracket) {
@@ -180,7 +228,7 @@ export class Parser {
         return this.parseObjectBody(token.toString(), lexer, usingNamespaces, isRoot);
     }
 
-    private parseObjectBody(objectName: string, lexer: Lexer, usingNamespaces: string[], isRoot: boolean = false) : any {
+    private parseObjectBody(objectName: string, lexer: Lexer, usingNamespaces: UsingEntry[], isRoot: boolean = false) : any {
         let token = lexer.readToken();
 
         let objectId: string | null = null;
@@ -286,7 +334,7 @@ export class Parser {
         return result;
     }
 
-    private parseValue(lexer: Lexer, usingNamespaces: string[]) : any {
+    private parseValue(lexer: Lexer, usingNamespaces: UsingEntry[]) : any {
         let token = lexer.readToken();
 
         switch (token.tokenType) {
@@ -341,7 +389,7 @@ export class Parser {
         }
     }
 
-    private parseArray(lexer: Lexer, usingNamespaces: string[]): any {
+    private parseArray(lexer: Lexer, usingNamespaces: UsingEntry[]): any {
         let token = lexer.readToken();
 
         if (token.tokenType !== TokenType.LeftBracket)
