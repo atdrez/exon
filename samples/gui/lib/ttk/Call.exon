@@ -1,0 +1,25 @@
+using fn.*
+using ..py.class
+using ..py.fmt_params
+
+class {
+    target: null
+    method: ""
+    params: []
+
+    content: string.join@self {
+        parameters: fmt_params { data: @root.params }
+
+        call: cond {
+            // target.var =
+            and { @root.target @root.ref }
+            string.join { @root.target "." @root.ref "." @root.method }
+
+            // var =
+            defined {@root.ref}
+            string.join { @root.ref "." @root.method }
+        }
+
+        string.join { @self.call "(" @self.parameters ")" }
+    }
+}

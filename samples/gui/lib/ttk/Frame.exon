@@ -1,0 +1,5 @@
+using fn.*
+
+Variable {
+    name: "ttk.Frame"
+}

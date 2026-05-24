@@ -1,0 +1,8 @@
+using fn.*
+
+{
+    _py_lambda: true
+
+    target: null
+    method: null
+}

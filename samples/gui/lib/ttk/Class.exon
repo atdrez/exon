@@ -1,0 +1,54 @@
+using fn.*
+using ..py.class
+using ..py.fmt_params
+
+class {
+    indent: 4
+    padding: 10
+
+    contructor_params: {
+        padding: @root.padding
+    }
+
+    imports: [ "from tkinter import ttk" ]
+
+    content: sequence@inner {
+        space: string.join {
+            separator: ""
+            repeat { content: " " count: @root.indent }
+        }
+
+        body_space: string.join { @inner.space @inner.space }
+
+        parameters: fmt_params { data: @root.contructor_params }
+
+        string.join {
+            string.join { @root.imports separator: "\n" }
+            "\n"
+
+            "class " @root.name "(" @root.parent_class "):\n"
+
+            @inner.space "def __init__(self,parent,**kwargs):\n"
+    
+            @inner.body_space string.join {
+                "super().__init__(parent," @inner.parameters ",**kwargs)\n"
+            }
+
+            string.join {
+                separator: ""
+                foreach {
+                    data: @root.__content__
+                    do: string.join { @inner.body_space parameter{"value"} "\n" }
+                }
+            }
+
+            string.join {
+                separator: ""
+                foreach {
+                    data: @root.methods
+                    do: string.join { parameter{"value"} "\n" separator: "" }
+                }
+            }
+        }
+    }
+}

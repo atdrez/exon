@@ -1,0 +1,46 @@
+using fn.*
+using ..py.class
+using ..py.fmt_params
+
+class {
+    name: ""
+    owner: null
+    params: {}
+    layout: {}
+
+    content: sequence@self {
+        parameters: fmt_params { data: @root.params }
+        parent: coalesce { @root.parent "self" }
+
+        prefix: cond {
+            // parent.var =
+            and { @root.owner @root.ref }
+            string.join { @root.owner "." @root.ref "=" }
+
+            // var =
+            @root.ref
+            string.join { @root.ref "=" }
+        }
+
+        init: cond {
+            // init with no parameters
+            string.isEmpty { @self.parameters }
+            string.join { @self.prefix @root.name "(" @self.parent ")" }
+
+            // init with parameters
+            string.join { @self.prefix @root.name "(" @self.parent "," @self.parameters ")" }
+        }
+
+        string.join {
+            @self.init ";"
+
+            // setup layout
+            Call {
+                ref: @root.ref
+                target: @root.owner
+                method: "pack"
+                params: @root.layout
+            }
+        }
+    }
+}

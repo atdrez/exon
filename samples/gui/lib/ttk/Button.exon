@@ -1,0 +1,13 @@
+using fn.*
+using ..py.class
+
+Variable {
+    name: "ttk.Button"
+    text: ""
+    command: ""
+
+    params: {
+        text: @root.text
+        command: @root.command
+    }
+}

@@ -1,0 +1,31 @@
+using fn.*
+
+wrapper {
+    data: {}
+
+    content: string.join {
+        separator: ","
+        foreach {
+            data: @root.data
+            do: sequence@seq {
+                entry: parameter{"value"}
+                key: @seq.entry.key
+                value: @seq.entry.value
+    
+                string.join {
+                    @seq.key "="
+                    cond {
+                        defined{@seq.value._py_lambda}
+                        string.join { @seq.value.target "." @seq.value.method }
+
+                        not {string.is { @seq.value }}
+                        @seq.value
+
+                        // return enclosed string
+                        string.join { "'" @seq.value "'"}
+                    }
+                }
+            }
+        }
+    }
+}

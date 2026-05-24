@@ -1,0 +1,7 @@
+using fn.*
+
+wrapper {
+    ref: null // var name to assign this obj
+    indent: 0 // indentation
+    parent: null // binding to the parent
+}

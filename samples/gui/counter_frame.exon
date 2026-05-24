@@ -1,0 +1,71 @@
+using fn.*
+using lib.ttk.*
+
+Class {
+    ref: "self"
+    text: "Press to change the counter"
+    name: "CounterFrameBase"
+    padding: 20
+    parent_class: "ttk.LabelFrame"
+
+    contructor_params: {
+        text: @root.text
+        padding: @root.padding
+    }
+
+    // create label
+    Label {
+        ref: "_label"
+        owner: @root.ref
+        text: "Counter: 0"
+    }
+
+    // create frame for buttons
+    Frame { ref: "buttons_frame" }
+
+    // create increment button
+    Button {
+        ref: "btn_inc"
+        parent: "buttons_frame"
+        text: "+"
+        layout: { side: "left" padx: 5 }
+        // bind click
+        command: lib.py.lambda {
+            target: @root.ref
+            method: @root._increment.ref
+        }
+    }
+
+    // create decrement button
+    Button {
+        ref: "btn_dec"
+        parent: "buttons_frame"
+        text: "-"
+        layout: { side: "left" padx: 5 }
+        // bind click
+        command: lib.py.lambda {
+            target: @root.ref
+            method: @root._decrement.ref
+        }
+    }
+
+    // create reset button
+    Button {
+        ref: "btn_reset"
+        parent: "buttons_frame"
+        text: "reset"
+        layout: { side: "left" padx: 5 }
+        // bind click
+        command: lib.py.lambda {
+            target: @root.ref
+            method: @root._reset.ref
+        }
+    }
+
+    _reset: lib.py.def { ref: "_reset" }
+    _increment: lib.py.def { ref: "_increment" }
+    _decrement: lib.py.def { ref: "_decrement" }
+
+    // methods to be overriden
+    methods: [ @root._increment, @root._decrement, @root._reset ]
+}

@@ -1,0 +1,8 @@
+using fn.*
+
+base {
+    name: null // name of the class
+    methods: []
+    parent_class: null
+    constructor_params: null
+}

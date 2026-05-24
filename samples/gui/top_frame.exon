@@ -1,0 +1,40 @@
+using fn.*
+using lib.ttk.*
+
+Class {
+    ref: "self"
+    name: "TopFrameBase"
+    parent_class: "ttk.Frame"
+
+    // create label
+    Label {
+        ref: "label"
+        text: "Your name:"
+        layout: { anchor: "w" }
+    }
+
+    // create text input
+    Entry {
+        ref: "name_entry"
+        owner: @root.ref
+        layout: { fill: "x" pady: 5 }
+    }
+
+    // create button
+    Button {
+        ref: "btn"
+        text: "Say Hello"
+        layout: { pady: 5 }
+
+        // bind click to method
+        command: lib.py.lambda {
+            target: @root.ref
+            method: @root._say_hello.ref
+        }
+    }
+
+    _say_hello: lib.py.def { ref: "_say_hello" }
+
+    // methods to be overriden
+    methods: [ @root._say_hello ]
+}

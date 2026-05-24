@@ -1,0 +1,7 @@
+using fn.*
+
+Variable {
+    name: "ttk.Label"
+    text: ""
+    params: { text: @root.text }
+}

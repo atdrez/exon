@@ -1,0 +1,19 @@
+using fn.*
+
+base {
+    indent: 4
+
+    content: sequence@self {
+        spacing: string.join {
+            separator: ""
+            repeat { content: " " count: @root.indent }
+        }
+
+        string.join {
+            separator: ""
+
+            "\n" @self.spacing "def " @root.ref "(self):\n"
+            @self.spacing @self.spacing "pass"
+        }
+    }
+}
