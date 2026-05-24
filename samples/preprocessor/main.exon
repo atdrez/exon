@@ -1,0 +1,44 @@
+***
+Exon preprocessor.
+
+Check commented section in ./test.js.
+
+Executing preprocessor:
+  node bin/main.js -r samples/preprocessor/main.exon
+***
+
+using fn.*
+
+sequence {
+    assert {
+        defined { process.argv {3} }
+        message: "Script argument is missing"
+    }
+
+    dir: path.dirname { process.argv {3} }
+
+    files: [ "test.js" ]
+
+    foreach {
+        data: @root.files
+        do: sequence@seq {
+            filepath: path.absolute {
+                string.join { @root.dir "/" parameter { "value" } }
+            }
+
+            assert {
+                path.isfile { @seq.filepath }
+                message: "Invalid file"
+            }
+
+            // preprocess file and store new content
+            fn.preprocess@new_content { file: @seq.filepath }
+
+            // print new content to console
+            println {  @new_content }
+
+            // update the given file with the new content
+            file.save { path: @seq.filepath data: @new_content }
+        }
+    }
+}
