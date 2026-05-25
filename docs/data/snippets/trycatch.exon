@@ -1,0 +1,20 @@
+{
+    port: fn.try {
+        fn.sequence {
+            // parse first argument as int
+            fn.string.parseInt@value {
+                fn.process.argv{1}
+            }
+
+            // if not number, raise exception (check fn.assert)
+            fn.if {
+                condition: fn.not { fn.number.is{ @value } }
+                then: fn.raise{"PORT must be a number"}
+            }
+
+            // return parsed value
+            @value
+        }
+        catch: 8080 // define 8080 if exception was raised
+    }
+}

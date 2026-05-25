@@ -1,0 +1,22 @@
+***
+Extends Base.exon, inheriting the base properties and adding new ones
+***
+
+using models.Database  // load models/Database.exon
+
+base {
+    timeout: 30
+    retryAttempts: 3
+
+    database: Database {
+        name: "development_db"
+        poolSize: 20
+    }
+
+    // load models/Environment.exon
+    environment: models.Environment {
+
+    }
+
+    collections: collections.Users {}
+}

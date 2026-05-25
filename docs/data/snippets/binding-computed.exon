@@ -1,0 +1,9 @@
+{
+    base:    80
+    taxRate: 20
+
+    tax:     fn.mul { @root.base fn.div { @root.taxRate 100 } }
+    total:   fn.add { @root.base @root.tax }
+
+    label:   fn.string.join { "Total: $" @root.total }
+}

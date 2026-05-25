@@ -1,6 +1,7 @@
 using fn.*
 
 wrapper {
+    __content__:[]
     content: sequence {
         Object@result {}
 

@@ -1,0 +1,15 @@
+{
+    "host": "localhost",
+    "port": 30,
+    "debug": false,
+    "version": 1.04,
+    "validated": null,
+    "tags": [
+        "dev",
+        "internal"
+    ],
+    "versionedTags": [
+        "dev:1.04",
+        "internal:1.04"
+    ]
+}

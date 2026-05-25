@@ -1,0 +1,7 @@
+{
+    // use env port if valid or fallback to 8080
+    port: fn.coalesce { fn.process.env{"PORT"} 8080 }
+
+    // unlike or, treats 0 and false as valid (non-null) values
+    retries: fn.coalesce { null null 3 }
+}

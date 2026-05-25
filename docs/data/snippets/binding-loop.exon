@@ -1,0 +1,11 @@
+{
+    items: ["alpha", "beta", "gamma"]
+
+    result: fn.foreach {
+        data: @root.items
+        do: Object@item {
+            value: fn.parameter { "value" }
+            upper: fn.string.join { "[" @item.value "]" }
+        }
+    }
+}

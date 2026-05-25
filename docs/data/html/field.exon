@@ -1,0 +1,9 @@
+fn.wrapper {
+    key: ""
+    body: ..content {}
+
+    content: fn.sequence@seq {
+        obj: fn.lazy { @root.body }
+        fn.get { target: @seq.obj property: @root.key }
+    }
+}

@@ -1,4 +1,4 @@
 fn.json.decode {
-    value: ""
+    value: null
     content: "{ \"Fn::Base64\":$value}"
 }

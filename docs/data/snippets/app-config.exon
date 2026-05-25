@@ -1,0 +1,11 @@
+{
+    // if production, use api.example.com as host
+    host: fn.if {
+        condition: fn.eq { fn.process.env { "ENV" } "production" }
+        then: "api.example.com"
+        else: "localhost"
+    }
+
+    // use env PORT if valid, or fallback to 8080
+    port: fn.coalesce { fn.process.env { "PORT" } 8080 }
+}

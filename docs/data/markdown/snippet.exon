@@ -1,0 +1,16 @@
+fn.wrapper {
+    __content__: []
+
+    format: "js"
+    extension: "exon"
+
+    content: fn.sequence@seq {
+        name: fn.get{ target: @root property: "__content__" index: 0 }
+
+        fn.string.join {
+            "```" @root.format "\n"
+            fn.file.load{ path: fn.string.join { "../snippets/" @seq.name "." @root.extension } }
+            "\n```"
+        }
+    }
+}

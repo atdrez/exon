@@ -1,0 +1,84 @@
+{
+    // load native script
+    fn.native {
+        id: "trimLines"
+        path: "js/trimLines.js"
+    }
+
+    title: "The Exon Language"
+
+    subtitle: trimLines { """A simple, composable language with no fixed domain. Configuration, scripting,
+    document generation, automation, typed DSLs, one structured syntax, shaped to fit any problem."""}
+
+    description: trimLines { """Exon files define structured object graphs. <strong>Inheritance</strong>
+    lets child files override any property from a base type without duplicating the rest.
+    <strong>Bindings</strong> reference computed values by name across the same file.
+    <strong>Components</strong> handle arithmetic, flow control, error handling, string
+    manipulation, document transformations, or anything a component produces.
+    <strong>Properties</strong> enforce type constraints, value ranges, and business
+    rules at the field level through getter/setter pairs, self-validating data with
+    no external schema language required. Add your own components in JavaScript and
+    they slot in identically to the standard library.""" }
+
+    features: [
+        {
+            icon: "&#x2699;"
+            name: "Inheritance"
+            description: "Base types let you share and override configuration across environments with zero duplication."
+        },
+        {
+            icon: "&#x1F4E6;"
+            name: "Multi-format output"
+            description: "Encode the same object to JSON, YAML, XML, or plist by swapping a single wrapper."
+        },
+        {
+            icon: "&#x26A1;"
+            name: "Computed values"
+            description: "Built-in arithmetic, string operations, flow control, and environment variable access."
+        },
+        {
+            icon: "&#x1F9E9;"
+            name: "Extensible"
+            description: "Add custom components as plain JavaScript modules. No recompile required."
+        },
+        {
+            icon: "&#x1F4C4;"
+            name: "File splitting"
+            description: "Dot-notation type names map to file paths, enabling clean modular configurations."
+        },
+        {
+            icon: "&#x1F50D;"
+            name: "Bindings"
+            description: "Reference any property anywhere with <code>@</code>bindings, resolved lazily at runtime."
+        },
+    ]
+
+    principles: [
+        KeyValue {
+            key: "Simplicity"
+            value: "The language reduces to a single concept: a named object block with key-value properties. There are no special syntax forms for operators, loops, or functions. Every construct, from arithmetic to file I/O, is expressed as a named object call. This uniformity makes Exon fast to learn, predictable to read, and straightforward to extend without touching the grammar."
+        },
+        KeyValue {
+            key: "Extensibility"
+            value: "The language specification deliberately omits arithmetic, logic, flow control, and I/O. These capabilities are implemented as components (pluggable objects that the resolver dispatches to at runtime). A standard library ships with over 90 components covering math, strings, collections, serialization, and process interaction. You can add your own in JavaScript or TypeScript without modifying the runtime."
+        },
+        KeyValue {
+            key: "Easy to Port"
+            value: "The interpreter is a small tree-walking resolver with no bytecode compiler, no JIT, and no built-in type system. The entire pipeline is: lexer, parser, and resolver with a component registry. Porting Exon to a new host language requires implementing this pipeline over a map/array data model, nothing more."
+        },
+        KeyValue {
+            key: "Multipurpose"
+            value: "Because Exon has no built-in semantics beyond object resolution, the same syntax can power configuration management, document generation, build pipelines, GUI layout, CSS authoring, automation scripting, or any domain-specific language you need. Swap the component library and the language speaks a different domain, with no changes to the parser or resolver."
+        },
+        KeyValue {
+            key: "Type Agnostic"
+            value: "The language works over four primitive constructs (strings, numbers, booleans, and null) plus arrays and generic objects. There are no built-in named types, classes, or schemas in the language core. Complex types emerge by composing existing components or writing native ones, keeping the specification minimal and the type model fully open-ended."
+        },
+        KeyValue {
+            key: "Type and Data Constraints"
+            value: "Exon's property system turns plain fields into active validators. A property object defines <code>get</code> and <code>set</code> handlers that execute on every read and write. This lets you enforce type constraints, value ranges, format rules, and business logic at the field level, without scattering validation code through calling logic. The result is self-validating data structures with no external schema language required."
+        },
+    ]
+
+    fields: Fields{}
+}

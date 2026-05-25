@@ -1,0 +1,20 @@
+{
+    names: [
+        { name: "Alice" surname: "Baggins" },
+        { name: "Bob" surname: "Smith" },
+        { name: "Carol" surname: "Potter" }
+    ]
+
+    // receive an array of greeting messages
+    greetings: fn.foreach {
+        data: @root.names
+        do: fn.sequence@entry {
+            person: fn.parameter { "value" }
+
+            // return greeting message
+            fn.string.join {
+                "Hello, " @entry.person.name " " @entry.person.surname "!"
+            }
+        }
+    }
+}

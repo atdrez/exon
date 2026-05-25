@@ -1,4 +1,4 @@
 fn.json.decode {
-    value: ""
-    content: "{ \"Fn::Not\":$value}"
+    value: null
+    content: "{\"Fn::Not\":$value}"
 }

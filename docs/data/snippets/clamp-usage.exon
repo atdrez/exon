@@ -1,0 +1,16 @@
+{
+   // a.number = 30 (inherited)
+   a: constraints {}
+
+   // b.number = 20 (overriden)
+   b: constraints { number: 20 }
+
+   // c.number = 0 (min clamped)
+   c: constraints { number: -20 }
+
+   // d.number = 100 (max clamped)
+   d: constraints { number: 120 }
+
+   // throw exception if uncommented (not a number)
+   //e: constraints { number: "asd" }
+}

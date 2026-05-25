@@ -1,0 +1,28 @@
+{
+    user: [
+        Field {
+            name: "__content__";
+            description: "holds child elements of an object (e.g: Object{1 2 3} == Object{__content__:[1, 2, 3]}"
+        },
+        Field {
+            name: "__tests__";
+            description: "test code embedded in the exon file; just executed in test mode (-t flag)"
+        },
+    ]
+
+    reserved: [
+        Field { name: "__name__"; description: "base filename (no extension) of the root object in each file" },
+        Field { name: "__file__"; description: "source file path where the object was parsed" },
+        Field { name: "__line__"; description: "source line number where the object was parsed" },
+        Field { name: "__id__"; description: "declared identifier; enables cross-object @ref lookups" },
+        Field { name: "__idFile__"; description: "file where __id__ was declared; scopes IDs per file in the registry" },
+        Field { name: "__ref__"; description: "marks this object as a binding reference" },
+        Field { name: "__native__"; description: "native component name to invoke during resolution" },
+        Field { name: "__base__"; description: "parsed base-type object (inheritance)" },
+        Field { name: "__bind__"; description: "binding target for @ref declarations" },
+
+        // these are volatile fields
+        Field { name: "__bindFile__"; description: "file where an @ref binding was written" },
+        Field { name: "__preresolved__"; description: "sentinel set by deferred scripts (e.g. fn.property) to cache a result;" },
+    ]
+}

@@ -1,0 +1,4 @@
+// constraints.exon
+{
+   number: numberConstraint { _value: 30 } // initial value
+}

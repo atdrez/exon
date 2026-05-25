@@ -1,0 +1,17 @@
+fn.sequence {
+    body: ..content {}
+
+    fn.string.join {
+        separator: "\n"
+
+        fn.foreach {
+            data: @root.body.fields.user
+            do: fn.sequence@entry {
+                v: fn.parameter{"value"}
+                fn.string.join {
+                    "<tr><td>" @entry.v.name "</td><td><code>" @entry.v.description "</code></td></tr>"
+                }
+            }
+        }
+    }
+}

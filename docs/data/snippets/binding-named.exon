@@ -1,0 +1,8 @@
+fn.sequence {
+    Object@person {
+        name:    "Jane"
+        surname: "Doe"
+    }
+
+    fn.string.join { "Hello " @person.name " " @person.surname }
+}

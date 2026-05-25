@@ -2,7 +2,6 @@
     host: "localhost"
     port: 8080
     debug: false
-    maxConnections: 100
     version: 1.04
     validated: null
     tags: [ "dev", "internal" ]

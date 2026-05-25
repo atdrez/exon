@@ -1,0 +1,7 @@
+{
+    ***
+    This is a block comment.
+    It can span multiple lines.
+    ***
+    port: 8080
+}

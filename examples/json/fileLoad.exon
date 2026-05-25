@@ -1,9 +1,9 @@
-using fn.file.load  // used to load file
+using fn.file.load as loadFile
 
 // load raw json from file
 {
     data: fn.json.decode {
-        content: fn.file.load {
+        content: loadFile {
             path: "data/meta.json"
         }
     }

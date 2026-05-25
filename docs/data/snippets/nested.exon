@@ -1,0 +1,9 @@
+{
+    s: Object@server {
+        host: "localhost"
+        port: 8080
+    }
+
+    aHost: @root.s.host   // "localhost"
+    bHost: @server.host   // "localhost"
+}

@@ -1,0 +1,9 @@
+{
+    // Sequence returns the last element
+    result: fn.sequence {
+        fn.add@a { 1 2 } // a = 3
+        fn.mul@b { @a 10 } // b = 30
+
+        fn.sub { @b 2 } // result = 28
+    }
+}

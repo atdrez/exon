@@ -1,0 +1,15 @@
+using fn.*
+using fn.process.env
+
+{
+    host: "localhost"
+    port: coalesce { env { "PORT" } 8080 }
+    debug: false
+    version: 1.04
+    validated: null
+    tags: [ "dev", "internal" ]
+    versionedTags: foreach {
+        data: @root.tags
+        do: string.join { parameter{"value"} ":" @root.version }
+    }
+}

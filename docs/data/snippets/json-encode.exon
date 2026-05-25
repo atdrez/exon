@@ -1,0 +1,24 @@
+using fn.*
+
+json.encode {
+    env:  process.env { "ENV" }
+    port: process.env { "PORT" }
+
+    {
+        server: {
+            host: if {
+                condition: eq { @root.env "production" }
+                then: "api.example.com"
+                else: "localhost"
+            }
+            port: coalesce { @root.port 8080 }
+        }
+
+        database: cond {
+            eq { @root.env "production" } { name: "prod_db" }
+            eq { @root.env "staging" } { name: "staging_db" }
+
+            { name: "local_db" }
+        }
+    }
+}

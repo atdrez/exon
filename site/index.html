@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exon Language</title>
+    <meta name="description" content="Exon is an extensible configuration and data definition language. Parse .exon files into object graphs and serialize to JSON, YAML, XML, or custom formats.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- ====== Sidebar ====== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a href="#introduction" class="sidebar-logo">
+        Exon
+        <span class="logo-badge">v1.0</span>
+      </a>
+    </div>
+
+    <div class="sidebar-search">
+      <input id="sidebar-search" type="text" placeholder="Search..." autocomplete="off">
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#language">Language</a></li>
+        <li><a href="#language-reference">Language Reference</a></li>
+        <li><a href="#standard-library">Standard Library</a></li>
+        <li class="sidebar-section-label">Tools</li>
+        <li class="sub-item"><a href="#cli">CLI</a></li>
+        <li class="sub-item"><a href="#editor-support">Editor Support</a></li>
+        <li><a href="#use-cases">Use Cases</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ====== Main content ====== -->
+  <main class="main-content">
+    <div class="content-inner">
+
+      <!-- ================================================ -->
+      <!-- Introduction                                      -->
+      <!-- ================================================ -->
+      <section id="introduction" class="doc-section">
+
+        <div class="hero">
+          <span class="hero-tag">Multipurpose Language</span>
+          <h1>
+          <!--#exon-->
+          <!-- ..docs.data.html.field { key: "title" } -->
+The Exon Language
+          <!--#endexon-->
+          </h1>
+          <p>
+          <!--#exon-->
+          <!-- ..docs.data.html.field { key: "subtitle" } -->
+A simple, composable language with no fixed domain. Configuration, scripting,
+document generation, automation, typed DSLs, one structured syntax, shaped to fit any problem.
+          <!--#endexon-->
+        </p>
+          <div class="hero-actions">
+            <a href="#installation" class="btn btn-primary">Get Started</a>
+            <a href="#tutorial" class="btn btn-outline">Tutorial</a>
+          </div>
+        </div>
+
+        <p>
+          <!--#exon-->
+          <!-- ..docs.data.html.field { key: "description" } -->
+Exon files define structured object graphs. <strong>Inheritance</strong>
+lets child files override any property from a base type without duplicating the rest.
+<strong>Bindings</strong> reference computed values by name across the same file.
+<strong>Components</strong> handle arithmetic, flow control, error handling, string
+manipulation, document transformations, or anything a component produces.
+<strong>Properties</strong> enforce type constraints, value ranges, and business
+rules at the field level through getter/setter pairs, self-validating data with
+no external schema language required. Add your own components in JavaScript and
+they slot in identically to the standard library.
+          <!--#endexon-->
+        </p>
+
+        <div class="feature-grid">
+
+          <!--#exon-->
+          <!--
+            fn.sequence {
+              body: ..docs.data.content {}
+              fn.string.join {
+                  separator: "\n"
+                  fn.foreach {
+                      data: @root.body.features
+                      do: fn.sequence@entry {
+                          v: fn.parameter{"value"}
+                          fn.string.join {
+                              """<div class="feature-card">"""
+                              """<span class="feature-icon">""" @entry.v.icon "</span>"
+                              "<h4>" @entry.v.name "</h4><p>" @entry.v.description "</p>"
+                              "</div>"
+                          }
+                      }
+                  }
+              }
+            }
+          -->
+<div class="feature-card"><span class="feature-icon">&#x2699;</span><h4>Inheritance</h4><p>Base types let you share and override configuration across environments with zero duplication.</p></div>
+<div class="feature-card"><span class="feature-icon">&#x1F4E6;</span><h4>Multi-format output</h4><p>Encode the same object to JSON, YAML, XML, or plist by swapping a single wrapper.</p></div>
+<div class="feature-card"><span class="feature-icon">&#x26A1;</span><h4>Computed values</h4><p>Built-in arithmetic, string operations, flow control, and environment variable access.</p></div>
+<div class="feature-card"><span class="feature-icon">&#x1F9E9;</span><h4>Extensible</h4><p>Add custom components as plain JavaScript modules. No recompile required.</p></div>
+<div class="feature-card"><span class="feature-icon">&#x1F4C4;</span><h4>File splitting</h4><p>Dot-notation type names map to file paths, enabling clean modular configurations.</p></div>
+<div class="feature-card"><span class="feature-icon">&#x1F50D;</span><h4>Bindings</h4><p>Reference any property anywhere with <code>@</code>bindings, resolved lazily at runtime.</p></div>
+          <!--#endexon-->
+
+        </div>
+
+        <h2>Quick Look</h2>
+        <p>A minimal Exon file is just an object literal. Add <code>using fn.*</code> to unlock built-in components.</p>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "quick-look" } -->
+<pre><code class="language-exon">using fn.*
+using fn.process.env
+
+{
+    host: "localhost"
+    port: coalesce { env { "PORT" } 8080 }
+    debug: false
+    version: 1.04
+    validated: null
+    tags: [ "dev", "internal" ]
+    versionedTags: foreach {
+        data: @root.tags
+        do: string.join { parameter{"value"} ":" @root.version }
+    }
+}</code></pre>
+        <!--#endexon-->
+
+        <p>Running <code>PORT=30 exon hello.exon</code> prints the JSON representation:</p>
+<!--#exon-->
+<!-- ..docs.data.html.snippet { "quick-look" format: "json" extension: "json" } -->
+<pre><code class="language-exon">{
+    "host": "localhost",
+    "port": 30,
+    "debug": false,
+    "version": 1.04,
+    "validated": null,
+    "tags": [
+        "dev",
+        "internal"
+    ],
+    "versionedTags": [
+        "dev:1.04",
+        "internal:1.04"
+    ]
+}</code></pre>
+<!--#endexon-->
+
+        <h2>Core Principles</h2>
+        <p>
+          Exon is built around a small number of foundational ideas. Understanding them
+          explains the design decisions behind the language and the trade-offs that were
+          deliberately made.
+        </p>
+
+        <div class="principles-grid">
+
+          <!--#exon-->
+          <!--
+            fn.sequence {
+              body: ..docs.data.content {}
+              fn.string.join {
+                  separator: "\n"
+                  fn.foreach {
+                      data: @root.body.principles
+                      do: fn.sequence@entry {
+                          v: fn.parameter{"value"}
+                          fn.string.join {
+                              """<div class="principle-card">"""
+                              "<h3>" @entry.v.key "</h3><p>" @entry.v.value "</p>"
+                              "</div>"
+                          }
+                      }
+                  }
+              }
+            }
+          -->
+<div class="principle-card"><h3>Simplicity</h3><p>The language reduces to a single concept: a named object block with key-value properties. There are no special syntax forms for operators, loops, or functions. Every construct, from arithmetic to file I/O, is expressed as a named object call. This uniformity makes Exon fast to learn, predictable to read, and straightforward to extend without touching the grammar.</p></div>
+<div class="principle-card"><h3>Extensibility</h3><p>The language specification deliberately omits arithmetic, logic, flow control, and I/O. These capabilities are implemented as components (pluggable objects that the resolver dispatches to at runtime). A standard library ships with over 90 components covering math, strings, collections, serialization, and process interaction. You can add your own in JavaScript or TypeScript without modifying the runtime.</p></div>
+<div class="principle-card"><h3>Easy to Port</h3><p>The interpreter is a small tree-walking resolver with no bytecode compiler, no JIT, and no built-in type system. The entire pipeline is: lexer, parser, and resolver with a component registry. Porting Exon to a new host language requires implementing this pipeline over a map/array data model, nothing more.</p></div>
+<div class="principle-card"><h3>Multipurpose</h3><p>Because Exon has no built-in semantics beyond object resolution, the same syntax can power configuration management, document generation, build pipelines, GUI layout, CSS authoring, automation scripting, or any domain-specific language you need. Swap the component library and the language speaks a different domain, with no changes to the parser or resolver.</p></div>
+<div class="principle-card"><h3>Type Agnostic</h3><p>The language works over four primitive constructs (strings, numbers, booleans, and null) plus arrays and generic objects. There are no built-in named types, classes, or schemas in the language core. Complex types emerge by composing existing components or writing native ones, keeping the specification minimal and the type model fully open-ended.</p></div>
+<div class="principle-card"><h3>Type and Data Constraints</h3><p>Exon's property system turns plain fields into active validators. A property object defines <code>get</code> and <code>set</code> handlers that execute on every read and write. This lets you enforce type constraints, value ranges, format rules, and business logic at the field level, without scattering validation code through calling logic. The result is self-validating data structures with no external schema language required.</p></div>
+          <!--#endexon-->
+
+        </div>
+
+        <h2>Use Cases</h2>
+        <p>
+          Because Exon has no fixed semantics, the same language adapts to a wide range of
+          problems. Here are the most common ones:
+        </p>
+        <ul>
+          <li>
+            <a href="#use-case-config">Application Configuration</a>:
+            per-environment overrides via inheritance, secrets via <code>process.env</code>,
+            no duplication across dev/staging/production.
+          </li>
+          <li>
+            <a href="#use-case-docgen">Multi-format Document Generation</a>:
+            define a data structure once and emit JSON, YAML, XML, or plist by swapping a
+            single wrapper component.
+          </li>
+          <li>
+            <a href="#use-case-scripting">Scripting and Tooling</a>:
+            orchestrate build pipelines, run shell commands, generate GUI layouts, or drive
+            any tool that consumes structured data.
+          </li>
+          <li>
+            <a href="#gui-layout-gen">GUI layout generator</a>:
+            describe a widget hierarchy as a structured object graph and compile it to
+            target-language code, layout classes ready to be subclassed with event
+            handler implementations.
+          </li>
+        </ul>
+
+      </section>
+
+      <!-- ================================================ -->
+      <!-- Installation                                      -->
+      <!-- ================================================ -->
+      <section id="installation" class="doc-section">
+        <h1>Installation</h1>
+        <p>The Exon CLI requires <a href="https://nodejs.org">Node.js</a> (v16 or later) and npm.</p>
+
+        <h2>Quick Install</h2>
+        <p>Clone the repository and run the install script:</p>
+        <pre><code class="language-bash">git clone git@github.com:atdrez/exon.git
+cd exon
+bash install.sh</code></pre>
+        <p>The script compiles the TypeScript runtime and installs the <code>exon</code> command globally via <code>npm install -g</code>. Once complete:</p>
+        <pre><code class="language-bash">exon &lt;file.exon&gt;</code></pre>
+
+        <h2>Manual Install</h2>
+        <p>You can also install manually from the TypeScript runtime directory:</p>
+        <pre><code class="language-bash">cd runtimes/typescript
+npm install -g .</code></pre>
+
+      </section>
+
+      <!-- ================================================ -->
+      <!-- Language                                          -->
+      <!-- ================================================ -->
+      <section id="language" class="doc-section">
+        <h1>Language</h1>
+        <p>A high-level overview of Exon's design and syntax model.</p>
+
+        <h2>File Structure</h2>
+        <p>
+          An Exon file contains exactly one top-level expression. That expression is typically
+          one of three forms:
+        </p>
+        <pre><code class="language-exon">// 1. Plain object
+{
+    key: value
+}
+
+// 2. Component call (e.g. encoding wrapper)
+json.encode {
+    indent: 4
+    { key: value }
+}
+
+// 3. Inherited type with overrides
+BaseType {
+    override: "new value"
+}</code></pre>
+
+
+        <h2>Nested Objects</h2>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.example { "basic/nested" } -->
+<pre><code class="language-exon">{
+    server: {
+        host: "localhost"
+        port: 8080
+    }
+    auth: {
+        enabled: true
+        provider: "oauth2"
+    }
+}</code></pre>
+        <!--#endexon-->
+
+        <h2>Inheritance</h2>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.example { "basic/inherited" } -->
+<pre><code class="language-exon">***
+Extends Base.exon, inheriting the base properties and adding new ones
+***
+
+using models.Database  // load models/Database.exon
+
+base {
+    timeout: 30
+    retryAttempts: 3
+
+    database: Database {
+        name: "development_db"
+        poolSize: 20
+    }
+
+    // load models/Environment.exon
+    environment: models.Environment {
+
+    }
+
+    collections: collections.Users {}
+}</code></pre>
+        <!--#endexon-->
+
+        <h2>Multiline Strings</h2>
+        <pre><code class="language-exon">{
+    message: """
+    This spans
+    multiple lines.
+    """
+  
+    template: """{"key": "value"}"""
+}</code></pre>
+
+        <h2>Comments</h2>
+        <pre><code class="language-exon">// single-line comment
+port: 8080  // inline comment
+
+***
+multi-line block comment
+spans as many lines as needed
+***</code></pre>
+
+        <h2>Semicolons</h2>
+        <p>Semicolons are optional separators. Both styles are equivalent:</p>
+        <pre><code class="language-exon">{ host: "localhost"; port: 8080 }
+{ host: "localhost"  port: 8080 }</code></pre>
+
+        <h2>Imports</h2>
+        <p>
+          <code>using</code> brings names into scope. Dot notation maps to file paths relative
+          to the configured search paths.
+        </p>
+        <pre><code class="language-exon">using fn.*             // all built-in components
+using fn.string.join   // a single component
+using models.Database  // import models/Database.exon
+using lib.*            // all files under lib/</code></pre>
+
+
+        <h2>Component Calls</h2>
+        <p>
+          Any identifier followed by <code>{ }</code> is a component call. Arguments inside the
+          braces can be <em>positional</em> (values without a key) or <em>named</em>
+          (key-value pairs). The component decides how to interpret them.
+        </p>
+        <pre><code class="language-exon">using fn.*
+
+{
+    // positional args
+    sum:  add { 10 5 }
+
+    // named args
+    text: string.join { "a" "b" "c"  separator: "-" }
+
+    // nested calls
+    url:  string.join { "http://" @root.host ":" @root.port }
+
+    // lazy components receive unresolved args
+    val:  if {
+        condition: eq { @root.mode "dev" }
+        then: "debug"
+        else: "info"
+    }
+}</code></pre>
+
+        <h2>Anonymous Objects</h2>
+        <p>
+          An object without a key name is treated as the primary content of a component call.
+          This pattern is used inside encoding wrappers:
+        </p>
+        <pre><code class="language-exon">json.encode {
+    indent: 4      // named arg for json.encode
+    {              // anonymous object = the data to encode
+        name: "app"
+        version: 1
+    }
+}</code></pre>
+
+        <h2>The <code>using fn.*</code> Line</h2>
+        <p>
+          Most files begin with <code>using fn.*</code>. This brings all 90+ built-in components
+          into scope under short names. Without it, use the full <code>fn.</code> prefix:
+        </p>
+        <pre><code class="language-exon">fn.add { 10 5 }
+fn.string.join { "a" "b" }
+fn.process.env { "PORT" }</code></pre>
+        <p>Selective imports reduce the available names and avoid collisions:</p>
+        <pre><code class="language-exon">using fn.add
+using fn.string.join
+using fn.process.env</code></pre>
+
+      </section>
+
+      <!-- ================================================ -->
+      <!-- Language Reference                                -->
+      <!-- ================================================ -->
+      <section id="language-reference" class="doc-section">
+        <h1>Language Reference</h1>
+
+        <h2>Data Types</h2>
+        <table>
+          <thead>
+            <tr><th>Type</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>String</td><td><code>"hello"</code>, <code>"line\n"</code></td></tr>
+            <tr><td>Number</td><td><code>42</code>, <code>3.14</code>, <code>-100</code></td></tr>
+            <tr><td>Boolean</td><td><code>true</code>, <code>false</code></td></tr>
+            <tr><td>Null</td><td><code>null</code></td></tr>
+            <tr><td>Array</td><td><code>[ 1, "two", true ]</code></td></tr>
+            <tr><td>Object</td><td><code>{ key: value }</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Reserved User Fields</h2>
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <!--#exon-->
+            <!-- ..docs.data.html.userFields {} -->
+<tr><td>__content__</td><td><code>holds child elements of an object (e.g: Object{1 2 3} == Object{__content__:[1, 2, 3]}</code></td></tr>
+<tr><td>__tests__</td><td><code>test code embedded in the exon file; just executed in test mode (-t flag)</code></td></tr>
+            <!--#endexon-->
+          </tbody>
+        </table>
+
+        <h2>Reserved Internal Fields</h2>
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <!--#exon-->
+            <!-- ..docs.data.html.reservedFields {} -->
+<tr><td>__name__</td><td><code>base filename (no extension) of the root object in each file</code></td></tr>
+<tr><td>__file__</td><td><code>source file path where the object was parsed</code></td></tr>
+<tr><td>__line__</td><td><code>source line number where the object was parsed</code></td></tr>
+<tr><td>__id__</td><td><code>declared identifier; enables cross-object @ref lookups</code></td></tr>
+<tr><td>__idFile__</td><td><code>file where __id__ was declared; scopes IDs per file in the registry</code></td></tr>
+<tr><td>__ref__</td><td><code>marks this object as a binding reference</code></td></tr>
+<tr><td>__native__</td><td><code>native component name to invoke during resolution</code></td></tr>
+<tr><td>__base__</td><td><code>parsed base-type object (inheritance)</code></td></tr>
+<tr><td>__bind__</td><td><code>binding target for @ref declarations</code></td></tr>
+<tr><td>__bindFile__</td><td><code>file where an @ref binding was written</code></td></tr>
+<tr><td>__preresolved__</td><td><code>sentinel set by deferred scripts (e.g. fn.property) to cache a result;</code></td></tr>
+            <!--#endexon-->
+          </tbody>
+        </table>
+
+
+        <h2>Inheritance</h2>
+        <p>
+          A file inherits from another by using that file's name as the root type. The resolver
+          loads the referenced file, merges its properties, then applies the child's block on top.
+        </p>
+        <pre><code class="language-exon">// Base.exon
+{
+    host: "localhost"
+    port: 8080
+    debug: false
+}
+
+// Child.exon  -- inherits from Base.exon
+Base {
+    timeout: 30
+    retryAttempts: 3
+}</code></pre>
+        <p>
+          <code>Child.exon</code> resolves to all properties from <code>Base.exon</code> plus
+          <code>timeout</code> and <code>retryAttempts</code>.
+        </p>
+
+        <h3>Dot Notation and File Paths</h3>
+        <table>
+          <thead>
+            <tr><th>Type name</th><th>Resolved path</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>db</code></td><td><code>db.exon</code></td></tr>
+            <tr><td><code>models.Database</code></td><td><code>models/Database.exon</code></td></tr>
+            <tr><td><code>infra.db.Prod</code></td><td><code>infra/db/Prod.exon</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Chained Inheritance</h3>
+        <pre><code class="language-exon">// base/Server.exon
+{ host: "localhost"  port: 8080  timeout: 30 }
+
+// config/ApiServer.exon
+using ..base.Server   // resolves to ../base/Server.exon
+
+Server {
+    port:    443
+    timeout: 60
+}
+
+// app.exon
+{
+    server: config.ApiServer {
+        host: "api.example.com"
+    }
+}</code></pre>
+
+        <h3>Partial Override with <code>*</code></h3>
+        <p>
+          Use <code>*</code> instead of a full type name to merge only the listed properties into
+          an existing nested object, rather than replacing the whole thing:
+        </p>
+        <pre><code class="language-exon">Child {
+    // replaces only name and poolSize inside the inherited database object
+    database: * {
+        name:     "mydb"
+        poolSize: 50
+    }
+}</code></pre>
+        <p>Or equivalently, using dot-path notation:</p>
+        <pre><code class="language-exon">Child {
+    database.name:     "mydb"
+    database.poolSize: 50
+}</code></pre>
+
+        <h2>Bindings</h2>
+        <p>
+          Bindings assign an identifier to an object so that other properties can reference it
+          with <code>@id.property</code>. <code>@root</code> is always in scope.
+        </p>
+
+        <h3><code>@root</code></h3>
+        <pre><code class="language-exon">using fn.*
+
+{
+    port: 8080
+    host: "localhost"
+
+    baseUrl: string.join { "http://" @root.host ":" @root.port }
+    server: {
+        endpoint: string.join { @root.baseUrl "/api/v1" }
+    }
+}</code></pre>
+
+        <h3>Named Bindings</h3>
+        <pre><code class="language-exon">using fn.*
+
+{
+    info: Object@person {
+        name:     "Jane"
+        surname:  "Doe"
+        fullName: string.join { @person.name " " @person.surname }
+    }
+
+    greeting: string.join { "Hello " @root.info.fullName }
+}</code></pre>
+
+        <h3>Computed Bindings</h3>
+        <pre><code class="language-exon">using fn.*
+
+{
+    base:    100
+    taxRate: 20
+
+    tax:   mul { @root.base  div { @root.taxRate 100 } }
+    total: add { @root.base @root.tax }
+    label: string.join { "Total: $" @root.total }
+}</code></pre>
+
+        <h2>Flow Control</h2>
+        <p>
+          All flow control components are deferred: they receive unresolved arguments and
+          evaluate branches selectively.
+        </p>
+
+        <h3>if</h3>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "ifelse" } -->
+<pre><code class="language-exon">{
+    // result will receive object { x: 42 } or a string
+    // depending if environment var ok is defined
+    result: fn.if {
+        condition: fn.defined { fn.process.env{"ok"} }
+        then: { x: 42 }
+        else: "nothing to see here"
+    }
+}</code></pre>
+        <!--#endexon-->
+
+        <h3>cond</h3>
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "cond" } -->
+<pre><code class="language-exon">{
+    score: fn.coalesce { fn.process.env { "SCORE" } 0 }
+
+    // grade based on score: A >= 90, B >= 80, C >= 70, else F
+    grade: fn.cond {
+        fn.ge { @root.score 90 }  "A"
+        fn.ge { @root.score 80 }  "B"
+        fn.ge { @root.score 70 }  "C"
+        "F"
+    }
+}</code></pre>
+        <!--#endexon-->
+
+        <h3>switch</h3>
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "switch" } -->
+<pre><code class="language-exon">{
+    result: fn.switch {
+        value: fn.process.env { "CMD" }
+
+        start:   "Starting service..."
+        stop:    "Stopping service..."
+
+        __default: fn.string.join { "Unknown command: " fn.process.env { "CMD" } }
+    }
+}</code></pre>
+        <!--#endexon-->
+
+        <h3>coalesce</h3>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "coalesce" } -->
+<pre><code class="language-exon">{
+    // use env port if valid or fallback to 8080
+    port: fn.coalesce { fn.process.env{"PORT"} 8080 }
+
+    // unlike or, treats 0 and false as valid (non-null) values
+    retries: fn.coalesce { null null 3 }
+}</code></pre>
+        <!--#endexon-->
+
+        <h3>foreach</h3>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "foreach" } -->
+<pre><code class="language-exon">{
+    names: [
+        { name: "Alice" surname: "Baggins" },
+        { name: "Bob" surname: "Smith" },
+        { name: "Carol" surname: "Potter" }
+    ]
+
+    // receive an array of greeting messages
+    greetings: fn.foreach {
+        data: @root.names
+        do: fn.sequence@entry {
+            person: fn.parameter { "value" }
+
+            // return greeting message
+            fn.string.join {
+                "Hello, " @entry.person.name " " @entry.person.surname "!"
+            }
+        }
+    }
+}</code></pre>
+        <!--#endexon-->
+
+        <h3>while</h3>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "while" } -->
+<pre><code class="language-exon">{
+    target: 5
+    counter: 0
+
+    data: fn.while {
+        // loop while counter < target
+        condition: fn.lt { @root.counter @root.target }
+
+        do: fn.sequence {
+            fn.println { fn.string.join { "N=" @root.counter } }
+
+            fn.set {
+                target: @root 
+                property: "counter"
+                // increment counter by 1
+                value: fn.add { @root.counter 1 }
+            }
+
+            // return counter
+            @root.counter
+        }
+    }
+}</code></pre>
+  <!--#endexon-->
+
+        <h3>try / raise</h3>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "trycatch" } -->
+<pre><code class="language-exon">{
+    port: fn.try {
+        fn.sequence {
+            // parse first argument as int
+            fn.string.parseInt@value {
+                fn.process.argv{1}
+            }
+
+            // if not number, raise exception (check fn.assert)
+            fn.if {
+                condition: fn.not { fn.number.is{ @value } }
+                then: fn.raise{"PORT must be a number"}
+            }
+
+            // return parsed value
+            @value
+        }
+        catch: 8080 // define 8080 if exception was raised
+    }
+}</code></pre>
+  <!--#endexon-->
+
+        <h2>Properties (getter/setter)</h2>
+        <p>
+          The <code>property</code> component defines active getter/setter pairs that validate or
+          transform values on read and write.
+        </p>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "numberConstraint" } -->
+<pre><code class="language-exon">// numberConstraint.exon
+fn.property {
+    min: 0
+    max: 100
+    _value: 0
+
+    get: fn.get { target: @root  property: "_value" }
+
+    set: fn.sequence {
+        fn.assert {
+            fn.number.is {fn.parameter { "value" }}
+            message: "Value must be a number"
+        }
+        fn.set {
+            target: @root  property: "_value"
+            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+        }
+    }
+
+    init: fn.sequence {
+        fn.assert {
+            fn.number.is {@root._value}
+            message: "Value must be a number"
+        }
+        fn.set {
+            target: @root  property: "_value"
+            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+        }
+    }
+}</code></pre>
+        <!--#endexon-->
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "constraints" } -->
+<pre><code class="language-exon">// constraints.exon
+{
+   number: numberConstraint { _value: 30 } // initial value
+}</code></pre>
+        <!--#endexon-->
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "clamp-usage" } -->
+<pre><code class="language-exon">{
+   // a.number = 30 (inherited)
+   a: constraints {}
+
+   // b.number = 20 (overriden)
+   b: constraints { number: 20 }
+
+   // c.number = 0 (min clamped)
+   c: constraints { number: -20 }
+
+   // d.number = 100 (max clamped)
+   d: constraints { number: 120 }
+
+   // throw exception if uncommented (not a number)
+   //e: constraints { number: "asd" }
+}</code></pre>
+        <!--#endexon-->
+
+        <h2>Native Components</h2>
+        <p>Load a JavaScript module as a component at runtime without modifying the Exon runtime:</p>
+        <pre><code class="language-exon">
+// components/greet.js
+module.exports.resolve = function(obj, context) {
+    const name = obj.name || "World";
+    return "Hello, " + name + "!";
+};
+</code></pre>
+        <pre><code class="language-exon">// usage in app.exon
+{
+    fn.native {
+        id:   "lib.greet"
+        path: "components/greet.js"
+    }
+
+    message: lib.greet { name: "Alice" }
+}</code></pre>
+
+      </section>
+
+      <!-- ================================================ -->
+      <!-- Standard Library                                  -->
+      <!-- ================================================ -->
+      <section id="standard-library" class="doc-section">
+        <h1>Standard Library</h1>
+        <p>Import all standard components with <code>using fn.*</code>, or selectively:</p>
+        <pre><code class="language-exon">using fn.add
+using fn.string.join
+using fn.process.env</code></pre>
+
+        <h2>Arithmetic</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>add</code></td><td><code>{ a b }</code></td><td>a + b</td></tr>
+            <tr><td><code>sub</code></td><td><code>{ a b }</code></td><td>a - b</td></tr>
+            <tr><td><code>mul</code></td><td><code>{ a b }</code></td><td>a * b</td></tr>
+            <tr><td><code>div</code></td><td><code>{ a b }</code></td><td>a / b</td></tr>
+            <tr><td><code>mod</code></td><td><code>{ a b }</code></td><td>a % b</td></tr>
+            <tr><td><code>pow</code></td><td><code>{ a b }</code></td><td>a ** b</td></tr>
+            <tr><td><code>neg</code></td><td><code>{ a }</code></td><td>-a</td></tr>
+            <tr><td><code>math.min</code></td><td><code>{ a b }</code></td><td>minimum of a and b</td></tr>
+            <tr><td><code>math.max</code></td><td><code>{ a b }</code></td><td>maximum of a and b</td></tr>
+            <tr><td><code>math.clamp</code></td><td><code>{ value lo hi }</code></td><td>clamp value to [lo, hi]</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Comparison</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>eq</code></td><td><code>{ a b }</code></td><td>a === b</td></tr>
+            <tr><td><code>ne</code></td><td><code>{ a b }</code></td><td>a !== b</td></tr>
+            <tr><td><code>lt</code></td><td><code>{ a b }</code></td><td>a &lt; b</td></tr>
+            <tr><td><code>gt</code></td><td><code>{ a b }</code></td><td>a &gt; b</td></tr>
+            <tr><td><code>le</code></td><td><code>{ a b }</code></td><td>a &lt;= b</td></tr>
+            <tr><td><code>ge</code></td><td><code>{ a b }</code></td><td>a &gt;= b</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Boolean Logic</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>and</code></td><td><code>{ a b }</code></td><td>a &amp;&amp; b</td></tr>
+            <tr><td><code>or</code></td><td><code>{ a b }</code></td><td>a || b, first truthy value</td></tr>
+            <tr><td><code>xor</code></td><td><code>{ a b }</code></td><td>exclusive OR</td></tr>
+            <tr><td><code>not</code></td><td><code>{ a }</code></td><td>!a</td></tr>
+            <tr><td><code>defined</code></td><td><code>{ a }</code></td><td>true if a is not null/undefined</td></tr>
+            <tr><td><code>typeof</code></td><td><code>{ a }</code></td><td>"number", "string", "boolean", etc.</td></tr>
+            <tr><td><code>in</code></td><td><code>{ key target }</code></td><td>key exists in array or object</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Null and Fallback</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>or</code></td><td><code>{ a b ... }</code></td><td>first truthy value</td></tr>
+            <tr><td><code>coalesce</code></td><td><code>{ a b ... }</code></td><td>first non-null value (0 and false are valid)</td></tr>
+            <tr><td><code>cond</code></td><td><code>{ cond val ... def }</code></td><td>first matching condition/value pair</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Flow Control (deferred)</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Key Arguments</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>if</code></td><td><code>condition, then, else</code></td><td>conditional expression</td></tr>
+            <tr><td><code>switch</code></td><td><code>value, named branches, __default</code></td><td>multi-way branch</td></tr>
+            <tr><td><code>cond</code></td><td>alternating condition/value pairs</td><td>first-match selector</td></tr>
+            <tr><td><code>foreach</code></td><td><code>data, do</code></td><td>iterate array, collect results</td></tr>
+            <tr><td><code>while</code></td><td><code>condition, do</code></td><td>loop while condition is truthy</td></tr>
+            <tr><td><code>repeat</code></td><td><code>value, count</code></td><td>produce array of repeated value</td></tr>
+            <tr><td><code>try</code></td><td>body, <code>catch</code></td><td>exception handling</td></tr>
+            <tr><td><code>raise</code></td><td><code>{ message }</code></td><td>throw an exception</td></tr>
+            <tr><td><code>sequence</code></td><td>positional items</td><td>evaluate in order, return last</td></tr>
+          </tbody>
+        </table>
+
+        <h2>String</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>string.join</code></td><td><code>{ a b ...  separator: "" }</code></td><td>concatenate with optional separator</td></tr>
+            <tr><td><code>string.split</code></td><td><code>{ a  separator: " " }</code></td><td>split string into array</td></tr>
+            <tr><td><code>string.is</code></td><td><code>{ a }</code></td><td>type check</td></tr>
+            <tr><td><code>string.isEmpty</code></td><td><code>{ a }</code></td><td>true if empty or null</td></tr>
+            <tr><td><code>string.length</code></td><td><code>{ a }</code></td><td>length in characters</td></tr>
+            <tr><td><code>string.trim</code></td><td><code>{ a }</code></td><td>strip leading/trailing whitespace</td></tr>
+            <tr><td><code>string.endsWith</code></td><td><code>{ a suffix }</code></td><td>suffix check</td></tr>
+            <tr><td><code>string.parseInt</code></td><td><code>{ a }</code></td><td>parse to integer</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Collections</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>count</code></td><td><code>{ a }</code></td><td>number of elements in array or object</td></tr>
+            <tr><td><code>reverse</code></td><td><code>{ a }</code></td><td>reverse an array</td></tr>
+            <tr><td><code>merge</code></td><td><code>{ a b ... }</code></td><td>deep merge objects</td></tr>
+            <tr><td><code>map</code></td><td><code>{ keys values }</code></td><td>build object from key/value arrays</td></tr>
+            <tr><td><code>get</code></td><td><code>{ target index/property }</code></td><td>get element by index or key</td></tr>
+            <tr><td><code>set</code></td><td><code>{ target property value }</code></td><td>set a named field on an object</td></tr>
+            <tr><td><code>pass</code></td><td><code>{}</code></td><td>identity / pass-through</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Process and I/O</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>process.env</code></td><td><code>{ "NAME" }</code></td><td>get environment variable</td></tr>
+            <tr><td><code>process.argv</code></td><td><code>{ index }</code></td><td>get command-line argument by index</td></tr>
+            <tr><td><code>process.exec</code></td><td><code>{ command }</code></td><td>execute shell command, return stdout</td></tr>
+            <tr><td><code>println</code></td><td><code>{ value }</code></td><td>print value to stdout</td></tr>
+            <tr><td><code>parameter</code></td><td><code>{ name }</code></td><td>get named argument from context</td></tr>
+          </tbody>
+        </table>
+
+        <h2>File System</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>file.load</code></td><td><code>{ "path" }</code></td><td>load file contents as string</td></tr>
+            <tr><td><code>file.save</code></td><td><code>{ path  data }</code></td><td>write string to file</td></tr>
+            <tr><td><code>path.isfile</code></td><td><code>{ "path" }</code></td><td>true if path is a file</td></tr>
+            <tr><td><code>path.isdir</code></td><td><code>{ "path" }</code></td><td>true if path is a directory</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Serialization</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>json.encode</code></td><td><code>{ indent: N  object }</code></td><td>serialize to JSON string</td></tr>
+            <tr><td><code>json.decode</code></td><td><code>{ string }</code></td><td>parse JSON string to object</td></tr>
+            <tr><td><code>yaml.encode</code></td><td><code>{ object }</code></td><td>serialize to YAML string</td></tr>
+            <tr><td><code>xml.encode</code></td><td><code>{ object }</code></td><td>serialize to XML string</td></tr>
+            <tr><td><code>plist.encode</code></td><td><code>{ object }</code></td><td>serialize to Apple plist format</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Assertions and Regex</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>assert</code></td><td><code>{ condition  message: "" }</code></td><td>raise if condition is falsy</td></tr>
+            <tr><td><code>regex.test</code></td><td><code>{ value  pattern: "" }</code></td><td>test value against regex pattern</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Extensibility</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Key Arguments</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>fn.component</code></td><td><code>id, content</code></td><td>define a reusable inline component</td></tr>
+            <tr><td><code>fn.native</code></td><td><code>id, path</code></td><td>load a JavaScript module as a component</td></tr>
+            <tr><td><code>property</code></td><td><code>get, set, fields</code></td><td>define typed getter/setter property</td></tr>
+            <tr><td><code>wrapper</code></td><td>named fields, <code>content</code></td><td>expose fields as params, evaluate content</td></tr>
+            <tr><td><code>js.eval</code></td><td><code>{ expression }</code></td><td>evaluate a JavaScript expression string</td></tr>
+          </tbody>
+        </table>
+
+        <h2>IPC</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>ipc.getmessage</code></td><td><code>{ }</code></td><td>receive a message from parent process</td></tr>
+            <tr><td><code>ipc.sendmessage</code></td><td><code>{ object }</code></td><td>send a message to parent process</td></tr>
+          </tbody>
+        </table>
+
+      </section>
+
+      <!-- ================================================ -->
+      <!-- CLI                                               -->
+      <!-- ================================================ -->
+      <section id="cli" class="doc-section">
+        <h1>CLI</h1>
+        <p>The Exon CLI is a single Node.js script at <code>runtimes/typescript/bin/main.js</code>.</p>
+
+        <h2>Usage</h2>
+        <pre><code class="language-bash">node bin/main.js &lt;file.exon&gt; [options]</code></pre>
+
+        <h2>Options</h2>
+        <table>
+          <thead><tr><th>Option</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>-e, --extended</code></td><td>Print the parsed AST before resolution</td></tr>
+            <tr><td><code>-p, --path &lt;dir&gt;</code></td><td>Add a search path for .exon imports (repeatable)</td></tr>
+            <tr><td><code>-t, --test</code></td><td>Test mode -- suppress output (for .exon test fixtures)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Examples</h2>
+        <pre><code class="language-bash"># Basic run
+node bin/main.js app.exon
+
+# With environment variables
+ENV=production PORT=443 node bin/main.js app.exon
+
+# Extra search path
+node bin/main.js app.exon -p ./shared -p ./lib
+
+# Show parsed AST
+node bin/main.js app.exon --extended
+
+# Run test fixture
+node bin/main.js ../../tests/fixtures/basic.test.exon -t</code></pre>
+
+        <h2>Convenience Script</h2>
+        <p>
+          The <code>ts-run.sh</code> script in <code>runtimes/typescript/</code> wraps
+          <code>node bin/main.js</code> with a cleaner interface for development:
+        </p>
+        <pre><code class="language-bash">./ts-run.sh examples/basic/base.exon
+./ts-run.sh app.exon -p ./lib</code></pre>
+
+        <h2>Running Exon Tests</h2>
+        <pre><code class="language-bash">
+          # run all tests
+          ./ts-test.sh 
+  
+          # run a given test
+          ./ts-run.sh tests/fixtures/basic.test.exon
+        </code></pre>
+
+      </section>
+
+      <!-- ================================================ -->
+      <!-- Editor Support                                    -->
+      <!-- ================================================ -->
+      <section id="editor-support" class="doc-section">
+        <h1>Editor Support</h1>
+
+        <h2>VS Code Extension</h2>
+        <p>
+          A syntax highlighting extension for Visual Studio Code is included in the repository
+          at <code>tools/vscode-extension/</code>. It provides:
+        </p>
+        <ul>
+          <li>Syntax highlighting for <code>.exon</code> files</li>
+          <li>Block comment toggling (<code>*** ... ***</code>)</li>
+          <li>Bracket matching for <code>{ }</code> and <code>[ ]</code></li>
+        </ul>
+
+        <h3>Install from source</h3>
+        <ol>
+          <li>Open VS Code</li>
+          <li>Open the Command Palette (<code>Ctrl+Shift+P</code> / <code>Cmd+Shift+P</code>)</li>
+          <li>Run <strong>Extensions: Install from VSIX...</strong></li>
+          <li>Select the <code>.vsix</code> file from <code>tools/vscode-extension/</code></li>
+        </ol>
+
+        <h3>Development mode</h3>
+        <p>
+          Open <code>tools/vscode-extension/</code> as a workspace in VS Code, then press
+          <code>F5</code> to launch an Extension Development Host with the grammar active.
+        </p>
+
+        <h2>Other Editors</h2>
+        <p>
+          Exon does not yet have dedicated plugins for other editors. As a workaround, you
+          can configure your editor to treat <code>.exon</code> files as a similar language
+          (e.g. JSON or TypeScript) for basic highlighting. Contributions of grammar files
+          for other editors are welcome.
+        </p>
+
+      </section>
+
+
+
+      <!-- ================================================ -->
+      <!-- Use Cases                                         -->
+      <!-- ================================================ -->
+      <section id="use-cases" class="doc-section">
+        <h1>Use Cases</h1>
+        <p>Because Exon separates syntax from semantics, the same language adapts to a wide range of domains simply by swapping the component library. The examples below illustrate three common applications: scripting and build tooling, declarative GUI layout, and multi-format document generation.</p>
+
+        <h2 id="use-case-config">Application Configuration</h2>
+        <p>
+          Define your application config once. Use inheritance for per-environment overrides and
+          <code>process.env</code> for secrets that must not live in source control.
+        </p>
+
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "app-config" } -->
+<pre><code class="language-exon">{
+    // if production, use api.example.com as host
+    host: fn.if {
+        condition: fn.eq { fn.process.env { "ENV" } "production" }
+        then: "api.example.com"
+        else: "localhost"
+    }
+
+    // use env PORT if valid, or fallback to 8080
+    port: fn.coalesce { fn.process.env { "PORT" } 8080 }
+}</code></pre>
+      <!--#endexon-->
+
+        <h2 id="use-case-docgen">Multi-format DocGen</h2>
+        <p>
+          Define your data structure once and produce JSON, YAML, PLIST, XML, or
+          any custom format by using object wrappers.
+        </p>
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "doc-gen" } -->
+<pre><code class="language-exon">using fn.*
+
+sequence {
+    content: {
+        name: "app"
+        config: {
+            host: "localhost"
+            port: 8080
+        }
+    }
+
+    // get first argument, or fallback to 'json'
+    format: or { process.argv{1} "json"}
+
+    cond {
+        // output yaml
+        eq {@root.format "yaml"} fn.yaml.encode { @root.content }
+
+        // output xml
+        eq {@root.format "xml"} fn.xml.encode { @root.content }
+
+        // output plist
+        eq {@root.format "plist"} fn.plist.encode { @root.content }
+
+        // output json
+        eq {@root.format "json"} fn.json.encode { @root.content }
+    }
+}</code></pre>
+        <!--#endexon-->
+
+        <h2 id="use-case-scripting">Scripting & Tooling</h2>
+        <p>
+          Exon can be used for tooling, configuration process, orchestrating build pipelines,
+          generating gui layouts, and other tasks.
+        </p>
+        <!--#exon-->
+        <!-- ..docs.data.html.snippet { "tooling" } -->
+<pre><code class="language-exon">*** Example of C a project meta build system ***
+
+using fn.*
+{
+    component {
+        id: "find_files"
+        content: wrapper {
+            dir: ""
+            path: ""
+            content: string.split {
+                string.trim {
+                    process.exec { "find " @root.dir " -name '" @root.path "' | sort" }
+                }
+                separator: "\n"
+            }
+        }
+    }
+
+    component {
+        id: "build_command"
+        content: wrapper {
+            files: []; includes: [];
+            target: ""; outputDir: "";
+
+            content: string.join@do {
+                or { process.env { "EMAKE_C_COMPILER" } "gcc" }
+                " -o " @root.outputDir "/" @root.target
+                string.join {
+                    foreach {
+                        data: @root.includes
+                        do: string.join { " -I " parameter {"value"} " " }
+                    }
+                    separator: " "
+                }
+                string.join { @root.files separator: " " }
+            }
+        }
+    }
+
+    assert {
+      defined { process.argv{0} }
+      message: "Script argument is missing"
+    }
+
+    dir: path.dirname { process.argv{0} }
+    srcDir: string.join { @root.dir "/src" }
+    outDir: string.join { @root.dir "/bin" }
+
+    // create build command
+    cmd: build_command {
+        outputDir: @root.outDir
+        includes: [ @root.srcDir ]
+        target: or { process.argv{1} "hello" }
+        files: find_files { dir: @root.srcDir path: "*.c" }
+    }
+
+    // make output directory & compile
+    process.exec { "mkdir -p " @root.outDir ";" @root.cmd }
+}</code></pre>
+        <!--#endexon-->
+
+        <h2 id="gui-layout-gen">GUI layout generator</h2>
+        <p>
+          A Tk/Ttk widget hierarchy structured object graph that generates the corresponding
+          Python code. Each widget type maps to a component;
+          properties such as <code>text</code>, <code>width</code>, and <code>command</code>
+          become named fields. The generated Python file wires up the widget tree and emits
+          stub callback handlers for every bound event, ready to be filled in with application
+          logic.
+        </p>
+
+
+
+        <!--#exon-->
+        <!-- ..docs.data.html.example { "gui/top_frame" } -->
+<pre><code class="language-exon">using fn.*
+using lib.ttk.*
+
+Class {
+    ref: "self"
+    name: "TopFrameBase"
+    parent_class: "ttk.Frame"
+
+    // create label
+    Label {
+        ref: "label"
+        text: "Your name:"
+        layout: { anchor: "w" }
+    }
+
+    // create text input
+    Entry {
+        ref: "name_entry"
+        owner: @root.ref
+        layout: { fill: "x" pady: 5 }
+    }
+
+    // create button
+    Button {
+        ref: "btn"
+        text: "Say Hello"
+        layout: { pady: 5 }
+
+        // bind click to method
+        command: lib.py.lambda {
+            target: @root.ref
+            method: @root._say_hello.ref
+        }
+    }
+
+    _say_hello: lib.py.def { ref: "_say_hello" }
+
+    // methods to be overriden
+    methods: [ @root._say_hello ]
+}</code></pre>
+        <!--#endexon-->
+
+        <h2>More Examples</h2>
+        <p>Browse all examples in the <code>examples/</code> directory:</p>
+        <ul>
+          <li><code>examples/basic/</code> -- object literals, nested objects, inheritance</li>
+          <li><code>examples/flowcontrol/</code> -- if/else, switch, cond, foreach, while, coalesce</li>
+          <li><code>examples/json/</code> -- JSON encoding, decoding, file loading</li>
+          <li><code>examples/converters/</code> -- XML, YAML, plist conversion</li>
+          <li><code>examples/bindings/</code> -- bindings and cross-references</li>
+          <li><code>examples/property/</code> -- getter/setter with validation</li>
+          <li><code>examples/automation/</code> -- IPC and automation workflows</li>
+          <li><code>examples/buildsystem/</code> -- build pipeline with native components</li>
+          <li><code>examples/documents/</code> -- HTML document generation</li>
+          <li><code>examples/css/</code> -- CSS library with typed properties</li>
+          <li><code>examples/gui/</code> -- GUI layout with tkinter interop</li>
+          <li><code>examples/component/</code> -- inline component definitions</li>
+          <li><code>examples/errorhandling/</code> -- try/catch and error patterns</li>
+          <li><code>examples/ipc/</code> -- inter-process communication worker</li>
+        </ul>
+
+      </section>
+
+    </div><!-- /content-inner -->
+  </main>
+
+</div><!-- /page-wrapper -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

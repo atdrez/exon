@@ -1,0 +1,23 @@
+{
+    target: 5
+    counter: 0
+
+    data: fn.while {
+        // loop while counter < target
+        condition: fn.lt { @root.counter @root.target }
+
+        do: fn.sequence {
+            fn.println { fn.string.join { "N=" @root.counter } }
+
+            fn.set {
+                target: @root 
+                property: "counter"
+                // increment counter by 1
+                value: fn.add { @root.counter 1 }
+            }
+
+            // return counter
+            @root.counter
+        }
+    }
+}

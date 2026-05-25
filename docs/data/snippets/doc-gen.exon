@@ -1,0 +1,28 @@
+using fn.*
+
+sequence {
+    content: {
+        name: "app"
+        config: {
+            host: "localhost"
+            port: 8080
+        }
+    }
+
+    // get first argument, or fallback to 'json'
+    format: or { process.argv{1} "json"}
+
+    cond {
+        // output yaml
+        eq {@root.format "yaml"} fn.yaml.encode { @root.content }
+
+        // output xml
+        eq {@root.format "xml"} fn.xml.encode { @root.content }
+
+        // output plist
+        eq {@root.format "plist"} fn.plist.encode { @root.content }
+
+        // output json
+        eq {@root.format "json"} fn.json.encode { @root.content }
+    }
+}

@@ -1,0 +1,10 @@
+{
+    port: 8080
+    host: "localhost"
+
+    address: fn.string.join { "http://" @root.host ":" @root.port }
+
+    server: {
+        endpoint: fn.string.join { @root.address "/api/v1" }
+    }
+}

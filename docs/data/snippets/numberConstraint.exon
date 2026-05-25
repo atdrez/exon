@@ -1,0 +1,30 @@
+// numberConstraint.exon
+fn.property {
+    min: 0
+    max: 100
+    _value: 0
+
+    get: fn.get { target: @root  property: "_value" }
+
+    set: fn.sequence {
+        fn.assert {
+            fn.number.is {fn.parameter { "value" }}
+            message: "Value must be a number"
+        }
+        fn.set {
+            target: @root  property: "_value"
+            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+        }
+    }
+
+    init: fn.sequence {
+        fn.assert {
+            fn.number.is {@root._value}
+            message: "Value must be a number"
+        }
+        fn.set {
+            target: @root  property: "_value"
+            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+        }
+    }
+}

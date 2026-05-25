@@ -1,0 +1,51 @@
+***
+update-docs.run.exon
+
+Finds every .md file under docs/ and rewrites it in-place,
+evaluating HTML-style preprocessor regions:
+
+  <!--#exon-->
+  <!--
+      fn.string.join { "generated content" }
+  -->
+  old generated content
+  <!--#endexon-->
+
+Usage (from runtimes/typescript/):
+  node bin/main.js ../../tools/update-docs.run.exon
+***
+
+using fn.*
+
+{
+    root: string.trim { process.exec { "git rev-parse --show-toplevel" } }
+
+    files: string.split {
+        string.trim {
+            process.exec {
+                "{ "
+                "find " @root.root "/docs -name '*.md'; "
+                "find " @root.root "/site -name '*.html';"
+                " } | sort"
+            }
+        }
+        separator: "\n"
+    }
+
+    foreach {
+        data: @root.files
+        do: sequence@step {
+            filepath: parameter { "value" }
+
+            preprocess@updated {
+                file:  @step.filepath
+                style: "html"
+            }
+
+            file.save { path: @step.filepath data: @updated }
+            println { string.join { "updated: " @step.filepath } }
+        }
+    }
+
+    process.exec { "cp docs/markdown/README.md README.md" }
+}

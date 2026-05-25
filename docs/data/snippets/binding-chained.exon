@@ -1,0 +1,5 @@
+{
+    r:       "red"
+    r_ref:   @root.r
+    r_again: @root.r_ref
+}

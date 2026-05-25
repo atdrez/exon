@@ -1,0 +1,75 @@
+***
+Example of C a project meta build system 
+***
+
+using fn.*
+
+{
+    component {
+        id: "utils.discover"
+        content: wrapper {
+            dir: ""
+            path: ""
+            content: string.split {
+                string.trim {
+                    process.exec { "find " @root.dir " -name '" @root.path "' | sort" }
+                }
+                separator: "\n"
+            }
+        }
+    }
+
+    component {
+        id: "utils.buildcmd"
+        content: wrapper {
+            files: []
+            target: ""
+            includes: []
+            outputDir: ""
+
+            content: string.join@do {
+                or { process.env { "EMAKE_C_COMPILER" } "gcc" }
+                " -o " @root.outputDir "/" @root.target
+                string.join {
+                    foreach {
+                        data: @root.includes
+                        do: string.join { " -I " parameter {"value"} " " }
+                    }
+                    separator: " "
+                }
+                string.join { @root.files separator: " "}
+            }
+        }
+    }
+
+    assert {
+      defined { process.argv {0} }
+      message: "Script argument is missing"
+    }
+
+    dir: path.dirname { process.argv {0} }
+
+    srcDir: string.join { @root.dir "/src" }
+    outDir: string.join { @root.dir "/bin" }
+
+    // use target passed via args, or fallback to hello
+    target: or { process.argv { 1 } "hello" }
+
+    // discover source and header files
+    cFiles: utils.discover { dir: @root.srcDir path: "*.c" }
+    hFiles: utils.discover { dir: @root.srcDir path: "*.h" }
+
+    // create build command
+    compileCmd: utils.buildcmd {
+        files: @root.cFiles
+        target: @root.target
+        outputDir: @root.outDir
+        includes: [ @root.srcDir ]
+    }
+
+    // make output directory
+    process.exec { "mkdir -p " @root.outDir }
+
+    // compile to target
+    process.exec { @root.compileCmd }
+}

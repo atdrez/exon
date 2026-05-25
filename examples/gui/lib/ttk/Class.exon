@@ -6,6 +6,8 @@ class {
     indent: 4
     padding: 10
 
+    __content__: []
+
     contructor_params: {
         padding: @root.padding
     }

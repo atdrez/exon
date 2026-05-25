@@ -1,0 +1,59 @@
+*** Example of C a project meta build system ***
+
+using fn.*
+{
+    component {
+        id: "find_files"
+        content: wrapper {
+            dir: ""
+            path: ""
+            content: string.split {
+                string.trim {
+                    process.exec { "find " @root.dir " -name '" @root.path "' | sort" }
+                }
+                separator: "\n"
+            }
+        }
+    }
+
+    component {
+        id: "build_command"
+        content: wrapper {
+            files: []; includes: [];
+            target: ""; outputDir: "";
+
+            content: string.join@do {
+                or { process.env { "EMAKE_C_COMPILER" } "gcc" }
+                " -o " @root.outputDir "/" @root.target
+                string.join {
+                    foreach {
+                        data: @root.includes
+                        do: string.join { " -I " parameter {"value"} " " }
+                    }
+                    separator: " "
+                }
+                string.join { @root.files separator: " " }
+            }
+        }
+    }
+
+    assert {
+      defined { process.argv{0} }
+      message: "Script argument is missing"
+    }
+
+    dir: path.dirname { process.argv{0} }
+    srcDir: string.join { @root.dir "/src" }
+    outDir: string.join { @root.dir "/bin" }
+
+    // create build command
+    cmd: build_command {
+        outputDir: @root.outDir
+        includes: [ @root.srcDir ]
+        target: or { process.argv{1} "hello" }
+        files: find_files { dir: @root.srcDir path: "*.c" }
+    }
+
+    // make output directory & compile
+    process.exec { "mkdir -p " @root.outDir ";" @root.cmd }
+}

@@ -1,0 +1,9 @@
+{
+    // result will receive object { x: 42 } or a string
+    // depending if environment var ok is defined
+    result: fn.if {
+        condition: fn.defined { fn.process.env{"ok"} }
+        then: { x: 42 }
+        else: "nothing to see here"
+    }
+}

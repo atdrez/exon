@@ -1,0 +1,11 @@
+{
+    score: fn.coalesce { fn.process.env { "SCORE" } 0 }
+
+    // grade based on score: A >= 90, B >= 80, C >= 70, else F
+    grade: fn.cond {
+        fn.ge { @root.score 90 }  "A"
+        fn.ge { @root.score 80 }  "B"
+        fn.ge { @root.score 70 }  "C"
+        "F"
+    }
+}

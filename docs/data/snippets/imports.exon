@@ -1,0 +1,6 @@
+using fn.*             // all standard library functions/namespaces
+using fn.string.join   // a single component: join (from fn.string.*)
+using models.Database  // import models/Database.exon
+using lib.*            // import lib/ namespace
+using fn.number.* as numLib // import a namespace using an alias
+using fn.string.is as isString // import a component using an alias

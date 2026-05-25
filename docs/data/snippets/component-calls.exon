@@ -1,0 +1,12 @@
+using fn.*
+{
+    // positional
+    addition: add { 10 5 }
+    message: string.join { "Hello" ", " "world" }
+
+    // positional + named
+    otherMessage: string.join { "Hello" " " "world"  separator: "" }
+
+    // nested
+    description: string.join { "Port is " or { process.env { "PORT" } 8080 } }
+}

@@ -1,0 +1,6 @@
+{
+    numbers: fn.repeat { content: 0 count: 5 }       // [0, 0, 0, 0, 0]
+    strings: fn.repeat { content: "hello" count: 3 }     // ["hello", "hello", "hello"]
+    objects: fn.repeat { content: { x: 10 } count: 2 }     // [{ x: 10}, {x: 10}]
+    araysOfArrays: fn.repeat { content: [1, 2] count: 2 }     // [[1, 2], [1, 2]]
+}

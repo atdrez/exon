@@ -1,0 +1,9 @@
+{
+    result: fn.try {
+        fn.raise { "something went wrong" }
+        catch: fn.sequence@err {
+            msg: fn.parameter { "value" }
+            fn.string.join { "Caught: " @err.msg }
+        }
+    }
+}

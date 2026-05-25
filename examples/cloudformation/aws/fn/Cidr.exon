@@ -1,5 +1,5 @@
 fn.json.decode {
-    ipBlock: ""
+    ipBlock: null
     count: 0
     sizeMask: 0
 

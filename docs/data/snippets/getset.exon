@@ -1,0 +1,16 @@
+{
+    count: 10
+
+    // a = 10
+    a: fn.get { target: @root property: "count" }
+
+    // increment count
+    _inc: fn.set {
+        target: @root
+        property: "count"
+        value: fn.add { @root.count 5 }
+    }
+
+    // b = count = 15
+    b: fn.get { target: @root property: "count" }
+}
