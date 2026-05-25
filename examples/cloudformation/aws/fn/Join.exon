@@ -1,0 +1,6 @@
+fn.json.decode {
+    values: []
+    delimiter: ""
+
+    content: "{\"Fn::Join\": [\"$delimiter\", $values]}"
+}

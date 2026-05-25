@@ -1,0 +1,7 @@
+..aws.apigateway.DocumentationPart {
+     Properties: {
+         RestApiId: ..aws.Ref {
+             Ref: "RestApi"
+         }
+     }
+}

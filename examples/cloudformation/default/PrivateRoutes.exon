@@ -1,0 +1,113 @@
+{
+    PrivateRouteTable1: ..aws.ec2.RouteTable {
+        Properties: {
+            VpcId: ..aws.Ref { Ref: "VPC" }
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] Private Route Table 01" }
+                }
+            ]
+        }
+    }
+
+    PrivateRouteTable2: ..aws.ec2.RouteTable {
+        Properties: {
+            VpcId: ..aws.Ref { Ref: "VPC" }
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] Private Route Table 02" }
+                }
+            ]
+        }
+    }
+
+    PrivateRouteViaNatGateway1: ..aws.ec2.Route {
+        Properties: {
+            DestinationCidrBlock: "0.0.0.0/0";
+            RouteTableId: ..aws.Ref { Ref: "PrivateRouteTable1" };
+            NatGatewayId: ..aws.Ref { Ref: "NatGateway1" };
+        }
+        DependsOn: [ "NatGateway1" ];
+    }
+
+    PrivateRouteViaNatGateway2: ..aws.ec2.Route {
+        Properties: {
+            DestinationCidrBlock: "0.0.0.0/0";
+            RouteTableId: ..aws.Ref { Ref: "PrivateRouteTable2" };
+            NatGatewayId: ..aws.Ref { Ref: "NatGateway2" };
+        }
+        DependsOn: [ "NatGateway2" ];
+    }
+
+    PrivateSubnetRTA1: ..aws.ec2.SubnetRouteTableAssociation {
+        Properties: {
+            RouteTableId: ..aws.Ref { Ref: "PrivateRouteTable1" };
+            SubnetId: ..aws.Ref { Ref: "PrivateSubnet1" };
+        }
+    }
+
+    PrivateSubnetRTA2: ..aws.ec2.SubnetRouteTableAssociation {
+        Properties: {
+            RouteTableId: ..aws.Ref { Ref: "PrivateRouteTable2" };
+            SubnetId: ..aws.Ref { Ref: "PrivateSubnet2" };
+        }
+    }
+
+    NatGateway1: ..aws.ec2.NatGateway {
+        Properties: {
+            AllocationId: ..aws.fn.GetAtt {
+                source: "NatGatewayElasticIP1"
+                property: "AllocationId"
+            }
+
+            SubnetId: ..aws.Ref { Ref: "PublicSubnet1" }
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] NAT Gateway 01" }
+                }
+            ]
+        }
+
+        DependsOn: [ "NatGatewayElasticIP1" ]
+    }
+
+    NatGateway2: ..aws.ec2.NatGateway {
+        Properties: {
+            AllocationId: ..aws.fn.GetAtt {
+                source: "NatGatewayElasticIP2"
+                property: "AllocationId"
+            }
+
+            SubnetId: ..aws.Ref { Ref: "PublicSubnet2" }
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] NAT Gateway 02" }
+                }
+            ]
+        }
+
+        DependsOn: [ "NatGatewayElasticIP2" ]
+    }
+
+    NatGatewayElasticIP1: ..aws.ec2.EIP {
+        Properties: {
+            Domain: "vpc"
+        }
+        DependsOn: [ "VPC" ]
+    }
+
+    NatGatewayElasticIP2: ..aws.ec2.EIP {
+        Properties: {
+            Domain: "vpc"
+        }
+        DependsOn: [ "VPC" ]
+    }
+}

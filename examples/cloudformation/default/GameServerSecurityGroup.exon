@@ -1,0 +1,56 @@
+..aws.ec2.SecurityGroup{
+    Properties: {
+        Tags : [
+            {
+                Key: "Name"
+                Value: ..aws.fn.Sub { value: "[${AWS::StackName}] GameServer" }
+            }
+        ]
+
+        GroupDescription: "Security group for the game server instances"
+
+        SecurityGroupIngress: [
+            {
+                CidrIp: "0.0.0.0/0"
+                FromPort: 32000
+                ToPort: 61000
+                IpProtocol: "tcp"
+            },
+            {
+                CidrIpv6: "::/0"
+                FromPort: 32000
+                ToPort: 61000
+                IpProtocol: "tcp"
+            },
+            {
+                CidrIp: "0.0.0.0/0"
+                FromPort: 32000
+                ToPort: 61000
+                IpProtocol: "udp"
+            },
+            {
+                CidrIpv6: "::/0"
+                FromPort: 32000
+                ToPort: 61000
+                IpProtocol: "udp"
+            }
+        ]
+
+        SecurityGroupEgress: [
+            {
+                CidrIp: "0.0.0.0/0"
+                FromPort: -1
+                ToPort: -1
+                IpProtocol: "-1"
+            },
+            {
+                CidrIpv6: "::/0"
+                FromPort: -1
+                ToPort: -1
+                IpProtocol: "-1"
+            }
+        ]
+
+        VpcId: ..aws.Ref { Ref: "VPC" }
+    }
+}

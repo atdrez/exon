@@ -1,0 +1,10 @@
+..aws.apigateway.Resource {
+    Properties: {
+        RestApiId: ..aws.Ref { Ref: "RestApi" }
+
+        ParentId: ..aws.fn.GetAtt {
+            source: "RestApi"
+            property: "RootResourceId"
+        }
+    }
+}

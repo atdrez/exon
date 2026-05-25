@@ -1,0 +1,49 @@
+{
+    VpcId: {
+        Value: ..aws.Ref { Ref: "VPC" }
+        Export: {
+            Name: ..aws.fn.Sub {
+                value: "${AWS::StackName}-VpcId"
+            }
+        }
+    }
+
+    PublicSubnet1Id: {
+        Value: ..aws.Ref { Ref: "PublicSubnet1" }
+        Export: {
+            Name: ..aws.fn.Sub {
+                value: "${AWS::StackName}-PublicSubnet1Id"
+            }
+        }
+    }
+
+    PublicSubnet2Id: {
+        Value: ..aws.Ref { Ref: "PublicSubnet2" }
+        Export: {
+            Name: ..aws.fn.Sub {
+                value: "${AWS::StackName}-PublicSubnet2Id"
+            }
+        }
+    }
+
+    GameServerSecurityGroupId: {
+        Value: ..aws.Ref { Ref: "GameServerSecurityGroup" }
+        Export: {
+            Name: ..aws.fn.Sub {
+                value: "${AWS::StackName}-GameServerSecurityGroupId"
+            }
+        }
+    }
+
+    MasterServerSecurityGroupId: {
+        Value: ..aws.fn.GetAtt {
+            source: "MasterServerSecurityGroup"
+            property: "GroupId"
+        }
+        Export: {
+            Name: ..aws.fn.Sub {
+                value: "${AWS::StackName}-MasterServerSecurityGroupId"
+            }
+        }
+    }
+}

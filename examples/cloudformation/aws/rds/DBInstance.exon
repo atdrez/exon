@@ -1,0 +1,3 @@
+{
+    Type: "AWS::RDS::DBInstance";
+}

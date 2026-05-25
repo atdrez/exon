@@ -1,0 +1,4 @@
+fn.json.encode {
+    indent: 4
+    stacks.Core {}
+}

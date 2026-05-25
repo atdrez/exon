@@ -1,0 +1,77 @@
+{
+    PublicSubnet1: BasePublicSubnet {
+        Properties: * {
+            AvailabilityZone: ..aws.fn.FindInMap {
+                values: [ "AWSRegionToAZ", ..aws.refs.Region {}, "1" ]
+            }
+
+            CidrBlock: ..aws.Ref { Ref: "PublicCidrBlock1" }
+
+            Ipv6CidrBlock: ..aws.fn.Select {
+                index: ..aws.Ref {
+                    Ref: "PublicIpv6CidrIndex1"
+                }
+                values: ..aws.fn.Cidr {
+                    ipBlock: ..aws.fn.Select {
+                        index: 0
+                        values: ..aws.fn.GetAtt {
+                            source: "VPC"
+                            property: "Ipv6CidrBlocks"
+                        }
+                    }
+                    count: ..aws.Ref {
+                        Ref: "PublicIpv6CidrCount"
+                    }
+                    sizeMask: ..aws.Ref {
+                        Ref: "PublicIpv6CidrSizeMask"
+                    }
+                }
+            }
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] Public Subnet 01" }
+                }
+            ]
+        }
+    }
+
+    PublicSubnet2: BasePublicSubnet {
+        Properties: * {
+            AvailabilityZone: ..aws.fn.FindInMap {
+                values: [ "AWSRegionToAZ", ..aws.refs.Region {}, "2" ]
+            }
+
+            CidrBlock: ..aws.Ref { Ref: "PublicCidrBlock2" }
+
+            Ipv6CidrBlock: ..aws.fn.Select {
+                index: ..aws.Ref {
+                    Ref: "PublicIpv6CidrIndex2"
+                }
+                values: ..aws.fn.Cidr {
+                    ipBlock: ..aws.fn.Select {
+                        index: 0
+                        values: ..aws.fn.GetAtt {
+                            source: "VPC"
+                            property: "Ipv6CidrBlocks"
+                        }
+                    }
+                    count: ..aws.Ref {
+                        Ref: "PublicIpv6CidrCount"
+                    }
+                    sizeMask: ..aws.Ref {
+                        Ref: "PublicIpv6CidrSizeMask"
+                    }
+                }
+            }
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] Public Subnet 02" }
+                }
+            ]
+        }
+    }
+}

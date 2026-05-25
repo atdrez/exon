@@ -1,0 +1,4 @@
+fn.map {
+    keys: ["Fn::If"]
+    values: [[ ]]
+}

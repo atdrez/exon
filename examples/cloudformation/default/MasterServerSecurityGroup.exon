@@ -1,0 +1,44 @@
+..aws.ec2.SecurityGroup {
+    Properties: {
+        Tags : [
+            {
+                Key: "Name"
+                Value: ..aws.fn.Sub { value: "[${AWS::StackName}] MasterServer" }
+            }
+        ]
+
+        GroupDescription: "Security group for the master server instances"
+
+        SecurityGroupIngress: [
+            {
+                CidrIp: "0.0.0.0/0"
+                FromPort: 443
+                ToPort: 443
+                IpProtocol: "tcp"
+            },
+            {
+                CidrIpv6: "::/0"
+                FromPort: 443
+                ToPort: 443
+                IpProtocol: "tcp"
+            }
+        ]
+
+        SecurityGroupEgress: [
+            {
+                CidrIp: "0.0.0.0/0"
+                FromPort: -1
+                ToPort: -1
+                IpProtocol: "-1"
+            },
+            {
+                CidrIpv6: "::/0"
+                FromPort: -1
+                ToPort: -1
+                IpProtocol: "-1"
+            }
+        ]
+
+        VpcId: ..aws.Ref { Ref: "VPC"}
+    }
+}

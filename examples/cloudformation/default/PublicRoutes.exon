@@ -1,0 +1,64 @@
+{
+    InternetGateway: ..aws.ec2.InternetGateway {
+        Properties: {
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] InternetGateway" }
+                }
+            ]
+        }
+    }
+
+    InternetGatewayAttachment: ..aws.ec2.VPCGatewayAttachment {
+        Properties: {
+            InternetGatewayId: ..aws.Ref { Ref: "InternetGateway" };
+            VpcId: ..aws.Ref { Ref: "VPC" }
+        }
+    }
+
+    PublicRouteTable: ..aws.ec2.RouteTable {
+        Properties: {
+            VpcId: ..aws.Ref { Ref: "VPC" }
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] Public Route Table" }
+                }
+            ]
+        }
+    }
+
+    PublicRouteViaIGW: ..aws.ec2.Route {
+        Properties: {
+            DestinationCidrBlock: "0.0.0.0/0";
+
+            RouteTableId: ..aws.Ref { Ref: "PublicRouteTable" }
+            GatewayId: ..aws.Ref { Ref: "InternetGateway" }
+        }
+    }
+
+    PublicIPv6RouteViaIGW: ..aws.ec2.Route {
+        Properties: {
+            DestinationIpv6CidrBlock: "::/0";
+
+            RouteTableId: ..aws.Ref { Ref: "PublicRouteTable" }
+            GatewayId: ..aws.Ref { Ref: "InternetGateway" }
+        }
+    }
+
+    PublicSubnetRTA1: ..aws.ec2.SubnetRouteTableAssociation {
+        Properties: {
+            RouteTableId: ..aws.Ref { Ref: "PublicRouteTable" };
+            SubnetId: ..aws.Ref { Ref: "PublicSubnet1" };
+        }
+    }
+
+    PublicSubnetRTA2: ..aws.ec2.SubnetRouteTableAssociation {
+        Properties: {
+            RouteTableId: ..aws.Ref { Ref: "PublicRouteTable" };
+            SubnetId: ..aws.Ref { Ref: "PublicSubnet2" };
+        }
+    }
+}

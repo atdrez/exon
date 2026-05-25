@@ -1,0 +1,4 @@
+fn.json.decode {
+    values: []
+    content: "{ \"Fn::Equals\":$values}"
+}

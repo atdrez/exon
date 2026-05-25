@@ -1,0 +1,26 @@
+{
+    VPC: ..aws.ec2.VPC {
+        Properties: {
+            CidrBlock: ..aws.Ref { Ref: "VpcCidrBlock" }
+
+            EnableDnsSupport: true
+
+            EnableDnsHostnames: true
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] VPC" }
+                }
+            ]
+        }
+    }
+
+    VpcCidrBlockIpv6: ..aws.ec2.VPCCidrBlock {
+        Properties: {
+            AmazonProvidedIpv6CidrBlock: true
+
+            VpcId: ..aws.Ref { Ref: "VPC" }
+        }
+    }
+}

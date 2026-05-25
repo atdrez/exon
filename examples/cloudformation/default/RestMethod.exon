@@ -1,0 +1,23 @@
+..aws.apigateway.Method {
+    Properties: {
+        RestApiId: ..aws.Ref { Ref: "RestApi" }
+        AuthorizationType: "NONE"
+
+        MethodResponses: [
+            {
+                StatusCode: "200"
+                ResponseModels:  fn.map {
+                    keys: [ "application/json" ]
+                    values: [ "Empty" ]
+                }
+            },
+            {
+                StatusCode: "400"
+                ResponseModels:  fn.map {
+                    keys: [ "application/json" ]
+                    values: [ "Empty" ]
+                }
+            }
+        ]
+    }
+}

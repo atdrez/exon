@@ -1,0 +1,5 @@
+..aws.ec2.Subnet {
+    Properties: {
+        VpcId: ..aws.Ref { Ref: "VPC" };
+    }
+}

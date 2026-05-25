@@ -1,0 +1,9 @@
+{
+    GameServerSecurityGroup: ..default.GameServerSecurityGroup {
+
+    }
+
+    MasterServerSecurityGroup: ..default.MasterServerSecurityGroup {
+
+    }
+}

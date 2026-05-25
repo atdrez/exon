@@ -1,0 +1,41 @@
+{
+    VpcCidrBlock: ..aws.String {
+        Default: "10.0.0.0/16";
+    }
+
+    PublicCidrBlock1: ..aws.String {
+         // ip range [10.0.100.0, 10.0.100.255]
+        Default: "10.0.100.0/24";
+    }
+
+    PublicCidrBlock2: ..aws.String {
+         // ip range [10.0.101.0, 10.0.101.255]
+        Default: "10.0.101.0/24";
+    }
+
+    PrivateCidrBlock1: ..aws.String {
+        // ip range [10.0.0.0, 10.0.0.255]
+        Default: "10.0.0.0/24";
+    }
+
+    PrivateCidrBlock2: ..aws.String {
+        // ip range [10.0.1.0, 10.0.1.255]
+        Default: "10.0.1.0/24";
+    }
+
+    PublicIpv6CidrIndex1: ..aws.Number {
+        Default: 100;
+    }
+
+    PublicIpv6CidrIndex2: ..aws.Number {
+        Default: 101;
+    }
+
+    PublicIpv6CidrCount: ..aws.Number {
+        Default: 256;
+    }
+
+    PublicIpv6CidrSizeMask: ..aws.Number {
+        Default: 64;
+    }
+}

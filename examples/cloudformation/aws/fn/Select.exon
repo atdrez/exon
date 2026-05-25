@@ -1,0 +1,6 @@
+fn.json.decode {
+    index: -1
+    values: []
+
+    content: "{\"Fn::Select\": [$index, $values]}"
+}

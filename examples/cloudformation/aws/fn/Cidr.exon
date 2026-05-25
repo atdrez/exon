@@ -1,0 +1,7 @@
+fn.json.decode {
+    ipBlock: ""
+    count: 0
+    sizeMask: 0
+
+    content: "{\"Fn::Cidr\": [$ipBlock, $count, $sizeMask]}"
+}

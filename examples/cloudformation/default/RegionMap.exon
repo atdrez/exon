@@ -1,0 +1,87 @@
+{
+    AWSRegionToAZ: fn.map {
+        keys: [
+            // USA
+            "us-east-1", // Virginia
+            "us-east-2", // Ohio
+            "us-west-1", // N. California
+            "us-west-2", // Oregon
+
+            // South America
+            "sa-east-1", // Sao Paulo,
+
+            // Europe
+            "eu-west-1", // Ireland
+            "eu-west-2", // London
+            "eu-west-3", // Paris
+            "eu-central-1", // Frankfurt
+
+            // Asia
+            "ap-northeast-1", // Toquio
+            "ap-south-1" // Mumbai
+        ]
+        values: [
+            // Virginia
+            fn.map {
+                keys: [ "1", "2", "3", "4", "5", "6" ]
+                values: [ "us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1e", "us-east-1f" ]
+            },
+             // Ohio
+            fn.map {
+                keys: [ "1", "2", "3" ]
+                values: [ "us-east-2a", "us-east-2b", "us-east-2c" ]
+            },
+            // N. California
+            fn.map {
+                keys: [ "1", "2" ]
+                values: [ "us-west-1a", "us-west-1b" ]
+            },
+            // Oregon
+            fn.map {
+                keys: [ "1", "2", "3" ]
+                values: [ "us-west-2a", "us-west-2b", "us-west-2c" ]
+            },
+
+
+            // Sao Paulo
+            fn.map {
+                keys: [ "1", "2" ]
+                values: [ "sa-east-1a", "sa-east-1c" ]
+            },
+
+
+            // Ireland
+            fn.map {
+                keys: [ "1", "2", "3" ]
+                values: [ "eu-west-1a", "eu-west-1b", "eu-west-1c" ]
+            },
+            // London
+            fn.map {
+                keys: [ "1", "2", "3" ]
+                values: [ "eu-west-2a", "eu-west-2b", "eu-west-2c" ]
+            },
+            // Paris
+            fn.map {
+                keys: [ "1", "2", "3" ]
+                values: [ "eu-west-3a", "eu-west-3b", "eu-west-3c" ]
+            },
+            // Frankfurt
+            fn.map {
+                keys: [ "1", "2", "3" ]
+                values: [ "eu-central-1a", "eu-central-1b", "eu-central-1c" ]
+            },
+
+
+            // Toquio
+            fn.map {
+                keys: [ "1", "2", "3" ]
+                values: [ "ap-northeast-1a", "ap-northeast-1c", "ap-northeast-1d" ]
+            },
+            // Mumbai
+            fn.map {
+                keys: [ "1", "2" ]
+                values: [ "ap-south-1a", "ap-south-1b" ]
+            }
+        ]
+    }
+}

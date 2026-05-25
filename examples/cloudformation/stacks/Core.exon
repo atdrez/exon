@@ -1,0 +1,21 @@
+{
+    Description: "Core Stack";
+    AWSTemplateFormatVersion: "2010-09-09";
+
+    Mappings: ..default.RegionMap {}
+
+    Parameters: fn.merge {
+        ..default.Parameters {}
+    }
+
+    Resources: fn.merge {
+        ..default.VPC {}
+        ..default.PublicSubnets {}
+        ..default.PrivateSubnets {}
+        ..default.PublicRoutes {}
+        ..default.PrivateRoutes {}
+        SecurityGroups {}
+    }
+
+    Outputs: Outputs { }
+}

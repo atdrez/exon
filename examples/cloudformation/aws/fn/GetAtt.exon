@@ -1,0 +1,6 @@
+fn.json.decode {
+    source: ""
+    property: ""
+
+    content: "{\"Fn::GetAtt\": [\"$source\", \"$property\"]}"
+}

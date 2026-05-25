@@ -1,0 +1,7 @@
+BaseSubnet {
+    DependsOn: "VpcCidrBlockIpv6"
+
+    Properties: * {
+        MapPublicIpOnLaunch: true;
+    }
+}

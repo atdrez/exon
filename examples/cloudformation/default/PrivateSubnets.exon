@@ -1,0 +1,48 @@
+{
+   PrivateSubnet1: BaseSubnet {
+        Properties: * {
+            AvailabilityZone: ..aws.fn.FindInMap {
+                values: [ "AWSRegionToAZ", ..aws.refs.Region {}, "1" ]
+            }
+
+            CidrBlock: ..aws.Ref { Ref: "PrivateCidrBlock1" }
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] Private Subnet 01" }
+                }
+            ]
+        }
+    }
+
+    PrivateSubnet2: BaseSubnet {
+        Properties: * {
+            AvailabilityZone: ..aws.fn.FindInMap {
+                values: [ "AWSRegionToAZ", ..aws.refs.Region {}, "2" ]
+            }
+
+            CidrBlock: ..aws.Ref { Ref: "PrivateCidrBlock2" }
+
+            Tags: [
+                {
+                    Key: "Name"
+                    Value: ..aws.fn.Sub { value: "[${AWS::StackName}] Private Subnet 02" }
+                }
+            ]
+        }
+    }
+
+    RDSSubnetGroup: ..aws.rds.DBSubnetGroup {
+        Properties: {
+            DBSubnetGroupDescription: ..aws.fn.Sub {
+                value: "[${AWS::StackName}] DB Subnet Group"
+            }
+
+            SubnetIds: [
+                ..aws.Ref { Ref: "PrivateSubnet1" },
+                ..aws.Ref { Ref: "PrivateSubnet2" }
+            ]
+        }
+    }
+}

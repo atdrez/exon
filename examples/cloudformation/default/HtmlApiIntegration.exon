@@ -1,0 +1,21 @@
+{
+    Type: "AWS_PROXY"
+    IntegrationHttpMethod: "POST"
+
+    IntegrationResponses: [
+        {
+            StatusCode: "200"
+            ResponseTemplates:  fn.map {
+                keys: [ "text/html" ]
+                values: [ "" ]
+            }
+        },
+        {
+            StatusCode: "400"
+            ResponseTemplates:  fn.map {
+                keys: [ "text/html" ]
+                values: [ "" ]
+            }
+        }
+    ]
+}
