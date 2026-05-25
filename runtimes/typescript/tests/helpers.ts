@@ -112,6 +112,17 @@ export function runExonTests(filePath: string, searchPaths: string[] = [samplesD
         })
 }
 
+export function withTempFile<T>(name: string, content: string, fn: (filePath: string) => T): T {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'exon-test-'));
+    try {
+        const filePath = path.join(dir, name);
+        fs.writeFileSync(filePath, content);
+        return fn(filePath);
+    } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+}
+
 export function exonFile(...segments: string[]): string {
     return path.resolve(__dirname, '..', '..', '..', 'tests', 'fixtures', ...segments)
 }

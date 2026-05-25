@@ -12,11 +12,12 @@ type PatternSet = {
     end: string;
     regionStart: string;
     regionEnd: string;
+    lineStart?: boolean;
 };
 
 const NAMED_PATTERNS: Record<string, PatternSet> = {
-    js:   { start: '//#exon',      end: '//#endexon',     regionStart: '/*',   regionEnd: '*/'  },
-    html: { start: '<!--#exon-->', end: '<!--#endexon-->', regionStart: '<!--', regionEnd: '-->' },
+    js:   { start: '//#exon',      end: '//#endexon',     regionStart: '/*',   regionEnd: '*/',  lineStart: true  },
+    html: { start: '<!--#exon-->', end: '<!--#endexon-->', regionStart: '<!--', regionEnd: '-->', lineStart: false },
 };
 
 function escapeRegex(s: string): string {
@@ -79,11 +80,13 @@ export default class Component extends Base {
     }
 
     private buildRegex(ps: PatternSet): RegExp {
-        const s  = escapeRegex(ps.start);
-        const e  = escapeRegex(ps.end);
-        const rs = escapeRegex(ps.regionStart);
-        const re = escapeRegex(ps.regionEnd);
-        return new RegExp(`(${s}\\r?\\n)([ \\t]*${rs}[\\s\\S]*?${re}\\r?\\n?)([\\s\\S]*?)([ \\t]*${e})`, 'g');
+        const s      = escapeRegex(ps.start);
+        const e      = escapeRegex(ps.end);
+        const rs     = escapeRegex(ps.regionStart);
+        const re     = escapeRegex(ps.regionEnd);
+        const anchor = ps.lineStart ? '^' : '';
+        const flags  = ps.lineStart ? 'gm' : 'g';
+        return new RegExp(`(${anchor}${s}\\r?\\n)([ \\t]*${rs}[\\s\\S]*?${re}\\r?\\n?)([\\s\\S]*?)([ \\t]*${e})`, flags);
     }
 
     private extractExonCode(comment: string, ps: PatternSet): string {
