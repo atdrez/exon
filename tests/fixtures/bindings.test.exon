@@ -2,57 +2,158 @@ using fn.*
 using ...exonmods.fne.test.*
 
 {
-    r: "red"
-    g: "green"
-
-    *** direct bindings ***
-    r_ref: @root.r
-
-    *** nested bindings ***
-    r_ref_ref: @root.r_ref
-
-    red_and_green: string.join {
-        @root.r " and " @root.g
-    }
-
-    red_and_green_ref: {
-        color: @root.red_and_green
-    }
+    a: samples.bindings.A{}
+    b: samples.bindings.B{}
+    c: samples.bindings.C{}
+    lz: samples.bindings.Lazy{}
+    u: samples.bindings.Using{}
+    w: samples.bindings.Wrapped{}
 
     __tests__: {
         describe {
-            description: "Binding tests..."
+            description: "Binding tests plain"
 
             it {
-                "r should be equal to 'red'"
-                eq { @root.r "red" }
+                "a.v should be equal to 10"
+                eq { @root.a.v 10 }
+            }
+            it {
+                "a.rv should be equal to 10"
+                eq { @root.a.rv 10 }
+            }
+            it {
+                "a.rrv should be equal to 10"
+                eq { @root.a.rrv 10 }
+            }
+            it {
+                "a.rsqr should be equal to 100"
+                eq { @root.a.rsqr 100 }
+            }
+            it {
+                "a.inner.x should be equal to 110"
+                eq { @root.a.inner.x 110 }
+            }
+        }
+
+        describe {
+            description: "Binding tests inherited"
+
+            // test B
+            it {
+                "b.v should be equal to 10"
+                eq { @root.b.v 10 }
+            }
+            it {
+                "b.rv should be equal to 10"
+                eq { @root.b.rv 10 }
+            }
+            it {
+                "b.rrv should be equal to 10"
+                eq { @root.b.rrv 10 }
+            }
+            it {
+                "b.rsqr should be equal to 100"
+                eq { @root.b.rsqr 100 }
+            }
+            it {
+                "b.inner.x should be equal to a.inner.x"
+                eq { @root.b.inner.x @root.a.inner.x }
+            }
+            it {
+                "b.k should be equal to 20"
+                eq { @root.b.k 20 }
+            }
+            it {
+                "b.rk should be equal to 20"
+                eq { @root.b.rk 20 }
+            }
+            it {
+                "b.a_v should be equal to a.v"
+                eq { @root.b.a_v @root.a.v }
+            }
+            it {
+                "b.a_rv should be equal to a.rv"
+                eq { @root.b.a_rv @root.a.rv }
+            }
+            it {
+                "b.a_inner_x should be equal to a.inner.x"
+                eq { @root.b.a_inner_x @root.a.inner.x }
+            }
+            // test C
+            it {
+                "c.a_v should be equal to a.v"
+                eq { @root.c.a_v @root.a.v }
+            }
+            it {
+                "c.b_k should be equal to b.k"
+                eq { @root.c.b_k @root.b.k }
+            }
+            it {
+                "c.b_rk should be equal to b.rk"
+                eq { @root.c.b_rk @root.b.rk }
+            }
+            it {
+                "c.b_a_v should be equal to b.a_v"
+                eq { @root.c.b_a_v @root.b.a_v }
+            }
+            it {
+                "c.b_a_rv should be equal to b.a_rv"
+                eq { @root.c.b_a_rv @root.b.a_rv }
+            }
+        }
+
+        describe {
+            description: "Binding tests lazy"
+
+            it {
+                "lz.b_v should be equal to b.v"
+                eq { @root.lz.lazy.b_v @root.b.v }
+            }
+            it {
+                "lz.b_a_v should be equal to b.a_v"
+                eq { @root.lz.lazy.b_a_v @root.b.a_v }
+            }
+            it {
+                "lz.b_k should be equal to b.k"
+                eq { @root.lz.lazy.b_k @root.b.k }
+            }
+            it {
+                "lz.b_a_inner_x should be equal to b.a_inner_x"
+                eq { @root.lz.lazy.b_a_inner_x @root.b.a_inner_x }
+            }
+        }
+
+        describe {
+            description: "Binding tests using"
+
+            it {
+                "u.a_v should be equal to 10"
+                eq { @root.u.a_v @root.a.v }
+            }
+            it {
+                "u.a_rv should be equal to 10"
+                eq { @root.u.a_rv @root.a.rv }
+            }
+            it {
+                "u.a_rsqr should be equal to 100"
+                eq { @root.u.a_rsqr @root.a.rsqr }
+            }
+            it {
+                "u.a_inner_x should be equal to a.inner.x"
+                eq { @root.u.a_inner_x @root.a.inner.x }
             }
 
             it {
-                "g should be equal to 'green'"
-                eq { @root.g "green" }
-            }
-
-            // bindings
-            it {
-                "r should be equal to r_ref"
-                eq { @root.r @root.r_ref }
+                "u.b_a_v should be equal to b.a_v"
+                eq { @root.u.b_a_v @root.b.a_v }
             }
             it {
-                "r_ref should be equal to r_ref_ref"
-                eq { @root.r_ref @root.r_ref_ref }
+                "u.b_a_rv should be equal to b.a_rv"
+                eq { @root.u.b_a_rv @root.b.a_rv }
             }
-
-            // check composed bindings
             it {
-                "rg should be equal to 'red and green'"
-                eq { @root.red_and_green "red and green" }
-            }
-
-            // check nested ref
-            it {
-                "red_and_green_nested_ref.color should be equal to red_and_green"
-                eq { @root.red_and_green_ref.color @root.red_and_green }
+                "u.b_a_inner_x should be equal to b.a_inner_x"
+                eq { @root.u.b_a_inner_x @root.b.a_inner_x }
             }
         }
     }

@@ -1,0 +1,10 @@
+A {
+    a_v: @root.v // expect 10
+    a_rv: @root.rv // expect 10
+    a_rrv: @root.rrv // expect 10
+    a_rsqr: @root.rsqr // expect 100
+    a_inner_x: @root.inner.x // expect 110
+
+    k: 20
+    rk: @root.k // expect 20
+}

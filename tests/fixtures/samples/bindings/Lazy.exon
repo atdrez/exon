@@ -1,0 +1,12 @@
+{
+    b: B {}
+
+    lazy: fn.wrapper {
+        content: Object {
+            b_v: @root.b.v
+            b_a_v: @root.b.a_v
+            b_a_inner_x: @root.b.a_inner_x
+            b_k: @root.b.k
+        }
+    }
+}

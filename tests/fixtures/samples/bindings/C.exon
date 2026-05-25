@@ -1,0 +1,7 @@
+B {
+    b_a_v: @root.a_v // expect 10
+    b_a_rv: @root.a_rv // expect 10
+
+    b_k: @root.k
+    b_rk: @root.rk // expect 20
+}

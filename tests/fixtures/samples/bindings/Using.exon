@@ -1,0 +1,13 @@
+{
+    a: A {}
+    b: B {}
+
+    a_v: @root.a.v
+    a_rv: @root.a.rv
+    a_rsqr: @root.a.rsqr
+    a_inner_x: @root.a.inner.x
+
+    b_a_v: @root.b.a_v
+    b_a_rv: @root.b.a_rv
+    b_a_inner_x: @root.b.a_inner_x
+}

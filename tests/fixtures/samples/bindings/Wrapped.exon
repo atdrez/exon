@@ -1,0 +1,9 @@
+fn.wrapper {
+    a: A {}
+    content: Object@self {
+        _v: @root.a
+
+        name: "wrapper content"
+        a_v: fn.get { target: @self._v property: "rv" } // expect 10
+    }
+}

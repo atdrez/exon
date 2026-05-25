@@ -1,0 +1,10 @@
+{
+    v: 10
+    rv: @root.v // expect 10
+    rrv: @root.rv // expect 10
+    rsqr: fn.mul {@root.rv @root.rv} // expect 100
+
+    inner: {
+        x: fn.add{@root.rsqr 10} // expect 110
+    }
+}
