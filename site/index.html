@@ -1148,16 +1148,13 @@ sequence {
 
     cond {
         // output yaml
-        eq {@root.format "yaml"} fn.yaml.encode { @root.content }
-
+        eq {@root.format "yaml"}    yaml.encode { @root.content }
         // output xml
-        eq {@root.format "xml"} fn.xml.encode { @root.content }
-
+        eq {@root.format "xml"}     xml.encode { @root.content }
         // output plist
-        eq {@root.format "plist"} fn.plist.encode { @root.content }
-
+        eq {@root.format "plist"}   plist.encode { @root.content }
         // output json
-        eq {@root.format "json"} fn.json.encode { @root.content }
+        eq {@root.format "json"}    json.encode { @root.content }
     }
 }</code></pre>
         <!--#endexon-->
@@ -1169,7 +1166,7 @@ sequence {
         </p>
         <!--#exon-->
         <!-- ..docs.data.html.snippet { "tooling" } -->
-<pre><code class="language-exon">*** Example of C a project meta build system ***
+<pre><code class="language-exon">*** Example of a build system ***
 
 using fn.*
 {

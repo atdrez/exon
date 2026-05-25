@@ -1,4 +1,4 @@
-*** Example of C a project meta build system ***
+*** Example of a build system ***
 
 using fn.*
 {

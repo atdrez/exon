@@ -126,15 +126,182 @@ fn.sequence {
 
 ## Use Cases
 
-Because Exon separates syntax from semantics, the same language adapts to a wide range of domains simply by swapping the component library. The examples below illustrate three common applications: scripting and build tooling, declarative GUI layout, and multi-format document generation.
+Because Exon separates syntax from semantics, the same language adapts to a wide range of domains simply by swapping the component library. The examples below illustrate three common applications: document generation, declarative GUI layout and scripting.
+
+### Multi-Format Document Generation
+
+Define your data structure once and produce JSON, YAML, PLIST, XML, or any custom format by using object wrappers.
+
+<!--#exon-->
+<!-- ..data.markdown.snippet { "doc-gen" } -->
+```js
+using fn.*
+
+sequence {
+    content: {
+        name: "app"
+        config: {
+            host: "localhost"
+            port: 8080
+        }
+    }
+
+    // get first argument, or fallback to 'json'
+    format: or { process.argv{1} "json"}
+
+    cond {
+        // output yaml
+        eq {@root.format "yaml"}    yaml.encode { @root.content }
+        // output xml
+        eq {@root.format "xml"}     xml.encode { @root.content }
+        // output plist
+        eq {@root.format "plist"}   plist.encode { @root.content }
+        // output json
+        eq {@root.format "json"}    json.encode { @root.content }
+    }
+}
+```
+<!--#endexon-->
+
+
+### Document Authoring
+
+Use the property system to enforce type constraints, value ranges, format validation, and business rules directly on loosely typed formats such as CSS, JSON, and others.
+
+`Property definition:`
+<!--#exon-->
+<!-- ..data.markdown.snippet { "numberConstraint" } -->
+```js
+// numberConstraint.exon
+fn.property {
+    min: 0
+    max: 100
+    _value: 0
+
+    get: fn.get { target: @root  property: "_value" }
+
+    set: fn.sequence {
+        fn.assert {
+            fn.number.is {fn.parameter { "value" }}
+            message: "Value must be a number"
+        }
+        fn.set {
+            target: @root  property: "_value"
+            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+        }
+    }
+
+    init: fn.sequence {
+        fn.assert {
+            fn.number.is {@root._value}
+            message: "Value must be a number"
+        }
+        fn.set {
+            target: @root  property: "_value"
+            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+        }
+    }
+}
+```
+<!--#endexon-->
+
+`Property declaration:`
+<!--#exon-->
+<!-- ..data.markdown.snippet { "constraints" } -->
+```js
+// constraints.exon
+{
+   number: numberConstraint { _value: 30 } // initial value
+}
+```
+<!--#endexon-->
+
+`Property usage:`
+<!--#exon-->
+<!-- ..data.markdown.snippet { "clamp-usage" } -->
+```js
+{
+   // a.number = 30 (inherited)
+   a: constraints {}
+
+   // b.number = 20 (overriden)
+   b: constraints { number: 20 }
+
+   // c.number = 0 (min clamped)
+   c: constraints { number: -20 }
+
+   // d.number = 100 (max clamped)
+   d: constraints { number: 120 }
+
+   // throw exception if uncommented (not a number)
+   //e: constraints { number: "asd" }
+}
+```
+<!--#endexon-->
+
+See [CSS authoring](examples/css/css.exon) example
+
+### GUI layout generator
+
+A Tk/Ttk widget hierarchy structured object graph that generates the corresponding Python code. Each widget type maps to a component; properties such as <code>text</code>, <code>width</code>, and <code>command</code> become named fields. The generated Python file wires up the widget tree and emits stub callback handlers for every bound event, ready to be filled in with application logic.
+
+<!--#exon-->
+<!-- ..data.markdown.example { "gui/top_frame" } -->
+```js
+using fn.*
+using lib.ttk.*
+
+Class {
+    ref: "self"
+    name: "TopFrameBase"
+    parent_class: "ttk.Frame"
+
+    // create label
+    Label {
+        ref: "label"
+        text: "Your name:"
+        layout: { anchor: "w" }
+    }
+
+    // create text input
+    Entry {
+        ref: "name_entry"
+        owner: @root.ref
+        layout: { fill: "x" pady: 5 }
+    }
+
+    // create button
+    Button {
+        ref: "btn"
+        text: "Say Hello"
+        layout: { pady: 5 }
+
+        // bind click to method
+        command: lib.py.lambda {
+            target: @root.ref
+            method: @root._say_hello.ref
+        }
+    }
+
+    _say_hello: lib.py.def { ref: "_say_hello" }
+
+    // methods to be overriden
+    methods: [ @root._say_hello ]
+}
+```
+<!--#endexon-->
+
+See [GUI layout generator](examples/gui) example
+
 
 ### Scripting & Tooling
 
-Exon can be used for tooling, configuration process, orchestrating build pipelines, generating gui layouts, and other tasks.
+Exon can be used for scripting, configuration process, orchestrating build pipelines and other tasks.
+
 <!--#exon-->
 <!-- ..data.markdown.snippet { "tooling" } -->
 ```js
-*** Example of C a project meta build system ***
+*** Example of a build system ***
 
 using fn.*
 {
@@ -196,93 +363,11 @@ using fn.*
 ```
 <!--#endexon-->
 
-### GUI layout generator
+See [Build System](examples/buildsystem/build.run.exon) example
 
-A Tk/Ttk widget hierarchy structured object graph that generates the corresponding Python code. Each widget type maps to a component; properties such as <code>text</code>, <code>width</code>, and <code>command</code> become named fields. The generated Python file wires up the widget tree and emits stub callback handlers for every bound event, ready to be filled in with application logic.
+---
 
-<!--#exon-->
-<!-- ..data.markdown.example { "gui/top_frame" } -->
-```js
-using fn.*
-using lib.ttk.*
-
-Class {
-    ref: "self"
-    name: "TopFrameBase"
-    parent_class: "ttk.Frame"
-
-    // create label
-    Label {
-        ref: "label"
-        text: "Your name:"
-        layout: { anchor: "w" }
-    }
-
-    // create text input
-    Entry {
-        ref: "name_entry"
-        owner: @root.ref
-        layout: { fill: "x" pady: 5 }
-    }
-
-    // create button
-    Button {
-        ref: "btn"
-        text: "Say Hello"
-        layout: { pady: 5 }
-
-        // bind click to method
-        command: lib.py.lambda {
-            target: @root.ref
-            method: @root._say_hello.ref
-        }
-    }
-
-    _say_hello: lib.py.def { ref: "_say_hello" }
-
-    // methods to be overriden
-    methods: [ @root._say_hello ]
-}
-```
-<!--#endexon-->
-
-### Multi-Format Document Generation
-
-Define your data structure once and produce JSON, YAML, PLIST, XML, or any custom format by using object wrappers.
-
-<!--#exon-->
-<!-- ..data.markdown.snippet { "doc-gen" } -->
-```js
-using fn.*
-
-sequence {
-    content: {
-        name: "app"
-        config: {
-            host: "localhost"
-            port: 8080
-        }
-    }
-
-    // get first argument, or fallback to 'json'
-    format: or { process.argv{1} "json"}
-
-    cond {
-        // output yaml
-        eq {@root.format "yaml"} fn.yaml.encode { @root.content }
-
-        // output xml
-        eq {@root.format "xml"} fn.xml.encode { @root.content }
-
-        // output plist
-        eq {@root.format "plist"} fn.plist.encode { @root.content }
-
-        // output json
-        eq {@root.format "json"} fn.json.encode { @root.content }
-    }
-}
-```
-<!--#endexon-->
+For other examples see [Examples](examples/)
 
 ## Guides
 
