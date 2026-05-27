@@ -73,8 +73,8 @@ const manager = new ScriptRepository();
 
 if (!params.options.bare) {
     // register native components
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Native: { components(): any[] } = require("./fn");
-
     const components = Native.components();
     for (let i = 0; i < components.length; i++) {
         manager.register(new components[i]);

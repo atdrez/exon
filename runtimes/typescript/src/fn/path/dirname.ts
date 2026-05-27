@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-const path = require("path");
+import * as path from "path";
 import { Context } from "../../IScript";
 import { OpUnary } from "../opUnary";
 

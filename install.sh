@@ -17,6 +17,10 @@ fi
 
 cd "$REPO_DIR/runtimes/typescript"
 
+echo "Building TypeScript runtime..."
+npm install
+npm run build
+
 echo "Installing Exon..."
 if npm install -g . 2>/dev/null; then
     echo ""

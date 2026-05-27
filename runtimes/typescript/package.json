@@ -15,8 +15,8 @@
     "start": "node bin/main.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "build": "npm run lint && npx tsc",
-    "prepare": "npx tsc",
+    "build": "npm run lint && tsc",
+    "prepare": "tsc",
     "test": "vitest run",
     "test:watch": "vitest"
   },
