@@ -23,7 +23,7 @@ sequence {
         data: @root.files
         do: sequence@seq {
             filepath: path.absolute {
-                string.join { @root.dir "/" parameter { "value" } }
+                string.join { @root.dir "/" parameter{} }
             }
 
             assert {

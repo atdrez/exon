@@ -17,10 +17,10 @@ property {
         property: "_value"
         value: sequence {
             assert {
-                string.is { parameter { "value" } }
+                string.is { parameter{} }
                 message: "must be string"
             }
-            parameter { "value" }
+            parameter{}
         }
     }
 
@@ -29,10 +29,10 @@ property {
         property: "_value"
         value: sequence {
             assert {
-                string.is { parameter { "value" } }
+                string.is { parameter{} }
                 message: "must be string"
             }
-            parameter { "value" }
+            parameter{}
         }
     }
 }
@@ -54,10 +54,10 @@ property {
         property: "_value"
         value: sequence {
             assert {
-                string.is { parameter { "value" } }
+                string.is { parameter{} }
                 message: "must be string"
             }
-            parameter { "value" }
+            parameter{}
         }
     }
 }

@@ -127,7 +127,7 @@ Iterates an array and evaluates a body for each element. Returns an array of res
     greetings: fn.foreach {
         data: @root.names
         do: fn.sequence@entry {
-            person: fn.parameter { "value" }
+            person: fn.parameter{}
 
             // return greeting message
             fn.string.join {
@@ -139,7 +139,7 @@ Iterates an array and evaluates a body for each element. Returns an array of res
 ```
 <!--#endexon-->
 
-`parameter { "value" }` retrieves the current element.
+`parameter{}` retrieves the current element.
 
 Results from body evaluations are collected into the output array. Null results are filtered
 out, making `foreach` useful as a combined filter-and-transform.
@@ -225,7 +225,7 @@ Wrap any expression in `try` to catch exceptions. Use `raise` to throw one:
 ```
 <!--#endexon-->
 
-The `catch` branch receives the exception message via `parameter { "value" }`:
+The `catch` branch receives the exception message via `parameter{}`:
 
 <!--#exon-->
 <!-- ..data.markdown.snippet { "trycatch-error" } -->
@@ -234,7 +234,7 @@ The `catch` branch receives the exception message via `parameter { "value" }`:
     result: fn.try {
         fn.raise { "something went wrong" }
         catch: fn.sequence@err {
-            msg: fn.parameter { "value" }
+            msg: fn.parameter{}
             fn.string.join { "Caught: " @err.msg }
         }
     }

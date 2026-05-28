@@ -528,7 +528,7 @@ using ...exonmods.fne.test.*
                         { id: 2 name: "B"  }
                     ]
                     do: Object@do01 {
-                        _obj: parameter { "value" }
+                        _obj: parameter{}
 
                         id: @do01._obj.id
 

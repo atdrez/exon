@@ -15,7 +15,7 @@ wrapper {
         foreach@for {
             data: @root.types
             do: sequence@seq {
-                entry: parameter{"value"}
+                entry: parameter{}
 
                 values: filter {
                     type: @seq.entry.value

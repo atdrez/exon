@@ -7,7 +7,7 @@ fn.sequence {
         fn.foreach {
             data: @root.body.fields.reserved
             do: fn.sequence@entry {
-                v: fn.parameter{"value"}
+                v: fn.parameter{}
                 fn.string.join {
                     "<tr><td>" @entry.v.name "</td><td><code>" @entry.v.description "</code></td></tr>"
                 }

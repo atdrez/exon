@@ -10,9 +10,9 @@ using fn.*
         data: @root.directoryList
         do: if {
             condition:
-                string.endsWith { parameter { "value" } ".md" }
+                string.endsWith { parameter{} ".md" }
             then: 
-                parameter { "value" }
+                parameter{}
         }
     }
 }

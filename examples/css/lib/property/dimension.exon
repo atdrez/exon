@@ -10,19 +10,19 @@ base {
         property: "_value"
         value: sequence {
             assert {
-                string.is { parameter { "value" } }
+                string.is { parameter{} }
                 message: "Invalid type: must be string"
             }
             assert {
                 regex.test {
-                    parameter { "value" }
+                    parameter{}
                     pattern: "^-?(\\d+\\.?\\d*|\\.\\d+)(px|em|rem|%|vh|vw|vmin|vmax|pt|pc|cm|mm|in|ex|ch|fr|deg|rad|turn|grad|s|ms)$|^0$"
                 }
                 message: "Invalid dimension format"
             }
 
             set { target: @root  property: "_defined"  value: true }
-            parameter { "value" }
+            parameter{}
         }
     }
 }

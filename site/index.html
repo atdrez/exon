@@ -96,7 +96,7 @@ they slot in identically to the standard library.
                   fn.foreach {
                       data: @root.body.features
                       do: fn.sequence@entry {
-                          v: fn.parameter{"value"}
+                          v: fn.parameter{}
                           fn.string.join {
                               """<div class="feature-card">"""
                               """<span class="feature-icon">""" @entry.v.icon "</span>"
@@ -135,7 +135,7 @@ using fn.process.env
     tags: [ "dev", "internal" ]
     versionedTags: foreach {
         data: @root.tags
-        do: string.join { parameter{"value"} ":" @root.version }
+        do: string.join { parameter{} ":" @root.version }
     }
 }</code></pre>
         <!--#endexon-->
@@ -178,7 +178,7 @@ using fn.process.env
                   fn.foreach {
                       data: @root.body.principles
                       do: fn.sequence@entry {
-                          v: fn.parameter{"value"}
+                          v: fn.parameter{}
                           fn.string.join {
                               """<div class="principle-card">"""
                               "<h3>" @entry.v.key "</h3><p>" @entry.v.value "</p>"
@@ -668,7 +668,7 @@ Server {
     greetings: fn.foreach {
         data: @root.names
         do: fn.sequence@entry {
-            person: fn.parameter { "value" }
+            person: fn.parameter{}
 
             // return greeting message
             fn.string.join {
@@ -752,12 +752,12 @@ fn.property {
 
     set: fn.sequence {
         fn.assert {
-            fn.number.is {fn.parameter { "value" }}
+            fn.number.is {fn.parameter{}}
             message: "Value must be a number"
         }
         fn.set {
             target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
         }
     }
 
@@ -768,7 +768,7 @@ fn.property {
         }
         fn.set {
             target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
         }
     }
 }</code></pre>

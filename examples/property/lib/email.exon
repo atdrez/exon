@@ -17,21 +17,21 @@ property {
         property: "_value"
         value: sequence {
             assert {
-                string.is { parameter { "value" } }
+                string.is { parameter{} }
                 message: "Invalid type: must be string"
             }
 
             // check email pattern
             assert {
                 regex.test {
-                    parameter { "value" }
+                    parameter{}
                     pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
                 }
                 message: "Invalid email format"
             }
 
             // return value
-            parameter { "value" }
+            parameter{}
         }
     }
 }

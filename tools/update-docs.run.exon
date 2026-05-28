@@ -35,7 +35,7 @@ using fn.*
     foreach {
         data: @root.files
         do: sequence@step {
-            filepath: parameter { "value" }
+            filepath: parameter{}
 
             preprocess@updated {
                 file:  @step.filepath

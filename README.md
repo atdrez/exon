@@ -33,7 +33,7 @@ using fn.process.env
     tags: [ "dev", "internal" ]
     versionedTags: foreach {
         data: @root.tags
-        do: string.join { parameter{"value"} ":" @root.version }
+        do: string.join { parameter{} ":" @root.version }
     }
 }
 ```
@@ -75,7 +75,7 @@ fn.sequence {
         fn.foreach {
             data: @root.body.features
             do: fn.sequence@entry {
-                v: fn.parameter{"value"}
+                v: fn.parameter{}
                 fn.string.join {
                     "- " "**" @entry.v.name "**: " @entry.v.description
                 }
@@ -107,7 +107,7 @@ fn.sequence {
         fn.foreach {
             data: @root.body.principles
             do: fn.sequence@entry {
-                v: fn.parameter{"value"}
+                v: fn.parameter{}
                 fn.string.join {
                     "- " "**" @entry.v.key "**: " @entry.v.value
                 }
@@ -182,12 +182,12 @@ fn.property {
 
     set: fn.sequence {
         fn.assert {
-            fn.number.is {fn.parameter { "value" }}
+            fn.number.is {fn.parameter{}}
             message: "Value must be a number"
         }
         fn.set {
             target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
         }
     }
 
@@ -198,7 +198,7 @@ fn.property {
         }
         fn.set {
             target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
         }
     }
 }

@@ -6,6 +6,6 @@ wrapper {
 
     content: foreach {
         data: @root.files
-        do: println { string.join { "   " @root.category ": " parameter { "value" } } }
+        do: println { string.join { "   " @root.category ": " parameter{} } }
     }
 }

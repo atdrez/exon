@@ -3,7 +3,7 @@ using fn.*
 foreach {
     type: ""
     do: sequence@seq {
-        v: parameter{"value"}
+        v: parameter{}
         if {
             condition: get { target: @seq.v property: @root.type }
             then: sequence {

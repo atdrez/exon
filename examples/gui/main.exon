@@ -29,7 +29,7 @@ sequence {
     foreach {
         data: @root.files
         do: sequence@seq {
-            entry: parameter { "value" }
+            entry: parameter{}
 
             fn.process.exec {
                 @root.cmd " " @root.dir "/" @seq.entry.key ".exon > " @root.outdir @seq.entry.value

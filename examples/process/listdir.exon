@@ -14,7 +14,7 @@ using lib.printPath
             process.exec { "ls" } separator: "\n"
         }
         do: Object@firstDo {
-            filename: parameter { "value" }
+            filename: parameter{}
 
             filenames: string.split {
                 process.exec { "ls " @firstDo.filename }
@@ -34,7 +34,7 @@ using lib.printPath
                     *** list files inner folder ***
                     data: @firstDo.filenames
                     do: Object@secondDo {
-                        filename: parameter { "value" }
+                        filename: parameter{}
                         filepath: string.join { @firstDo.filename "/" @secondDo.filename }
    
                         printPath {

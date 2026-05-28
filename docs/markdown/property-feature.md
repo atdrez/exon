@@ -48,12 +48,12 @@ fn.property {
 
     set: fn.sequence {
         fn.assert {
-            fn.number.is {fn.parameter { "value" }}
+            fn.number.is {fn.parameter{}}
             message: "Value must be a number"
         }
         fn.set {
             target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
         }
     }
 
@@ -64,7 +64,7 @@ fn.property {
         }
         fn.set {
             target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter { "value" } @root.min @root.max }
+            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
         }
     }
 }
@@ -134,21 +134,21 @@ property {
         property: "_value"
         value: sequence {
             assert {
-                string.is { parameter { "value" } }
+                string.is { parameter{} }
                 message: "Invalid type: must be string"
             }
 
             // check email pattern
             assert {
                 regex.test {
-                    parameter { "value" }
+                    parameter{}
                     pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
                 }
                 message: "Invalid email format"
             }
 
             // return value
-            parameter { "value" }
+            parameter{}
         }
     }
 }

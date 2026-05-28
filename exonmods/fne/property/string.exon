@@ -25,11 +25,11 @@ property {
 
         value: sequence {
             assert {
-                string.is { parameter { "value" } }
+                string.is { parameter{} }
                 message: "Invalid type: must be string"
             }
 
-            parameter { "value" }
+            parameter{}
         }
     }
 

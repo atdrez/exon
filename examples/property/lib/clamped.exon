@@ -19,11 +19,11 @@ property {
         property: "_value"
         value: sequence {
             assert {
-                number.is { parameter { "value" } }
+                number.is { parameter{} }
                 message: "Invalid type: must be number"
             }
             // return value clamped
-            math.clamp { parameter { "value" } @root.min @root.max }
+            math.clamp { parameter{} @root.min @root.max }
         }
     }
 
@@ -32,11 +32,11 @@ property {
         property: "_value"
         value: sequence {
             assert {
-                number.is { parameter { "value" } }
+                number.is { parameter{} }
                 message: "Invalid type: must be number"
             }
             // return value clamped
-            math.clamp { parameter { "value" } @root.min @root.max }
+            math.clamp { parameter{} @root.min @root.max }
         }
     }
 }

@@ -25,10 +25,10 @@ property {
 
         value: sequence {
             assert {
-                number.is { parameter { "value" } }
+                number.is { parameter{} }
                 message: "Invalid type: must be number"
             }
-            parameter { "value" }
+            parameter{}
         }
     }
 

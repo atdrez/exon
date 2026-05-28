@@ -19,7 +19,7 @@ using fn.process.env
     tags: [ "dev", "internal" ]
     versionedTags: foreach {
         data: @root.tags
-        do: string.join { parameter{"value"} ":" @root.version }
+        do: string.join { parameter{} ":" @root.version }
     }
 }
 ```

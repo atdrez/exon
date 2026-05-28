@@ -8,7 +8,7 @@ wrapper {
         foreach {
             data: @root.data
             do: sequence@seq {
-                entry: parameter{"value"}
+                entry: parameter{}
                 key: @seq.entry.key
                 value: @seq.entry.value
     

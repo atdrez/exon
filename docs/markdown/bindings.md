@@ -97,7 +97,7 @@ to the inner object to reference iteration-scoped values:
     result: fn.foreach {
         data: @root.items
         do: Object@item {
-            value: fn.parameter { "value" }
+            value: fn.parameter{}
             upper: fn.string.join { "[" @item.value "]" }
         }
     }
@@ -105,7 +105,7 @@ to the inner object to reference iteration-scoped values:
 ```
 <!--#endexon-->
 
-The `parameter { "value" }` call retrieves the current iteration value. `@item` references
+The `parameter{}` call retrieves the current iteration value. `@item` references
 the current iteration object.
 
 ## Cross-File References

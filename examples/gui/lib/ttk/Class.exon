@@ -40,7 +40,7 @@ class {
                 separator: ""
                 foreach {
                     data: @root.__content__
-                    do: string.join { @inner.body_space parameter{"value"} "\n" }
+                    do: string.join { @inner.body_space parameter{} "\n" }
                 }
             }
 
@@ -48,7 +48,7 @@ class {
                 separator: ""
                 foreach {
                     data: @root.methods
-                    do: string.join { parameter{"value"} "\n" separator: "" }
+                    do: string.join { parameter{} "\n" separator: "" }
                 }
             }
         }

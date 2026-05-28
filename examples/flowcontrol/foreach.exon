@@ -14,7 +14,7 @@ using fn.*
     countdown: foreach {
         data: reverse { [1, 2, 3, 4, 5] }
         do: Object@foreach01 {
-            id: parameter { "value" }
+            id: parameter{}
 
             // print countdown, if in run/test mode
             _print: println { string.join { "Counter=" @foreach01.id } }
@@ -36,10 +36,10 @@ using fn.*
             }
         ]
         do: {
-            id: get { target: parameter { "value" } property: "id" }
+            id: get { target: parameter{} property: "id" }
             fullname: fn.string.join {
-                get { target: parameter { "value" } property: "name" }
-                get { target: parameter { "value" } property: "surname" }
+                get { target: parameter{} property: "name" }
+                get { target: parameter{} property: "surname" }
                 separator: " "
             }
         }

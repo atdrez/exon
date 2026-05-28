@@ -4,7 +4,7 @@
     result: fn.foreach {
         data: @root.items
         do: Object@item {
-            value: fn.parameter { "value" }
+            value: fn.parameter{}
             upper: fn.string.join { "[" @item.value "]" }
         }
     }

@@ -77,7 +77,7 @@ using fn.*
             }
         }
         catch: sequence@error {
-            value: parameter { "value" }
+            value: parameter{}
             ipc.sendmessage {
                 {
                     input: @root.input
