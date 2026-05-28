@@ -1,0 +1,108 @@
+
+using fn.*
+using ...exonmods.fne.test.*
+
+{
+    values: [ 1, 2, 3, 5, 8 ]
+
+    copies: foreach {
+        data: @root.values
+        do: parameter{}
+    }
+
+    values_str: string.join {
+        foreach {
+            data: @root.values
+            do: parameter{}
+        }
+        separator: ":"
+    }
+
+    copies_str: string.join {
+        foreach {
+            data: @root.copies
+            do: parameter{}
+        }
+        separator: ":"
+    }
+
+    even_values: foreach {
+        data: @root.values
+        do: cond {
+            eq { mod{parameter{} 2} 0 }
+            parameter{}
+        }
+    }
+
+    odd_values: foreach {
+        data: @root.values
+        do: cond {
+            ne { mod{parameter{} 2} 0 }
+            parameter{}
+        }
+    }
+
+    even_values_str: string.join {
+        @root.even_values
+        separator: ":"
+    }
+
+    odd_values_str: string.join {
+        @root.odd_values
+        separator: ":"
+    }
+
+    odd_even_nested_str: string.join {
+        foreach {
+            data: @root.odd_values
+            do: sequence@seq {
+                v: parameter{}
+
+                string.join {
+                    @seq.v
+                    "("
+                    string.join {
+                        foreach {
+                            data: @root.even_values
+                            do: string.join { @seq.v ":" parameter{} }
+                        }
+                        separator: "|"
+                    }
+                    ")"
+                }
+            }
+        }
+        separator: "/"
+    }
+
+    __tests__: {
+        describe {
+            description: "Parameter tests"
+
+            it {
+                "values_str == '1:2:3:5:8'"
+                eq { @root.values_str "1:2:3:5:8" }
+            }
+
+            it {
+                "copies_str == '1:2:3:5:8'"
+                eq { @root.copies_str "1:2:3:5:8" }
+            }
+
+            it {
+                "odd_values_str == '1:3:5'"
+                eq { @root.odd_values_str "1:3:5" }
+            }
+
+            it {
+                "even_values_str == '2:8'"
+                eq { @root.even_values_str "2:8" }
+            }
+
+            it {
+                "odd_even_nested_str == '1(1:2|1:8)/3(3:2|3:8)/5(5:2|5:8)'"
+                eq { @root.odd_even_nested_str "1(1:2|1:8)/3(3:2|3:8)/5(5:2|5:8)" }
+            }
+        }
+    }
+}
