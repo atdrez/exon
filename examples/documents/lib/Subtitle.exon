@@ -1,4 +1,4 @@
 base {
-    md: * { prefix: "\n## " suffix: " \n\n" }
+    md: * { prefix: "\n## " suffix: " \n" }
     html: * { prefix: "<h2>" suffix: "</h2>" }
 }

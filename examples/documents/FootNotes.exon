@@ -1,0 +1,6 @@
+using lib.*
+
+extract {
+    LineBreak { count: 2 }
+    "Check other examples " Link { text: "here" url: "examples/" }
+}

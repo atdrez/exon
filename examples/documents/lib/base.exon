@@ -3,7 +3,7 @@ using fn.*
 wrapper {
     // load native script
     fn.native {
-        id: "lib.native.multiline"
+        id: "lib.TrimLines"
         path: "js/trimlines.js"
     }
 

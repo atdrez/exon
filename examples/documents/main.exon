@@ -7,26 +7,47 @@ Html:
 ***
 
 using lib.*
-using lib.native.multiline
 
-page {
-    h1{"Exon - Extensible Object Notation"}
+Document {
+    Title { "Exon Language" }
 
-    // trim the left spacing of a multiline string
-    multiline {
-        """Exon is an extensible configuration and data definition language.
-        It parses .exon files into an object graph that developers can serialize to any format like JSON, XML, YAML, or
-        any domain-specific output. The native component system is also extensible, allowing developers to add custom
-        transformation classes and domain-specific functionality on top of the built-in ones.
-        """
+    "Exon files define structured object graphs. "
+    Bold { "Inheritance" } " lets child files override any " Italic { "property" } " from a base type without duplicating the rest."
+
+    LineBreak { count: 2 }
+    Image { url: "docs/architecture.png"; text: "Architecture diagram" }
+    LineBreak {}
+
+    Subtitle { "Motivation" }
+
+    TrimLines { // trim lines in this multiline string
+      """Exon was created in 2017 to solve a practical infrastructure problem: managing massive CloudFormation "spaghetti"
+      files full of duplicated JSON and increasingly complex structures."""
     }
 
-    // include section/QuickExample.exon
-    sections.QuickExample {}
+    LineBreak {}
 
-    // include section/GettingStarted.exon
-    sections.GettingStarted {}
+    Subtitle { "Quick Look" }
 
-    // // include section/Resources.exon
-    sections.Resources {}
+    BlockQuote {
+      """
+      {
+          host: "localhost"
+          port: fn.coalesce { fn.process.env { "PORT" } 8080 }
+      }
+      """
+    }
+
+    Subtitle { "Guides" }
+
+    List {
+        ListItem {
+            Link { text: "Getting Started" url: "docs/markdown/getting-started.md" }
+        }
+        ListItem {
+            Link { text: "Basics" url: "docs/markdown/basics.md" }
+        }
+    }
+
+    FootNotes {} // include FootNotes.exon
 }
