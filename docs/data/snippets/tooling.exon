@@ -1,45 +1,13 @@
 *** Example of a build system ***
 
 using fn.*
+using lib.find_files
+using lib.build_command
+
 {
-    component {
-        id: "find_files"
-        content: wrapper {
-            dir: ""
-            path: ""
-            content: string.split {
-                string.trim {
-                    process.exec { "find " @root.dir " -name '" @root.path "' | sort" }
-                }
-                separator: "\n"
-            }
-        }
-    }
-
-    component {
-        id: "build_command"
-        content: wrapper {
-            files: []; includes: [];
-            target: ""; outputDir: "";
-
-            content: string.join@do {
-                or { process.env { "EMAKE_C_COMPILER" } "gcc" }
-                " -o " @root.outputDir "/" @root.target
-                string.join {
-                    foreach {
-                        data: @root.includes
-                        do: string.join { " -I " parameter {"value"} " " }
-                    }
-                    separator: " "
-                }
-                string.join { @root.files separator: " " }
-            }
-        }
-    }
-
     assert {
-      defined { process.argv{0} }
-      message: "Script argument is missing"
+        defined { process.argv{0} }
+        message: "Script argument is missing"
     }
 
     dir: path.dirname { process.argv{0} }

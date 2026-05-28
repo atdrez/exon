@@ -16,6 +16,16 @@ no external schema language required. Add your own components in JavaScript and
 they slot in identically to the standard library.
 <!--#endexon-->
 
+# Motivation
+
+<!--#exon-->
+<!-- ..data.html.field { key: "motivation" } -->
+Exon was created in 2017 to solve a practical infrastructure problem:
+managing massive AWS CloudFormation spaghetti files full of duplicated JSON and increasingly complex
+structures. The goal was to enable modular definitions, inheritance, reusable composition, and a
+cleaner way to structure large architecture data so it remained understandable by humans.
+<!--#endexon-->
+
 ## Quick Look
 
 <!--#exon-->
@@ -62,7 +72,7 @@ Generated output setting $PORT = 30:
 ```
 <!--#endexon-->
 
-Running `node bin/main.js hello.exon` prints the JSON representation directly.
+Running `exon hello.exon` prints the JSON representation directly.
 
 ## Key Features
 
@@ -126,7 +136,7 @@ fn.sequence {
 
 ## Use Cases
 
-Because Exon separates syntax from semantics, the same language adapts to a wide range of domains simply by swapping the component library. The examples below illustrate three common applications: document generation, declarative GUI layout and scripting.
+Because Exon separates syntax from semantics, the same language adapts to a wide range of domains simply by swapping the component library. The examples below illustrate four common applications: document generation, data validation, declarative GUI layout and scripting.
 
 ### Multi-Format Document Generation
 
@@ -164,41 +174,32 @@ sequence {
 <!--#endexon-->
 
 
-### Document Authoring
+### Validation & Constraints
 
-Use the property system to enforce type constraints, value ranges, format validation, and business rules directly on loosely typed formats such as CSS, JSON, and others.
+Use the property system to enforce type constraints, value ranges, format validation, and business rules directly on loosely typed formats such as JSON, XML, PLIST and others.
 
 `Property definition:`
 <!--#exon-->
-<!-- ..data.markdown.snippet { "numberConstraint" } -->
+<!-- ..data.markdown.snippet { "lib/numclamp" } -->
 ```js
-// numberConstraint.exon
-fn.property {
+// lib/numclamp.exon
+using fn.*
+
+property {
     min: 0
     max: 100
     _value: 0
 
-    get: fn.get { target: @root  property: "_value" }
+    get: get { target: @root; property: "_value"; }
 
-    set: fn.sequence {
-        fn.assert {
-            fn.number.is {fn.parameter{}}
-            message: "Value must be a number"
-        }
-        fn.set {
-            target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
-        }
-    }
-
-    init: fn.sequence {
-        fn.assert {
-            fn.number.is {@root._value}
-            message: "Value must be a number"
-        }
-        fn.set {
-            target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
+    set: set { target: @root; property: "_value";
+        value: sequence {
+            assert {
+                number.is { parameter{} }
+                message: "Wrong assignment: must receive a number"
+            }
+            // clamp into min:max range
+            math.clamp { parameter{} @root.min @root.max }
         }
     }
 }
@@ -211,7 +212,7 @@ fn.property {
 ```js
 // constraints.exon
 {
-   number: numberConstraint { _value: 30 } // initial value
+   number: lib.numclamp { _value: 30 } // initial value
 }
 ```
 <!--#endexon-->
@@ -243,7 +244,7 @@ See [CSS authoring](examples/css/css.exon) example
 
 ### GUI layout generator
 
-A Tk/Ttk widget hierarchy structured object graph that generates the corresponding Python code. Each widget type maps to a component; properties such as <code>text</code>, <code>width</code>, and <code>command</code> become named fields. The generated Python file wires up the widget tree and emits stub callback handlers for every bound event, ready to be filled in with application logic.
+A Tk/Ttk widget hierarchy structured object graph that generates the corresponding Python code. Each widget type maps to a component; properties such as <code>text</code>, <code>layout</code>, and <code>command</code> become named fields. The generated Python file wires up the widget tree and emits stub callback handlers for every bound event, ready to be filled in with application logic.
 
 <!--#exon-->
 <!-- ..data.markdown.example { "gui/top_frame" } -->
@@ -299,50 +300,65 @@ See [GUI layout generator](examples/gui) example
 Exon can be used for scripting, configuration process, orchestrating build pipelines and other tasks.
 
 <!--#exon-->
+<!-- ..data.markdown.snippet { "lib/find_files" } -->
+```js
+// lib/find_files.exon
+using fn.*
+
+wrapper {
+    dir: ""
+    path: ""
+    content: string.split {
+        string.trim {
+            process.exec { "find " @root.dir " -name '" @root.path "' | sort" }
+        }
+        separator: "\n"
+    }
+}
+```
+<!--#endexon-->
+
+<!--#exon-->
+<!-- ..data.markdown.snippet { "lib/build_command" } -->
+```js
+// lib/build_command.exon
+using fn.*
+
+wrapper {
+    files: []
+    includes: []
+    target: ""
+    outputDir: ""
+
+    content: string.join {
+        or { process.env { "EMAKE_C_COMPILER" } "gcc" }
+        " -o " @root.outputDir "/" @root.target
+        string.join {
+            foreach {
+                data: @root.includes
+                do: string.join { " -I " parameter {"value"} " " }
+            }
+            separator: " "
+        }
+        string.join { @root.files separator: " " }
+    }
+}
+```
+<!--#endexon-->
+
+<!--#exon-->
 <!-- ..data.markdown.snippet { "tooling" } -->
 ```js
 *** Example of a build system ***
 
 using fn.*
+using lib.find_files
+using lib.build_command
+
 {
-    component {
-        id: "find_files"
-        content: wrapper {
-            dir: ""
-            path: ""
-            content: string.split {
-                string.trim {
-                    process.exec { "find " @root.dir " -name '" @root.path "' | sort" }
-                }
-                separator: "\n"
-            }
-        }
-    }
-
-    component {
-        id: "build_command"
-        content: wrapper {
-            files: []; includes: [];
-            target: ""; outputDir: "";
-
-            content: string.join@do {
-                or { process.env { "EMAKE_C_COMPILER" } "gcc" }
-                " -o " @root.outputDir "/" @root.target
-                string.join {
-                    foreach {
-                        data: @root.includes
-                        do: string.join { " -I " parameter {"value"} " " }
-                    }
-                    separator: " "
-                }
-                string.join { @root.files separator: " " }
-            }
-        }
-    }
-
     assert {
-      defined { process.argv{0} }
-      message: "Script argument is missing"
+        defined { process.argv{0} }
+        message: "Script argument is missing"
     }
 
     dir: path.dirname { process.argv{0} }

@@ -1,0 +1,21 @@
+// lib/numclamp.exon
+using fn.*
+
+property {
+    min: 0
+    max: 100
+    _value: 0
+
+    get: get { target: @root; property: "_value"; }
+
+    set: set { target: @root; property: "_value";
+        value: sequence {
+            assert {
+                number.is { parameter{} }
+                message: "Wrong assignment: must receive a number"
+            }
+            // clamp into min:max range
+            math.clamp { parameter{} @root.min @root.max }
+        }
+    }
+}

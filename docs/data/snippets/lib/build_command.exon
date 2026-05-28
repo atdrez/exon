@@ -1,0 +1,22 @@
+// lib/build_command.exon
+using fn.*
+
+wrapper {
+    files: []
+    includes: []
+    target: ""
+    outputDir: ""
+
+    content: string.join {
+        or { process.env { "EMAKE_C_COMPILER" } "gcc" }
+        " -o " @root.outputDir "/" @root.target
+        string.join {
+            foreach {
+                data: @root.includes
+                do: string.join { " -I " parameter {"value"} " " }
+            }
+            separator: " "
+        }
+        string.join { @root.files separator: " " }
+    }
+}

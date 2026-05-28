@@ -1,0 +1,13 @@
+// lib/find_files.exon
+using fn.*
+
+wrapper {
+    dir: ""
+    path: ""
+    content: string.split {
+        string.trim {
+            process.exec { "find " @root.dir " -name '" @root.path "' | sort" }
+        }
+        separator: "\n"
+    }
+}

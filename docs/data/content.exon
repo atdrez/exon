@@ -20,6 +20,11 @@
     no external schema language required. Add your own components in JavaScript and
     they slot in identically to the standard library.""" }
 
+    motivation: trimLines { """Exon was created in 2017 to solve a practical infrastructure problem:
+    managing massive AWS CloudFormation spaghetti files full of duplicated JSON and increasingly complex
+    structures. The goal was to enable modular definitions, inheritance, reusable composition, and a
+    cleaner way to structure large architecture data so it remained understandable by humans.""" }
+
     features: [
         {
             icon: "&#x2699;"

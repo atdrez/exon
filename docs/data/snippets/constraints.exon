@@ -1,4 +1,4 @@
 // constraints.exon
 {
-   number: numberConstraint { _value: 30 } // initial value
+   number: lib.numclamp { _value: 30 } // initial value
 }

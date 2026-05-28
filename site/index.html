@@ -741,34 +741,25 @@ Server {
         </p>
 
         <!--#exon-->
-        <!-- ..docs.data.html.snippet { "numberConstraint" } -->
-<pre><code class="language-exon">// numberConstraint.exon
-fn.property {
+        <!-- ..docs.data.html.snippet { "lib/numclamp" } -->
+<pre><code class="language-exon">// lib/numclamp.exon
+using fn.*
+
+property {
     min: 0
     max: 100
     _value: 0
 
-    get: fn.get { target: @root  property: "_value" }
+    get: get { target: @root; property: "_value"; }
 
-    set: fn.sequence {
-        fn.assert {
-            fn.number.is {fn.parameter{}}
-            message: "Value must be a number"
-        }
-        fn.set {
-            target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
-        }
-    }
-
-    init: fn.sequence {
-        fn.assert {
-            fn.number.is {@root._value}
-            message: "Value must be a number"
-        }
-        fn.set {
-            target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
+    set: set { target: @root; property: "_value";
+        value: sequence {
+            assert {
+                number.is { parameter{} }
+                message: "Wrong assignment: must receive a number"
+            }
+            // clamp into min:max range
+            math.clamp { parameter{} @root.min @root.max }
         }
     }
 }</code></pre>
@@ -778,7 +769,7 @@ fn.property {
         <!-- ..docs.data.html.snippet { "constraints" } -->
 <pre><code class="language-exon">// constraints.exon
 {
-   number: numberConstraint { _value: 30 } // initial value
+   number: lib.numclamp { _value: 30 } // initial value
 }</code></pre>
         <!--#endexon-->
 
@@ -1169,45 +1160,13 @@ sequence {
 <pre><code class="language-exon">*** Example of a build system ***
 
 using fn.*
+using lib.find_files
+using lib.build_command
+
 {
-    component {
-        id: "find_files"
-        content: wrapper {
-            dir: ""
-            path: ""
-            content: string.split {
-                string.trim {
-                    process.exec { "find " @root.dir " -name '" @root.path "' | sort" }
-                }
-                separator: "\n"
-            }
-        }
-    }
-
-    component {
-        id: "build_command"
-        content: wrapper {
-            files: []; includes: [];
-            target: ""; outputDir: "";
-
-            content: string.join@do {
-                or { process.env { "EMAKE_C_COMPILER" } "gcc" }
-                " -o " @root.outputDir "/" @root.target
-                string.join {
-                    foreach {
-                        data: @root.includes
-                        do: string.join { " -I " parameter {"value"} " " }
-                    }
-                    separator: " "
-                }
-                string.join { @root.files separator: " " }
-            }
-        }
-    }
-
     assert {
-      defined { process.argv{0} }
-      message: "Script argument is missing"
+        defined { process.argv{0} }
+        message: "Script argument is missing"
     }
 
     dir: path.dirname { process.argv{0} }

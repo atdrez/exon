@@ -34,37 +34,27 @@ These two operators read and write named fields on an object:
 
 A property type is an `.exon` file that contains a top-level `fn.property` block:
 
-**numberConstraint.exon**:
 <!--#exon-->
-<!-- ..data.markdown.snippet { "numberConstraint" } -->
+<!-- ..data.markdown.snippet { "lib/numclamp" } -->
 ```js
-// numberConstraint.exon
-fn.property {
+// lib/numclamp.exon
+using fn.*
+
+property {
     min: 0
     max: 100
     _value: 0
 
-    get: fn.get { target: @root  property: "_value" }
+    get: get { target: @root; property: "_value"; }
 
-    set: fn.sequence {
-        fn.assert {
-            fn.number.is {fn.parameter{}}
-            message: "Value must be a number"
-        }
-        fn.set {
-            target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
-        }
-    }
-
-    init: fn.sequence {
-        fn.assert {
-            fn.number.is {@root._value}
-            message: "Value must be a number"
-        }
-        fn.set {
-            target: @root  property: "_value"
-            value: fn.math.clamp { fn.parameter{} @root.min @root.max }
+    set: set { target: @root; property: "_value";
+        value: sequence {
+            assert {
+                number.is { parameter{} }
+                message: "Wrong assignment: must receive a number"
+            }
+            // clamp into min:max range
+            math.clamp { parameter{} @root.min @root.max }
         }
     }
 }
@@ -75,13 +65,12 @@ fn.property {
 
 Import and instantiate property types the same way as regular base types:
 
-**constraints.exon**:
 <!--#exon-->
 <!-- ..data.markdown.snippet { "constraints" } -->
 ```js
 // constraints.exon
 {
-   number: numberConstraint { _value: 30 } // initial value
+   number: lib.numclamp { _value: 30 } // initial value
 }
 ```
 <!--#endexon-->
