@@ -1,0 +1,13 @@
+fn.wrapper {
+    __content__: [ 0, 0 ]
+
+    content: fn.sequence {
+        fn.get@left { target: @root; property: "__content__"; index: 0 }
+        fn.get@right { target: @root; property: "__content__"; index: 1 }
+
+        fn.cond {
+            fn.ge { @left @right } @left
+            @right
+        }
+    }
+}

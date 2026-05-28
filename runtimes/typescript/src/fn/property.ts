@@ -16,7 +16,7 @@ function bindRaw(raw: any, context: Context): any {
     const result: any = {};
 
     for (const key in raw)
-        result[key] = bindRaw(raw[key], context);
+        result[key] = key === '__base__' ? raw[key] : bindRaw(raw[key], context);
 
     return result;
 }

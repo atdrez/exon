@@ -311,6 +311,10 @@ export class Resolver implements IResolver {
                 result = this.resolveBindingImpl(result['__bind__'], result['__bindFile__'] ?? file, visited);
             }
 
+            if (typeof result === 'object' && result !== null && '__preresolved__' in result) {
+                result = result['__preresolved__'];
+            }
+
             if (result === undefined || result === null) {
                 throw new Error(`Cannot access property '${parts[i]}' on undefined`);
             }
@@ -320,6 +324,10 @@ export class Resolver implements IResolver {
 
         if (this.#context.isObjectBinding(result)) {
             return this.resolveBindingImpl(result['__bind__'], result['__bindFile__'] ?? file, visited);
+        }
+
+        if (typeof result === 'object' && result !== null && '__preresolved__' in result) {
+            return result['__preresolved__'];
         }
 
         if (Array.isArray(result)) {

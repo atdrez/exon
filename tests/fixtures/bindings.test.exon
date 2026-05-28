@@ -2,12 +2,75 @@ using fn.*
 using ...exonmods.fne.test.*
 
 {
+    range: {
+        min: 0
+        max: 100
+    }
+
     a: samples.bindings.A{}
     b: samples.bindings.B{}
     c: samples.bindings.C{}
     lz: samples.bindings.Lazy{}
     u: samples.bindings.Using{}
     w: samples.bindings.Wrapped{}
+
+    component {
+        id: "_tests.min"
+        content: wrapper {
+            a: 0
+            b: 0
+            content: cond {
+                le { @root.a @root.b } @root.a
+                @root.b
+            }
+        }
+    }
+
+    component {
+        id: "_tests.max"
+        content: wrapper {
+            a: 0
+            b: 0
+            content: sequence@max {
+                r: cond {
+                    ge { @root.a @root.b } @root.a
+                    @root.b
+                }
+                @max.r
+            }
+        }
+    }
+
+    component {
+        id: "_tests.clamp"
+        content: wrapper {
+            v: 0
+            lo: 0
+            hi: 0
+            content: sequence {
+                _tests.min@local_min{
+                    a: @root.hi
+                    b: _tests.max { a: @root.v b: @root.lo }
+                }
+                @local_min
+            }
+        }
+    }
+
+    cmp: {
+        n_lo: ..mods.min { 15 30 } // 15
+        n_hi: ..mods.max { 15 30 } // 30
+        n_x: ..mods.clamp{ 30 @root.range.min @root.range.max }
+        n_y: ..mods.clamp{ -20 @root.range.min @root.range.max }
+        n_z: ..mods.clamp{ 120 @root.range.min @root.range.max }
+
+        c_lo: _tests.min { a: 15 b: 30 } // 15
+        c_hi: _tests.max { a: 15 b: 30 } // 30
+
+        c_x: _tests.clamp{ v: 30 lo: @root.range.min hi: @root.range.max }
+        c_y: _tests.clamp{ v: -20 lo: @root.range.min hi: @root.range.max }
+        c_z: _tests.clamp{ v: 120 lo: @root.range.min hi: @root.range.max }
+    }
 
     __tests__: {
         describe {
@@ -154,6 +217,54 @@ using ...exonmods.fne.test.*
             it {
                 "u.b_a_inner_x should be equal to b.a_inner_x"
                 eq { @root.u.b_a_inner_x @root.b.a_inner_x }
+            }
+        }
+
+        describe {
+            description: "Binding tests component"
+
+            // loaded component
+            it {
+                "cmp.n_lo should be equal to 15"
+                eq { @root.cmp.n_lo 15 }
+            }
+            it {
+                "cmp.n_hi should be equal to 30"
+                eq { @root.cmp.n_hi 30 }
+            }
+            it {
+                "cmp.n_x should be equal to 30"
+                eq { @root.cmp.n_x 30 }
+            }
+            it {
+                "cmp.n_y should be equal to 0"
+                eq { @root.cmp.n_y 0 }
+            }
+            it {
+                "cmp.n_z should be equal to 100"
+                eq { @root.cmp.n_z 100 }
+            }
+
+            // local components
+            it {
+                "cmp.c_lo should be equal to 15"
+                eq { @root.cmp.c_lo 15 }
+            }
+            it {
+                "cmp.hi should be equal to 30"
+                eq { @root.cmp.c_hi 30 }
+            }
+            it {
+                "cmp.c_x should be equal to 30"
+                eq { @root.cmp.c_x 30 }
+            }
+            it {
+                "cmp.c_y should be equal to 0"
+                eq { @root.cmp.c_y 0 }
+            }
+            it {
+                "cmp.c_z should be equal to 100"
+                eq { @root.cmp.c_z 100 }
             }
         }
     }

@@ -1,0 +1,11 @@
+fn.wrapper {
+    __content__: [ 0, 0, 0 ]
+
+    content: fn.sequence {
+        fn.get@min { target: @root; property: "__content__"; index: 1 }
+        fn.get@max { target: @root; property: "__content__"; index: 2 }
+        fn.get@value { target: @root; property: "__content__"; index: 0 }
+
+        min { @max max { @value @min } }
+    }
+}
