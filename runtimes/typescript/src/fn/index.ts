@@ -74,6 +74,8 @@ import LangPow from "./lang/pow";
 import LangXor from "./lang/xor";
 import LangNeg from "./lang/neg";
 import LangLazy from "./lang/lazy";
+import LangClosure from "./lang/closure";
+import LangCall from "./lang/call";
 import LangDefined from "./lang/defined";
 import LangTypeof from "./lang/typeof";
 import LangClassname from "./lang/classname";
@@ -140,7 +142,7 @@ export function components(): any {
         LangAdd, LangSub, LangMul, LangDiv, LangMod, LangPow,
         LangNot, LangXor, LangNeg,
         LangDefined, LangTypeof, LangClassname, LangInstanceof, LangIn,
-        LangCoalesce, LangCond, LangLazy,
+        LangCoalesce, LangCond, LangLazy, LangClosure, LangCall,
 
         // preprocessor
         Preprocess,

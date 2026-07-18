@@ -1,0 +1,60 @@
+***
+A closure is a reusable function with an isolated execution scope that can capture values
+from its surrounding context.  It supports named arguments, repeated invocation, and recursion.
+Closures are invoked using the fn.call component, which supplies arguments by name.
+
+Run with:
+  ./ts-run.sh examples/closure/main.exon
+***
+
+using fn.*
+
+sequence {
+  // power of two
+  closure@pow {
+    mul { parameter{"n"} parameter{"n"} }
+  }
+
+  // return n - 1
+  closure@subtractOne {
+    sub { parameter{"n"}  1 }
+  }
+
+  // return n - 2
+  closure@subtractTwo {
+    sub { parameter{"n"}  2 }
+  }
+
+  // fibonacci recursion
+  closure@fib {
+    // import external closures into @fib scope
+    subOne: @subtractOne
+    subTwo: @subtractTwo
+
+    sequence {
+      parameter@value{"n"}
+
+      cond {
+        // if (value <= 1) return value
+        le { @value 1 } @value
+
+        // else return fib(value - 1) + fib(value - 2)
+        add {
+          // call @fib (@root) and external closures (subOne, subTwo)
+          call { @root  n: call { @subOne  n: @value } }
+          call { @root  n: call { @subTwo  n: @value } }
+        }
+      }
+    }
+  }
+
+  // call closures
+  foreach {
+    data: [1, 2, 3, 4, 5, 6, 7, 8]
+    do: {
+      n: parameter{}
+      fib: call { @fib  n: parameter{} }
+      pow: call { @pow  n: parameter{} }
+    }
+  }
+}
