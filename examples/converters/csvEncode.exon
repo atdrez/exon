@@ -1,0 +1,14 @@
+fn.csv.encode {
+    [
+        {
+            id: 1
+            name: "Alice"
+            age: 20
+        },
+        {
+            id: 2
+            name: "John"
+            age: 32
+        }
+    ]
+}

@@ -1,0 +1,7 @@
+fn.csv.decode {
+content: """
+id,name,age
+1,Alice,20
+2,John,32
+"""
+}

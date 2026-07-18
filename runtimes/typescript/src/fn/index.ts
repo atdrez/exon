@@ -3,6 +3,8 @@
 import JsEval from "./js/eval";
 import JsonEncode from "./json/encode";
 import JsonDecode from "./json/decode";
+import CsvEncode from "./csv/encode";
+import CsvDecode from "./csv/decode";
 import FileLoad from "./file/load";
 import FileSave from "./file/save";
 import Map from "./map";
@@ -92,6 +94,8 @@ export function components(): any {
         FileLoad, FileSave,
         JsonEncode,
         JsonDecode,
+        CsvEncode,
+        CsvDecode,
         Assert,
         ForEach,
 
