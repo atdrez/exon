@@ -90,8 +90,8 @@ export class Resolver implements IResolver {
         return this.resolveImpl(obj);
     }
 
-    public resolveWithOptions(obj: any, opts: RuntimeOptions): any {
-        return Resolver.execute(this.#manager, obj, opts);
+    public resolveWithOptions(obj: any, opts: RuntimeOptions, params?: { [key: string]: any }): any {
+        return Resolver.execute(this.#manager, obj, opts, params);
     }
 
     public getCurrentPathStack(): readonly string[] {
@@ -310,9 +310,9 @@ export class Resolver implements IResolver {
         return current;
     }
 
-    public static execute(manager: IScriptRepository, obj: any, opts: RuntimeOptions): any {
+    public static execute(manager: IScriptRepository, obj: any, opts: RuntimeOptions, params?: { [key: string]: any }): any {
         const resolver = new Resolver(manager, opts);
-        const evaluation = resolver.resolve(obj);
+        const evaluation = resolver.resolve(obj, params);
 
         if (!opts.route || !opts.route.length)
             return evaluation;
@@ -340,6 +340,10 @@ export class Resolver implements IResolver {
 
         const site: CallSite = { file: callerFile, line: callerLine };
         throw new LocatedError(error.message, callerFile, [site]);
+    }
+
+    public registerBinding(id: string, file: string, value: any): void {
+        this.registerIdInFile(id, file, value);
     }
 
     public resolveBinding(path: string, file: string): any {
