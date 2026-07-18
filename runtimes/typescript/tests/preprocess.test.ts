@@ -227,7 +227,7 @@ stale
     test('reads content from file path (js style)', () => {
         const result = withTempFile('target.js',
             '//#exon\n/*\nfn.string.join { "from-file" }\n*/\nstale\n//#endexon\n',
-            (p) => compile(`fn.preprocess { file: "${p}" }`)
+            (p) => compile(`fn.preprocess { file: "${p.replace(/\\/g, '/')}" }`)
         )
         expect(result).toContain('from-file')
         expect(result).not.toContain('stale')
@@ -270,7 +270,7 @@ stale
     test('handles CRLF line endings (js style)', () => {
         const crlf = '//#exon\r\n/*\r\nfn.string.join { "crlf-ok" }\r\n*/\r\nstale\r\n//#endexon\r\n'
         const result = withTempFile('target.js', crlf,
-            (p) => compile(`fn.preprocess { file: "${p}" }`)
+            (p) => compile(`fn.preprocess { file: "${p.replace(/\\/g, '/')}" }`)
         )
         expect(result).toContain('crlf-ok')
         expect(result).not.toContain('stale')
@@ -287,7 +287,7 @@ stale
             '        <!--#endexon-->',
         ].join('\n')
         const result = withTempFile('page.html', lines,
-            (p) => compile(`fn.preprocess { file: "${p}" style: "html" }`)
+            (p) => compile(`fn.preprocess { file: "${p.replace(/\\/g, '/')}" style: "html" }`)
         )
         expect(result).toContain('indented')
         expect(result).not.toContain('stale')
