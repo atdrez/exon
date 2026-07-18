@@ -7,10 +7,10 @@ import { OpUnary } from "../opUnary";
 export default class Component extends OpUnary {
     constructor() { super("path.absolute"); }
 
-    public evaluate(_obj: any, value: any, _context: Context): any {
+    public evaluate(_obj: any, value: any, context: Context): any {
         if (typeof value !== "string")
             throw new Error(`${this.name()} expected path argument as string`);
 
-        return path.resolve(value);
+        return path.resolve(path.dirname(context.location.file), value);
     }
 }
