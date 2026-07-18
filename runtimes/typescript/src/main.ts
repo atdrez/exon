@@ -47,15 +47,12 @@ function runNormal(manager: IScriptRepository, paths: string[], fileName: string
             printOutput(result);
         } else {
             const options = new RuntimeOptions(opts, scriptArgv);
-            const resolver = new Resolver(manager, options);
-            const output = resolver.resolve(result);
+            const output = Resolver.execute(manager, result, options);
 
-            if (options.shouldPrintOutput()) {
+            if (options.shouldPrintOutput() && output !== null && output !== undefined) {
                 printOutput(output);
             }
         }
-
-        process.exit(0);
     } catch (e) {
         console.error("[ERROR]:")
         console.error(e instanceof Error ? e.message : String(e));

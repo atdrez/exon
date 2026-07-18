@@ -72,6 +72,14 @@ export class Context {
         return this.#scriptRepository;
     }
 
+    public pathStack(): string[] {
+        return [...this.#resolver.getCurrentPathStack()];
+    }
+
+    public resolveRoute(ast: any, route: string[], namedArgv: Record<string, string>): any {
+        return this.#resolver.resolveWithOptions(ast, new RuntimeOptions({ route, namedArgv }));
+    }
+
     public getProperty(obj: any, key: string): any {
         const property: IPropertyScript = obj[key];
 

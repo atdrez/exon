@@ -16,11 +16,14 @@ export default class Component extends Base {
         if (!content.length)
             return scriptArgv;
 
-        const index = content[0];
+        const key = content[0];
 
-        if (typeof index !== "number")
-            throw new Error(`${this.name()} should have a valid number argument`);
+        if (typeof key === "number")
+            return scriptArgv[key];
 
-        return scriptArgv[index];
+        if (typeof key === "string")
+            return context.options.namedArgv[key] ?? null;
+
+        throw new Error(`${this.name()} should have a valid number or string argument`);
     }
 }

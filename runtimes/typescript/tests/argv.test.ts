@@ -15,6 +15,7 @@ describe('parseArgs', () => {
             expect(result.options.run).toBe(false);
             expect(result.options.channel).toBe(false);
             expect(result.options.bare).toBe(false);
+            expect(result.options.route).toBeNull();
         });
     });
 
@@ -58,6 +59,34 @@ describe('parseArgs', () => {
             expect(result.options.test).toBe(true);
             expect(result.options.extended).toBe(true);
             expect(result.targets).toEqual(['script.exon']);
+        });
+    });
+
+    describe('--route flag', () => {
+        it('defaults to null when not provided', () => {
+            expect(parseArgs(['script.exon']).options.route).toBeNull();
+        });
+
+        it('splits a slash-separated path into segments', () => {
+            const result = parseArgs(['--route', 'foo/bar', 'script.exon']);
+            expect(result.options.route).toEqual(['foo', 'bar']);
+            expect(result.targets).toEqual(['script.exon']);
+        });
+
+        it('strips leading and trailing slashes', () => {
+            expect(parseArgs(['--route', '/foo/bar/', 'script.exon']).options.route).toEqual(['foo', 'bar']);
+        });
+
+        it('produces an empty array for a bare slash', () => {
+            expect(parseArgs(['--route', '/', 'script.exon']).options.route).toEqual([]);
+        });
+
+        it('produces a single-element array for a top-level path', () => {
+            expect(parseArgs(['--route', 'users', 'script.exon']).options.route).toEqual(['users']);
+        });
+
+        it('produces an empty array when the path argument is missing', () => {
+            expect(parseArgs(['--route']).options.route).toEqual([]);
         });
     });
 
@@ -150,7 +179,18 @@ describe('fn.process.argv', () => {
         expect(() => compileWithArgv(`{ v: fn.process.argv { 0 1 } }`, ['s.exon'])).toThrow();
     });
 
-    it('throws when called with a non-number argument', () => {
-        expect(() => compileWithArgv(`{ v: fn.process.argv { "x" } }`, ['s.exon'])).toThrow();
+    it('returns null for a named key not found in argv or params', () => {
+        const result = compileWithArgv(`{ v: fn.process.argv { "x" } }`, ['s.exon']);
+        expect(result.v).toBeNull();
+    });
+
+    it('reads a named key from a key=value arg', () => {
+        const result = compileWithArgv(`{ v: fn.process.argv { "page" } }`, ['s.exon', 'page=42']);
+        expect(result.v).toBe('42');
+    });
+
+    it('returns null when the named key is absent from argv', () => {
+        const result = compileWithArgv(`{ v: fn.process.argv { "missing" } }`, ['s.exon', 'page=42']);
+        expect(result.v).toBeNull();
     });
 });

@@ -8,8 +8,10 @@ import { IScriptRepository } from "./IScriptRepository";
 
 export class Resolver implements IResolver {
     #context: Context;
+    #manager: IScriptRepository;
     #idRegistry: Map<string, Map<string, any>> = new Map();
     #params: { [key: string]: any } | undefined = undefined;
+    #pathStack: string[] = [];
 
     static readonly #METADATA_KEYS = new Set([
         '__name__',    // base filename (no extension) of the root object in each file
@@ -32,6 +34,7 @@ export class Resolver implements IResolver {
     //                    { __bind__, __bindFile__ } value object (never a top-level field);
 
     constructor(manager: IScriptRepository, options: RuntimeOptions) {
+        this.#manager = manager;
         this.#context = new Context(this, manager, options);
     }
 
@@ -85,6 +88,14 @@ export class Resolver implements IResolver {
         }
 
         return this.resolveImpl(obj);
+    }
+
+    public resolveWithOptions(obj: any, opts: RuntimeOptions): any {
+        return Resolver.execute(this.#manager, obj, opts);
+    }
+
+    public getCurrentPathStack(): readonly string[] {
+        return this.#pathStack;
     }
 
     private resolveImpl(obj: any): any {
@@ -250,6 +261,13 @@ export class Resolver implements IResolver {
                 continue;
             }
 
+            const trackPath = key !== '__content__'
+                && !(key.startsWith('__componentDef_') && key.endsWith('__'));
+
+            if (trackPath) {
+                this.#pathStack.push(key);
+            }
+
             if (key.startsWith('__componentDef_') && key.endsWith('__')) {
                 this.parseValueRecursive(sourceValue);
             } else if (sourceValue === undefined || sourceValue === null) {
@@ -264,7 +282,47 @@ export class Resolver implements IResolver {
             } else {
                 this.#context.setProperty(obj, key, this.parseValueRecursive(sourceValue));
             }
+
+            if (trackPath) {
+                this.#pathStack.pop();
+            }
         }
+    }
+
+    private static traverseRoute(resolved: any, segments: string[]): any {
+        let current = resolved;
+        for (const seg of segments) {
+            if (current === null || current === undefined) {
+                return undefined;
+            }
+            if (Array.isArray(current)) {
+                const idx = parseInt(seg, 10);
+                if (isNaN(idx) || idx < 0 || idx >= current.length) {
+                    return undefined;
+                }
+                current = current[idx];
+            } else if (typeof current === 'object') {
+                current = current[seg];
+            } else {
+                return undefined;
+            }
+        }
+        return current;
+    }
+
+    public static execute(manager: IScriptRepository, obj: any, opts: RuntimeOptions): any {
+        const resolver = new Resolver(manager, opts);
+        const evaluation = resolver.resolve(obj);
+
+        if (!opts.route || !opts.route.length)
+            return evaluation;
+
+        const result = Resolver.traverseRoute(evaluation, opts.route);
+
+        if (result === undefined)
+            throw new Error(`not found: /${opts.route.join('/')}`);
+
+        return result;
     }
 
     public rethrow(error: unknown, callerFile: string, callerLine: number): never {
@@ -367,7 +425,7 @@ export class Resolver implements IResolver {
 
     private parseValueRecursive(value: any): any {
         if (Array.isArray(value)) {
-            return value.map(item => this.parseValueRecursive(item));
+            return this.parseArrayRecursive(value);
         }
 
         if (typeof value === 'object' && value !== null) {
@@ -388,5 +446,17 @@ export class Resolver implements IResolver {
         }
 
         return value;
+    }
+
+    private parseArrayRecursive(value: unknown[]): unknown[] {
+        const result = new Array<unknown>(value.length);
+
+        for (let i = 0; i < value.length; i++) {
+            this.#pathStack.push(String(i));
+            result[i] = this.parseValueRecursive(value[i]);
+            this.#pathStack.pop();
+        }
+
+        return result;
     }
 }

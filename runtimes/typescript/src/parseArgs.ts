@@ -8,6 +8,7 @@ export type ParsedArgs = {
         run: boolean;
         channel: boolean;
         bare: boolean;
+        route: string[] | null;
     };
     targets: string[];
 };
@@ -20,6 +21,7 @@ export function parseArgs(raw: string[]): ParsedArgs {
         run: false,
         channel: false,
         bare: false,
+        route: null,
     };
 
     let i = 0;
@@ -40,6 +42,15 @@ export function parseArgs(raw: string[]): ParsedArgs {
         } else if (arg === "-b" || arg === "--bare") {
             opts.bare = true;
             i++;
+        } else if (arg === "--route") {
+            i++;
+            if (i < raw.length) {
+                const routeVal = raw[i];
+                opts.route = routeVal === '.' ? [] : routeVal.split('/').filter(Boolean);
+                i++;
+            } else {
+                opts.route = [];
+            }
         } else if (arg === "-p" || arg === "--path") {
             i++;
             if (i < raw.length) {
