@@ -271,10 +271,17 @@ export class Parser {
                     result['__native__'] = objectName;
                 } else {
                     const resolvedName = this.resolveUsingName(objectName, usingNamespaces, lexer.dirName);
-                    if (this.#scriptManager.contains(resolvedName))
+                    if (this.#scriptManager.contains(resolvedName)) {
                         result['__native__'] = resolvedName;
-                    else
+                    } else {
                         result['__base__'] = this.findAndParseObject(resolvedName, lexer.dirName);
+                        // If loading the base file caused the type to self-register as a script
+                        // (e.g. via fn.native onComponentParsed), use __native__ directly.
+                        if (this.#scriptManager.contains(resolvedName)) {
+                            result['__native__'] = resolvedName;
+                            delete result['__base__'];
+                        }
+                    }
                 }
             }
         }
