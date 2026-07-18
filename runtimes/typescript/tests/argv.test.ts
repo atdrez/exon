@@ -13,7 +13,7 @@ describe('parseArgs', () => {
             expect(result.options.path).toEqual([]);
             expect(result.options.test).toBe(false);
             expect(result.options.run).toBe(false);
-            expect(result.options.channel).toBe(false);
+
             expect(result.options.bare).toBe(false);
             expect(result.options.route).toBeNull();
         });
@@ -41,11 +41,6 @@ describe('parseArgs', () => {
         it('recognizes -r / --run', () => {
             expect(parseArgs(['-r', 'script.exon']).options.run).toBe(true);
             expect(parseArgs(['--run', 'script.exon']).options.run).toBe(true);
-        });
-
-        it('recognizes -c / --channel', () => {
-            expect(parseArgs(['-c', 'script.exon']).options.channel).toBe(true);
-            expect(parseArgs(['--channel', 'script.exon']).options.channel).toBe(true);
         });
 
         it('recognizes -b / --bare', () => {

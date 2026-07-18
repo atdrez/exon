@@ -6,7 +6,6 @@ export type ParsedArgs = {
         path: string[];
         test: boolean;
         run: boolean;
-        channel: boolean;
         bare: boolean;
         route: string[] | null;
     };
@@ -19,7 +18,6 @@ export function parseArgs(raw: string[]): ParsedArgs {
         path: [],
         test: false,
         run: false,
-        channel: false,
         bare: false,
         route: null,
     };
@@ -35,9 +33,6 @@ export function parseArgs(raw: string[]): ParsedArgs {
             i++;
         } else if (arg === "-r" || arg === "--run") {
             opts.run = true;
-            i++;
-        } else if (arg === "-c" || arg === "--channel") {
-            opts.channel = true;
             i++;
         } else if (arg === "-b" || arg === "--bare") {
             opts.bare = true;

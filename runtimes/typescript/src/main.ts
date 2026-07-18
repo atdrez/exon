@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-import * as IPC from "./ipc";
 import { Parser } from "./Parser";
 import { Resolver } from "./Resolver";
 import { RuntimeOptions } from "./RuntimeOptions";
@@ -18,25 +17,6 @@ function printOutput(result: any) {
 
 function parseFile(manager: IScriptRepository, paths: string[], fileName: string) {
     return new Parser(manager, paths).parse(fileName);
-}
-
-function runChannel(manager: IScriptRepository, paths: string[], fileName: string, scriptArgv: string[]) {
-    const channelOptions = new RuntimeOptions({ run: true, test: false }, scriptArgv);
-
-    process.on('message', (msg: any) => {
-        IPC.setMessage(msg);
-        try {
-            new Resolver(manager, channelOptions).resolve(parseFile(manager, paths, fileName));
-        } catch (e) {
-            if (process.send) {
-                process.send({ __error__: e instanceof Error ? e.message : String(e) });
-            }
-        }
-    });
-
-    if (process.send) {
-        process.send({ __ready__: true });
-    }
 }
 
 function runNormal(manager: IScriptRepository, paths: string[], fileName: string, opts: any, scriptArgv: string[]) {
@@ -69,7 +49,6 @@ const scriptArgv : string[] = params.targets;
 const manager = new ScriptRepository();
 
 if (!params.options.bare) {
-    // register native components
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Native: { components(): any[] } = require("./fn");
     const components = Native.components();
@@ -78,8 +57,4 @@ if (!params.options.bare) {
     }
 }
 
-if (params.options.channel) {
-    runChannel(manager, paths, fileName, scriptArgv);
-} else {
-    runNormal(manager, paths, fileName, params.options, scriptArgv);
-}
+runNormal(manager, paths, fileName, params.options, scriptArgv);

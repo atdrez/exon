@@ -81,8 +81,6 @@ import LangInstanceof from "./lang/instanceof";
 import LangIn from "./lang/in";
 import LangCoalesce from "./lang/coalesce";
 import LangCond from "./lang/cond";
-import IpcGetMessage from "./ipc/getMessage";
-import IpcSendMessage from "./ipc/sendMessage";
 import Preprocess from "./preprocess";
 import OsPlatform from "./os/platform";
 import OsArch from "./os/arch";
@@ -143,9 +141,6 @@ export function components(): any {
         LangNot, LangXor, LangNeg,
         LangDefined, LangTypeof, LangClassname, LangInstanceof, LangIn,
         LangCoalesce, LangCond, LangLazy,
-
-        // ipc
-        IpcGetMessage, IpcSendMessage,
 
         // preprocessor
         Preprocess,

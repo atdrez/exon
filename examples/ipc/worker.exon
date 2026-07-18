@@ -1,6 +1,6 @@
 ***
-IPC worker - receives a number from the parent process,
-computes its square, and sends the result back.
+IPC worker - receives a command string from the parent process,
+computes the result, and sends it back.
 
 Run via parent.js (do not run directly):
   node examples/ipc/parent.js
@@ -8,32 +8,28 @@ Run via parent.js (do not run directly):
 
 using fn.*
 
-{
-    fn.native {
-        id: "lib.fetch"
-        path: "js/fetch_url.js"
-    }
+fn.sequence {
+    fn.native { id: "ipc.channel" path: "javascript/channel.js" }
+    fn.native { id: "lib.fetch" path: "javascript/fetch_url.js" }
 
-    input: ipc.getmessage {}
+    ipc.channel {
+        content: sequence@self {
+            input: parameter { "message" }
 
-    try {
-        sequence@self {
             _checkMessage: if {
-                condition: not { string.is { @root.input } }
+                condition: not { string.is { @self.input } }
                 then: raise { "invalid message" }
             }
 
-            arguments: string.split { @root.input separator: " " }
-
-            // expect to receive cmd followed by param
+            arguments: string.split { @self.input separator: " " }
             command: get { target: @self.arguments index: 0 }
-            parameter: get { target: @self.arguments index: 1 }
+            param: get { target: @self.arguments index: 1 }
 
             if {
                 condition: not {
                     and {
                         string.is { @self.command }
-                        string.is { @self.parameter }
+                        string.is { @self.param }
                     }
                 }
                 then: raise { "invalid parameters" }
@@ -42,27 +38,10 @@ using fn.*
             switch {
                 value: @self.command
 
-                fetch: ipc.sendmessage {
-                    {
-                        input: @root.input
-                        result: lib.fetch { url: @self.parameter }
-                    }
-                }
-
-                square: ipc.sendmessage {
-                    { input: @root.input result: mul { @self.parameter @self.parameter } }
-                }
+                fetch: { input: @self.input result: lib.fetch { url: @self.param } }
+                square: { input: @self.input result: mul { @self.param @self.param } }
 
                 __default: raise { "invalid command received" }
-            }
-        }
-        catch: sequence@error {
-            value: parameter{}
-            ipc.sendmessage {
-                {
-                    input: @root.input
-                    result: string.join { "error: " @error.value }
-                }
             }
         }
     }

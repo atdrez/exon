@@ -1,0 +1,21 @@
+***
+IPC parent - forks the worker and drives interactive input.
+
+Run with:
+  ./ts-run.sh examples/ipc/parent.exon
+
+Commands:
+  fetch <url>
+  square <number>
+  /quit
+***
+
+using fn.*
+
+fn.sequence {
+    fn.native { id: "ipc.parent" path: "javascript/parent.js" }
+
+    ipc.parent {
+        worker: "worker.exon"
+    }
+}
