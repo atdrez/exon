@@ -1,0 +1,10 @@
+using fn.*
+
+wrapper {
+    prefix: "Untitled"
+    suffix:  ""
+    content: string.join {
+        "[" @root.prefix "] " @root.suffix
+        separator: ""
+    }
+}

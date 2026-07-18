@@ -1,0 +1,11 @@
+using fn.*
+
+{
+    // double
+    execute: closure {
+        sequence {
+            parameter@n{"n"}
+            add { @n @n }
+        }
+    }
+}

@@ -1,0 +1,11 @@
+using fn.*
+
+{
+    // square
+    execute: closure {
+        sequence {
+            parameter@n{"n"}
+            mul { @n @n }
+        }
+    }
+}

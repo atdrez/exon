@@ -1,0 +1,38 @@
+using fn.*
+
+sequence {
+    // import to be declared manually using ui.card id
+    import { "card.exon"  id: "ui.card"}
+
+    // import and resolve
+    localModule: import { "functions.exon" }
+
+    // fetch all exon files inside ./mods folder
+    dynamicModulePaths: string.split {
+        string.trim {
+            process.exec { "find " path.absolute { "./mods" } " -name '*.exon'" }
+        }
+        separator: "\n"
+    }
+
+    // object to be returned
+    {
+        greeting: ui.card {
+            prefix: "Hello"
+            suffix:  "World"
+        }
+
+        factorialOfFour: call { @root.localModule.factorial  n: 4 }
+
+        factorialOfFive: call { @root.localModule.factorial  n: 5 }
+
+        dynamicResults: foreach {
+            data: @root.dynamicModulePaths
+            do: sequence {
+                import@dynamicModule{ parameter{} }
+
+                call { @dynamicModule.execute n: 5 }
+            }
+        }
+    }
+}

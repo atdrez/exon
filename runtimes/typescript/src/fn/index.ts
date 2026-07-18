@@ -51,6 +51,7 @@ import Parameter from "./parameter";
 import Sequence from "./sequence";
 import NativeLoader from "./native";
 import ComponentLoader from "./component";
+import ImportLoader from "./import";
 import Raise from "./raise";
 import Try from "./try";
 import Pass from "./pass";
@@ -137,7 +138,7 @@ export function components(): any {
         // math
         MathMin, MathMax, MathClamp,
 
-        NativeLoader, ComponentLoader,
+        NativeLoader, ComponentLoader, ImportLoader,
         Parameter, Try, Raise, Switch, Sequence, Wrapper, PrintLn, Count, Pass, Reverse, While, Repeat,
 
         // property

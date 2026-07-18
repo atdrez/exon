@@ -1,0 +1,17 @@
+using fn.*
+
+{
+    factorial: closure {
+        sequence {
+            parameter@n{"n"}
+
+            cond {
+                // if n <= 1 then return 1
+                le { @n 1 }  1
+
+                // else return (n * factorialFn(n - 1))
+                mul { @n  call { @root  n: sub { @n 1 } } }
+            }
+        }
+    }
+}
