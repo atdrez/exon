@@ -1,5 +1,44 @@
 # Advanced Scripting
 
+## Closures
+
+Closures are functions that can be invoked multiple times with fn.call and parameters
+passed to fn.call are available inside the body via fn.parameter.
+
+<!--#exon-->
+<!-- ..data.markdown.snippet { "closure" } -->
+```js
+using fn.*
+
+sequence {
+    closure@squareFn {
+        mul { parameter{"n"} parameter{"n"} }
+    }
+
+    closure@factorialFn {
+        sequence {
+            parameter@n{"n"}
+
+            cond {
+                // if n <= 1 then return 1
+                le { @n 1 }  1
+                // else return (n * factorialFn(n - 1))
+                mul { @n  call { @root  n: sub { @n 1 } } }
+            }
+        }
+    }
+
+    {
+        // square(5) = 25
+        square-of-five: call { @squareFn  n: 5 }
+
+        // factorial(5) = 120
+        factorial-of-five: call { @factorialFn  n: 5 }
+    }
+}
+```
+<!--#endexon-->
+
 ## Inline Components with fn.component
 
 Define reusable components directly in `.exon` files without writing TypeScript:

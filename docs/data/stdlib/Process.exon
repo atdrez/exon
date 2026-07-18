@@ -1,0 +1,32 @@
+fn.lazy {
+    {
+        name: "Process"
+
+        components: [
+            {
+                name: "process.env"
+                signature: """{ "VAR_NAME" }"""
+                description: "read an environment variable by name"
+                largeDescription: """Reads a single environment variable from the current process by name. Accepts exactly one positional string argument — the variable name. Returns the variable's string value, or null when the variable is not set. Useful for reading configuration values such as API keys or directory paths."""
+            },
+            {
+                name: "process.exec"
+                signature: "{ a ... }"
+                description: "run a shell command synchronously and return stdout"
+                largeDescription: """Executes a shell command synchronously using Node.js's execSync and returns its standard output as a string. One or more positional arguments are concatenated into the final command string. Throws when the command exits with a non-zero status code."""
+            },
+            {
+                name: "process.argv"
+                signature: "{ }  or  { index }  or  { name }"
+                description: "access command-line arguments passed to the runtime"
+                largeDescription: """Reads command-line arguments passed to the Exon runtime. With no argument, returns the full argv array. With a numeric argument, returns the element at that zero-based index. With a string argument, returns the value of the matching named argument (parsed from --name=value or --name value syntax), or null when not provided. At most one argument is accepted."""
+            },
+            {
+                name: "process.exit"
+                signature: "{ code }"
+                description: "terminate the process with an exit code"
+                largeDescription: """Terminates the Node.js process immediately with the given numeric exit code. The argument is coerced to a number using Number() before being passed to process.exit. A code of 0 signals success; any non-zero code signals an error."""
+            },
+        ]
+    }
+}

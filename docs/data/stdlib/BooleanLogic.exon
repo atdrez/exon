@@ -1,0 +1,32 @@
+fn.lazy {
+    {
+        name: "Boolean Logic"
+
+        components: [
+            {
+                name: "and"
+                signature: "{ a b ... }"
+                description: "a && b && ..."
+                largeDescription: """Evaluates arguments left to right and returns the first falsy value, or the last value if all are truthy (&& behaviour). Accepts two or more positional arguments. Short-circuits on the first falsy value."""
+            },
+            {
+                name: "or"
+                signature: "{ a b ... }"
+                description: "a || b || ..."
+                largeDescription: """Evaluates arguments left to right and returns the first truthy value, or the last value if all are falsy (|| behaviour). Accepts two or more positional arguments. Short-circuits on the first truthy value."""
+            },
+            {
+                name: "not"
+                signature: "{ a }"
+                description: "!a"
+                largeDescription: """Applies logical NOT operator to a single value. Accepts exactly one positional argument and returns its boolean negation. Any truthy value becomes false; any falsy value becomes true."""
+            },
+            {
+                name: "xor"
+                signature: "{ a b }"
+                description: "!!a !== !!b"
+                largeDescription: """Returns true when exactly one of the two arguments is truthy (exclusive OR). Both operands are coerced to boolean before comparison, so xor { 1 2 } returns false because both are truthy. Accepts exactly two positional arguments."""
+            },
+        ]
+    }
+}

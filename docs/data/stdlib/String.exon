@@ -1,0 +1,184 @@
+fn.lazy {
+    {
+        name: "String"
+
+        components: [
+            {
+                name: "string.join"
+                signature: """{ a b ... separator: "" }"""
+                description: "concatenate multiple strings into one"
+                largeDescription: """Joins one or more positional string arguments into a single string, optionally inserting a separator between each element. When a single array is passed as the only argument and a separator is provided, the array elements are joined directly. Defaults to an empty string separator when the separator property is absent."""
+                arguments: {
+                    separator: "optional string inserted between each element (default: empty string)"
+                }
+            },
+            {
+                name: "string.concat"
+                signature: "{ a b ... }"
+                description: "concatenate strings — all values must be strings"
+                largeDescription: """Concatenates one or more positional string arguments into a single string with no separator. Unlike string.join, all arguments must already be of type string — no implicit conversion is performed. When a single array of strings is passed, its elements are concatenated directly."""
+            },
+            {
+                name: "string.split"
+                signature: """{ a separator: " " }"""
+                description: "split a string into an array"
+                largeDescription: """Splits a string into an array of substrings using the provided separator. The input must be a string. When no separator is specified, a single space character is used as the delimiter. The separator must be a plain string — regular expressions are not supported."""
+                arguments: {
+                    separator: "optional delimiter string (default: single space)"
+                }
+            },
+            {
+                name: "string.trim"
+                signature: "{ a }"
+                description: "remove leading and trailing whitespace"
+                largeDescription: """Removes all leading and trailing whitespace characters (spaces, tabs, newlines) from a string. Accepts exactly one positional string argument. Returns the trimmed string without mutating the original."""
+            },
+            {
+                name: "string.trimStart"
+                signature: "{ a }"
+                description: "remove leading whitespace"
+                largeDescription: """Removes all leading whitespace characters from the start of a string. Accepts exactly one positional string argument. Only the beginning of the string is affected; trailing whitespace is preserved."""
+            },
+            {
+                name: "string.trimEnd"
+                signature: "{ a }"
+                description: "remove trailing whitespace"
+                largeDescription: """Removes all trailing whitespace characters from the end of a string. Accepts exactly one positional string argument. Only the end of the string is affected; leading whitespace is preserved."""
+            },
+            {
+                name: "string.is"
+                signature: "{ a }"
+                description: "true if value is a string"
+                largeDescription: """Returns true when the single positional argument is of type string. Uses typeof check. Returns false for numbers, booleans, null, undefined, arrays, and objects, even if they could be coerced to a string."""
+            },
+            {
+                name: "string.isEmpty"
+                signature: "{ a }"
+                description: "true if string has zero length"
+                largeDescription: """Returns true when the string has zero characters (empty string). The input must be a string — passing a non-string value throws an error. Use string.is to verify the type first if the value may not be a string."""
+            },
+            {
+                name: "string.length"
+                signature: "{ a }"
+                description: "number of characters in the string"
+                largeDescription: """Returns the number of UTF-16 code units in the string, equivalent to String.length property. The input must be a string. For strings containing surrogate pairs (emoji, some CJK characters), the count reflects code units, not Unicode code points."""
+            },
+            {
+                name: "string.parseInt"
+                signature: "{ a }"
+                description: "parse a string as a base-10 integer"
+                largeDescription: """Parses the string as a base-10 integer using parseInt. The input must be a string. Returns NaN when the string cannot be parsed as a number. Leading whitespace is ignored and trailing non-numeric characters are silently dropped by the underlying JavaScript function."""
+            },
+            {
+                name: "string.parseFloat"
+                signature: "{ a }"
+                description: "parse a string as a floating-point number"
+                largeDescription: """Parses the string as a floating-point number using parseFloat. The input must be a string. Returns NaN when the string cannot be parsed. Useful for converting decimal strings (such as those read from environment variables or files) to numeric values."""
+            },
+            {
+                name: "string.replace"
+                signature: """{ a  search: "pattern"  replacement: "value" }"""
+                description: "replace the first occurrence of a substring"
+                largeDescription: """Replaces the first occurrence of the search string with the replacement string inside the input value. The value, search, and replacement must all be strings. Only the first match is replaced; use string.replaceAll to replace every occurrence."""
+                arguments: {
+                    search: "substring to find (string)"
+                    replacement: "string to insert in place of the first match"
+                }
+            },
+            {
+                name: "string.replaceAll"
+                signature: """{ a  search: "pattern"  replacement: "value" }"""
+                description: "replace all occurrences of a substring"
+                largeDescription: """Replaces every occurrence of the search string with the replacement string using a split-and-join approach (not regex-based). The value, search, and replacement must all be strings."""
+                arguments: {
+                    search: "substring to find (string)"
+                    replacement: "string to insert in place of every match"
+                }
+            },
+            {
+                name: "string.startsWith"
+                signature: "{ a b }"
+                description: "true if string starts with the given prefix"
+                largeDescription: """Returns true when the first string argument begins with the second string argument. Both arguments must be strings. Case-sensitive. Delegates to String.startsWith."""
+            },
+            {
+                name: "string.endsWith"
+                signature: "{ a b }"
+                description: "true if string ends with the given suffix"
+                largeDescription: """Returns true when the first string argument ends with the second string argument. Both arguments must be strings. Case-sensitive. Delegates to String.endsWith."""
+            },
+            {
+                name: "string.includes"
+                signature: "{ a b }"
+                description: "true if string contains the given substring"
+                largeDescription: """Returns true when the first string argument contains the second string argument anywhere within it. Both arguments must be strings. Case-sensitive. Delegates to String.includes."""
+            },
+            {
+                name: "string.indexOf"
+                signature: "{ a b }"
+                description: "index of the first occurrence of a substring (-1 if not found)"
+                largeDescription: """Returns the zero-based index of the first occurrence of the second string within the first string. Returns -1 when the substring is not found. Both arguments must be strings. Case-sensitive. Delegates to String.indexOf."""
+            },
+            {
+                name: "string.charAt"
+                signature: "{ a  index: n }"
+                description: "character at the given zero-based index"
+                largeDescription: """Returns the single character at the specified zero-based index within the string. The input must be a string and index must be a number. Returns an empty string when the index is out of range. Delegates to String.charAt."""
+                arguments: {
+                    index: "zero-based position of the character to retrieve (number)"
+                }
+            },
+            {
+                name: "string.slice"
+                signature: "{ a  start: n  end: n }"
+                description: "extract a substring by start and optional end index"
+                largeDescription: """Extracts a portion of the string from the start index up to (but not including) the optional end index. The input must be a string and start must be a number. The end property is optional — when omitted the slice extends to the end of the string. Negative indices count from the end of the string. Delegates to String.slice."""
+                arguments: {
+                    start: "zero-based start index (number)"
+                    end: "optional exclusive end index (number); defaults to end of string"
+                }
+            },
+            {
+                name: "string.padStart"
+                signature: """{ a  length: n  pad: " " }"""
+                description: "pad the start of a string to reach a target length"
+                largeDescription: """Pads the beginning of the string with the pad character(s) until the string reaches the target length. The input must be a string and length must be a number. The optional pad string defaults to a single space. When the string is already at or longer than length, no padding is added. Delegates to String.padStart."""
+                arguments: {
+                    length: "target total length of the resulting string (number)"
+                    pad: "optional padding string (default: space)"
+                }
+            },
+            {
+                name: "string.padEnd"
+                signature: """{ a  length: n  pad: " " }"""
+                description: "pad the end of a string to reach a target length"
+                largeDescription: """Pads the end of the string with the pad character(s) until the string reaches the target length. The input must be a string and length must be a number. The optional pad string defaults to a single space. When the string is already at or longer than length, no padding is added. Delegates to String.padEnd."""
+                arguments: {
+                    length: "target total length of the resulting string (number)"
+                    pad: "optional padding string (default: space)"
+                }
+            },
+            {
+                name: "string.repeat"
+                signature: "{ a  count: n }"
+                description: "repeat a string n times"
+                largeDescription: """Returns a new string formed by repeating the input string the given number of times. The input must be a string and count must be a non-negative number. A count of 0 returns an empty string. Delegates to String.repeat."""
+                arguments: {
+                    count: "non-negative number of repetitions"
+                }
+            },
+            {
+                name: "string.toUpperCase"
+                signature: "{ a }"
+                description: "convert string to upper case"
+                largeDescription: """Returns a new string with all characters converted to upper case using the default locale rules. The input must be a string. Does not mutate the original. Delegates to String.toUpperCase."""
+            },
+            {
+                name: "string.toLowerCase"
+                signature: "{ a }"
+                description: "convert string to lower case"
+                largeDescription: """Returns a new string with all characters converted to lower case using the default locale rules. The input must be a string. Does not mutate the original. Delegates to String.toLowerCase."""
+            },
+        ]
+    }
+}

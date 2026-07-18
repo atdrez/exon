@@ -1,0 +1,66 @@
+fn.lazy {
+    {
+        name: "Extensibility"
+
+        components: [
+            {
+                name: "component"
+                signature: "{ id: name  content: obj }"
+                description: "define a reusable inline component"
+                largeDescription: """Registers a new named component at runtime, making it available as a type throughout the current file and its dependents. The id string becomes the component's type name; the content object defines the default template. Callers can override any of the template's properties when using the component. Returns null."""
+                arguments: {
+                    id: "unique string identifier for the new component"
+                    content: "object that serves as the component's default template"
+                }
+            },
+            {
+                name: "native"
+                signature: "{ id: name  path: relPath }"
+                description: "load a JavaScript module as a component"
+                largeDescription: """Loads a CommonJS JavaScript module from the given path and registers it as a named component. The path is resolved relative to the current .exon file's directory. The module must export a default class that extends Base and implements a resolve(obj, context) method."""
+                arguments: {
+                    id: "unique string identifier for the new component"
+                    path: "relative path to the JavaScript module file"
+                }
+            },
+            {
+                name: "property"
+                signature: "{ get: expr  set: expr  init: expr }"
+                description: "define a typed getter/setter property"
+                largeDescription: """Creates a PropertyValue that encapsulates a getter, an optional setter, and an optional initializer. The get expression is resolved whenever the property is read (via fn.get or direct access). The set expression is invoked with the new value as @value whenever the property is written. The init expression runs once at construction time with the current value as @value."""
+                arguments: {
+                    get: "getter component resolved when the property is read"
+                    set: "optional setter component resolved with @value when the property is written"
+                    init: "optional initializer resolved once at creation with the current value as @value"
+                }
+            },
+            {
+                name: "parameter"
+                signature: "{ }  or  { name }"
+                description: "read a named parameter from the caller"
+                largeDescription: """Reads a named parameter from the current invocation context as provided by fn.foreach, fn.while, fn.call, or fn.repeat. With no argument, reads the 'value' key. With a single string argument, reads the parameter with that name. Returns undefined when the requested parameter is not present."""
+            },
+            {
+                name: "wrapper"
+                signature: "{ content: expr }"
+                description: "resolve and return the content property"
+                largeDescription: """A thin pass-through component that resolves and returns its content property. Useful for creating named groups or attaching metadata properties alongside a computed value without altering the resolved result. Deferred — content is resolved through the current context."""
+                arguments: {
+                    content: "the expression to evaluate and return"
+                }
+            },
+            {
+                name: "preprocess"
+                signature: """{ file: path  style: "js"  pattern: obj }"""
+                description: "perform Exon-driven source code preprocessing"
+                largeDescription: """Reads a source file (or an inline content string) and replaces delimited Exon blocks within it with their evaluated output. The style property selects a built-in delimiter set: 'js' uses //#exon … //#endexon with /* … */ comment regions; 'html' uses <!--#exon--> … <!--#endexon--> with <!-- … --> regions. A custom pattern object (with start, end, regionStart, regionEnd keys) can be provided instead of a style."""
+                arguments: {
+                    file: "path to the source file to preprocess"
+                    content: "inline string to preprocess instead of a file"
+                    style: "built-in delimiter style: 'js' or 'html' (default: 'js')"
+                    pattern: "custom delimiter object with start, end, regionStart, regionEnd keys"
+                }
+            },
+        ]
+    }
+}

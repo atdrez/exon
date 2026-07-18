@@ -1,0 +1,32 @@
+fn.lazy {
+    {
+        name: "OS"
+
+        components: [
+            {
+                name: "os.platform"
+                signature: "{}"
+                description: "operating system platform identifier"
+                largeDescription: """Returns a string identifying the operating system platform, such as 'linux', 'darwin' (macOS), or 'win32' (Windows). Takes no arguments. Delegates to Node.js's os.platform()."""
+            },
+            {
+                name: "os.arch"
+                signature: "{}"
+                description: "CPU architecture identifier"
+                largeDescription: """Returns a string identifying the CPU architecture of the process, such as 'x64', 'arm64', or 'ia32'. Takes no arguments. Delegates to Node.js's os.arch()."""
+            },
+            {
+                name: "os.type"
+                signature: "{}"
+                description: "operating system name"
+                largeDescription: """Returns the operating system name as reported by the OS kernel, such as 'Linux', 'Darwin', or 'Windows_NT'. Takes no arguments. Delegates to Node.js's os.type()."""
+            },
+            {
+                name: "os.release"
+                signature: "{}"
+                description: "operating system release version string"
+                largeDescription: """Returns the operating system release version, such as '22.04' on Ubuntu or '10.0.19044' on Windows. Takes no arguments. Delegates to Node.js's os.release()."""
+            },
+        ]
+    }
+}

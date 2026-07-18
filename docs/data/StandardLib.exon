@@ -1,0 +1,27 @@
+fn.lazy {
+    fn.sequence {
+        [
+            stdlib.Arithmetic {},
+            stdlib.Comparison {},
+            stdlib.BooleanLogic {},
+            stdlib.FlowControl {},
+            stdlib.Introspection {},
+            stdlib.Functional {},
+            stdlib.ErrorHandling {},
+            stdlib.String {},
+            stdlib.Number {},
+            stdlib.Math {},
+            stdlib.Regex {},
+            stdlib.Collections {},
+            stdlib.Mutation {},
+            stdlib.IO {},
+            stdlib.Process {},
+            stdlib.FileSystem {},
+            stdlib.Path {},
+            stdlib.OS {},
+            stdlib.Serialization {},
+            stdlib.Extensibility {},
+            stdlib.JS {},
+        ]
+    }
+}

@@ -1,0 +1,28 @@
+fn.lazy {
+    {
+        name: "File System"
+
+        components: [
+            {
+                name: "file.load"
+                signature: "{ path: str  binary: false }"
+                description: "read a file from disk"
+                largeDescription: """Reads a file from the filesystem and returns its content. The path property must be a string; relative paths are resolved relative to the directory of the currently executing .exon file. By default the content is returned as a UTF-8 string. Set binary to true to receive a raw Node.js Buffer instead."""
+                arguments: {
+                    path: "file path (absolute or relative to the current .exon file)"
+                    binary: "when true, returns a Buffer instead of a string (default: false)"
+                }
+            },
+            {
+                name: "file.save"
+                signature: "{ path: str  data: content }"
+                description: "write data to a file on disk"
+                largeDescription: """Writes the data value to the file at path. The path must be a string; relative paths are resolved relative to the directory of the current .exon file. The data property is required and may be a string or a Buffer. Existing files are overwritten without warning. Returns null on success."""
+                arguments: {
+                    path: "file path (absolute or relative to the current .exon file)"
+                    data: "the string or Buffer content to write"
+                }
+            },
+        ]
+    }
+}

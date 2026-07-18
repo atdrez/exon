@@ -1,0 +1,14 @@
+fn.lazy {
+    {
+        name: "IO"
+
+        components: [
+            {
+                name: "println"
+                signature: "{ a ... }"
+                description: "print concatenated arguments to stdout"
+                largeDescription: """Prints the concatenation of all positional arguments to standard output followed by a newline, using console.log. Only emits output when the runtime is in run or test mode; in normal resolve mode the call is a no-op. Accepts one or more arguments which are joined without a separator before printing."""
+            },
+        ]
+    }
+}

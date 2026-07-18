@@ -1,0 +1,44 @@
+fn.lazy {
+    {
+        name: "Path"
+
+        components: [
+            {
+                name: "path.dirname"
+                signature: "{ a }"
+                description: "directory portion of a path"
+                largeDescription: """Returns the directory component of the given file path by stripping the filename and extension. Delegates to Node.js's path.dirname. For example, '/a/b/c.txt' returns '/a/b'. Accepts exactly one positional string argument."""
+            },
+            {
+                name: "path.basename"
+                signature: "{ a }"
+                description: "filename portion of a path"
+                largeDescription: """Returns the last component of a file path, typically the filename with its extension. Delegates to Node.js's path.basename. For example, '/a/b/c.txt' returns 'c.txt'. Accepts exactly one positional string argument."""
+            },
+            {
+                name: "path.extension"
+                signature: "{ a }"
+                description: "file extension of a path (including the leading dot)"
+                largeDescription: """Returns the file extension of the path including the leading dot. Delegates to Node.js's path.extname. For example, '/a/b/c.txt' returns '.txt'. Returns an empty string when the path has no extension. Accepts exactly one positional string argument."""
+            },
+            {
+                name: "path.isfile"
+                signature: "{ a }"
+                description: "true if the path points to an existing file"
+                largeDescription: """Returns true when the path refers to an existing regular file on disk. Relative paths are resolved against the directory of the current .exon file. Returns false when the path does not exist, points to a directory, or is otherwise inaccessible. Uses Node.js's fs.statSync internally."""
+            },
+            {
+                name: "path.isdir"
+                signature: "{ a }"
+                description: "true if the path points to an existing directory"
+                largeDescription: """Returns true when the path refers to an existing directory on disk. Relative paths are resolved against the directory of the current .exon file. Returns false when the path does not exist, points to a file, or is otherwise inaccessible. Uses Node.js's fs.statSync internally."""
+            },
+            {
+                name: "path.absolute"
+                signature: "{ a }"
+                description: "resolve a path to an absolute path"
+                largeDescription: """Converts a relative path to an absolute path by resolving it against the directory of the current .exon file. If the input is already absolute it is returned as-is after normalization. Delegates to Node.js's path.resolve. Accepts exactly one positional string argument."""
+            },
+        ]
+    }
+}

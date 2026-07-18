@@ -1,0 +1,26 @@
+fn.lazy {
+    {
+        name: "Functional"
+
+        components: [
+            {
+                name: "lazy"
+                signature: "{ a }"
+                description: "defer evaluation until the value is accessed"
+                largeDescription: """Wraps a single expression and defers its evaluation to when the containing property is explicitly accessed via a route. When a route is active and the lazy node is not on the requested path, it returns a __link__ stub instead of resolving the expression. When no route is active the expression resolves immediately"""
+            },
+            {
+                name: "closure"
+                signature: "{ [capture: value ...]  expr }"
+                description: "capture scope and create a reusable deferred computation"
+                largeDescription: """Creates a Closure object by snapshotting the named properties of the current object as a captured scope and storing the first positional content expression as the function body. Binding references (@ref) in the named properties are resolved eagerly at capture time. The resulting closure can be invoked later with fn.call, and parameters passed to fn.call are available inside the body via fn.parameter."""
+            },
+            {
+                name: "call"
+                signature: "{ closure  [param: value ...] }"
+                description: "invoke a fn.closure with optional named parameters"
+                largeDescription: """Resolves the first positional content item to a fn.closure instance and invokes it, forwarding any named properties (excluding __ prefixed ones) as parameters. Each parameter is resolved before being passed. Inside the closure body, parameters are read with fn.parameter. Throws if the first argument does not resolve to a fn.closure."""
+            },
+        ]
+    }
+}

@@ -1,0 +1,26 @@
+fn.lazy {
+    {
+        name: "Math"
+
+        components: [
+            {
+                name: "math.min"
+                signature: "{ a b ... }"
+                description: "smallest of two or more numbers"
+                largeDescription: """Returns the minimum value among two or more positional numeric arguments. Accepts at least two arguments and iterates through all of them, delegating each pairwise comparison to Math.min."""
+            },
+            {
+                name: "math.max"
+                signature: "{ a b ... }"
+                description: "largest of two or more numbers"
+                largeDescription: """Returns the maximum value among two or more positional numeric arguments. Accepts at least two arguments and iterates through all of them, delegating each pairwise comparison to Math.max."""
+            },
+            {
+                name: "math.clamp"
+                signature: "{ value min max }"
+                description: "clamp a value to the [min, max] range"
+                largeDescription: """Constrains a numeric value to a specified inclusive range. Accepts exactly three positional arguments: the value to clamp, the minimum bound, and the maximum bound. Values below min are raised to min; values above max are lowered to max; values within range are returned unchanged."""
+            },
+        ]
+    }
+}

@@ -1,0 +1,33 @@
+fn.lazy {
+    {
+        name: "Error Handling"
+
+        components: [
+            {
+                name: "try"
+                signature: "{ expr  catch: handler  then: result }"
+                description: "evaluate an expression and catch any error"
+                largeDescription: """Attempts to resolve the first positional content expression. If it succeeds and a then property is defined, then is resolved and returned instead of the expression's own result. If the expression throws, the optional catch handler is resolved with the error message available as the @value parameter. Returns null when no catch is defined and an error occurs."""
+                arguments: {
+                    catch: "optional handler resolved on error; receives the error message as @value"
+                    then: "optional branch resolved on success, replacing the expression result"
+                }
+            },
+            {
+                name: "raise"
+                signature: "{ a }"
+                description: "throw an error with the given message"
+                largeDescription: """Throws a JavaScript Error using the provided string as the message. Accepts exactly one positional string argument. Typically used inside fn.if or alongside fn.try to signal invalid states. The thrown error propagates up and can be caught by fn.try."""
+            },
+            {
+                name: "assert"
+                signature: """{ a  message: "error" }"""
+                description: "throw when a value is falsy"
+                largeDescription: """Evaluates the single positional argument and throws an Error when it is falsy. The optional message property provides a human-readable error string; when omitted a generic Error with no message is thrown. Useful for enforcing invariants and validating resolved values before further processing."""
+                arguments: {
+                    message: "optional error message string thrown when the assertion fails"
+                }
+            },
+        ]
+    }
+}

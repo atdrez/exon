@@ -1,0 +1,38 @@
+fn.lazy {
+    {
+        name: "Introspection"
+
+        components: [
+            {
+                name: "defined"
+                signature: "{ a }"
+                description: "true if value is not null or undefined"
+                largeDescription: """Returns true when the single positional argument resolves to a value that is neither null nor undefined. Returns false for null and undefined, but true for 0, false, and empty strings. Useful for optional-field guards and nil checks."""
+            },
+            {
+                name: "typeof"
+                signature: "{ a }"
+                description: "JavaScript typeof with fixes for array and null"
+                largeDescription: """Returns a string describing the runtime type of the value: 'string', 'number', 'boolean', 'object', 'function', 'array', 'null', or 'undefined'. Improves on typeof by returning 'array' for arrays and 'null' for null values rather than 'object' for both."""
+            },
+            {
+                name: "classname"
+                signature: "{ a }"
+                description: "return the Exon class name of an object"
+                largeDescription: """Returns the class name (string) of an Exon object by reading its __native__ tag for built-in fn.* components, or the __name__ field of its __base__ chain for user-defined types. Returns null for primitives, plain JS objects, and values that carry no Exon type information. Deferred."""
+            },
+            {
+                name: "instanceof"
+                signature: "{ a b }"
+                description: "true if object is an instance of the named class"
+                largeDescription: """Checks whether the first argument is an instance of the class named by the second string argument. For built-in fn.* components it checks __native__; for user-defined types it walks the full __base__ inheritance chain comparing __name__ at each level. Returns false for primitives and untyped plain objects. Deferred."""
+            },
+            {
+                name: "in"
+                signature: "{ a b }"
+                description: "true if value is in array, or key is in object"
+                largeDescription: """Returns true when the first argument is found inside the second. When the second argument is an array, uses Array.includes to check membership. When it is a plain object, checks whether the first argument is an own property key. Throws if the second argument is neither an array nor a non-null object."""
+            },
+        ]
+    }
+}

@@ -1,0 +1,42 @@
+fn.lazy {
+    {
+        name: "Mutation"
+
+        components: [
+            {
+                name: "get"
+                signature: "{ target: obj  property: key }  or  { target: arr  index: n }"
+                description: "read a property or array element from an object"
+                largeDescription: """Reads a named property from an object or an indexed element from an array. When property is provided it must be a string and target must be an object. When index is provided it must be a number and target (or target[property] when property is also given) must be an array. If the accessed value is a fn.property, its getter is invoked automatically."""
+                arguments: {
+                    target: "the object or array to read from"
+                    property: "optional string key to read from the target object"
+                    index: "optional zero-based integer index into an array"
+                }
+            },
+            {
+                name: "set"
+                signature: "{ target: obj  property: key  value: v }  or  { target: arr  index: n  value: v }"
+                description: "write a value to a property or array element"
+                largeDescription: """Writes a value to a named property of an object or to an indexed position in an array. When property is a string, target[property] is updated; if that slot holds a fn.property, its setter is invoked instead of a direct assignment. When index is a number, the target (or target[property]) must be an array and the element at that index is replaced."""
+                arguments: {
+                    target: "the object or array to write to"
+                    property: "optional string key to set on the target object"
+                    index: "optional zero-based integer index into an array"
+                    value: "the value to assign"
+                }
+            },
+            {
+                name: "del"
+                signature: "{ target: obj  property: key  index: n }"
+                description: "delete a property or splice an element from an array"
+                largeDescription: """Deletes a named property from an object, or splices an element out of an array property. The target must be a plain object (not an array) and property must be a string. When index is also provided it must be a number, and the element at that position is removed from target[property] (which must be an array). Without index, the property itself is deleted from the object."""
+                arguments: {
+                    target: "the object to modify"
+                    property: "string key of the property to delete, or the array property to splice"
+                    index: "optional zero-based index to splice out of an array property"
+                }
+            },
+        ]
+    }
+}

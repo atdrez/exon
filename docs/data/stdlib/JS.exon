@@ -1,0 +1,17 @@
+fn.lazy {
+    {
+        name: "JavaScript"
+
+        components: [
+            {
+                name: "js.eval"
+                signature: "{ content: jsCode  [key: value ...] }"
+                description: "evaluate a JavaScript snippet with variable substitution"
+                largeDescription: """Evaluates a JavaScript code string provided as the content property. Before evaluation, any $key placeholder in the content string is replaced by the resolved value of the matching named property. String values are automatically wrapped in double quotes; objects are JSON-serialized. The content must be a complete JavaScript function body — a return statement is required to produce a value. Useful for embedding arbitrary logic that cannot be expressed with standard components."""
+                arguments: {
+                    content: "JavaScript code string; use $key placeholders to inject property values"
+                }
+            },
+        ]
+    }
+}

@@ -1,0 +1,50 @@
+fn.lazy {
+    {
+        name: "Arithmetic"
+
+        components: [
+            {
+                name: "add"
+                signature: "{ a b }"
+                description: "a + b"
+                largeDescription: """Adds two values using + operator. Accepts exactly two positional arguments. When both operands are numbers the result is their numeric sum; when either operand is a string the result is string concatenation."""
+            },
+            {
+                name: "sub"
+                signature: "{ a b }"
+                description: "a - b"
+                largeDescription: """Subtracts the second positional argument from the first using - operator. Accepts exactly two positional arguments and returns a number."""
+            },
+            {
+                name: "mul"
+                signature: "{ a b }"
+                description: "a * b"
+                largeDescription: """Multiplies two numeric values using * operator. Accepts exactly two positional arguments and returns a number."""
+            },
+            {
+                name: "div"
+                signature: "{ a b }"
+                description: "a / b"
+                largeDescription: """Divides the first positional argument by the second using / operator. Accepts exactly two positional arguments. Dividing by zero returns Infinity."""
+            },
+            {
+                name: "mod"
+                signature: "{ a b }"
+                description: "a % b"
+                largeDescription: """Returns the remainder of dividing the first argument by the second using % operator. Accepts exactly two positional arguments and returns a number."""
+            },
+            {
+                name: "pow"
+                signature: "{ a b }"
+                description: "a ** b"
+                largeDescription: """Raises the first positional argument to the power of the second using ** operator. Accepts exactly two positional arguments and returns a number."""
+            },
+            {
+                name: "neg"
+                signature: "{ a }"
+                description: "-a"
+                largeDescription: """Negates a numeric value by applying the unary minus operator. Accepts exactly one positional argument and returns its arithmetic negation."""
+            },
+        ]
+    }
+}

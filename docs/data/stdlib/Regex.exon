@@ -1,0 +1,18 @@
+fn.lazy {
+    {
+        name: "Regex"
+
+        components: [
+            {
+                name: "regex.test"
+                signature: """{ a  pattern: "regex"  flags: "" }"""
+                description: "test if a string matches a regular expression"
+                largeDescription: """Tests whether the input string matches the given regular expression pattern. The input must be a string and pattern must be a valid regex string. The optional flags string (e.g. 'i' for case-insensitive, 'g' for global) is passed directly to the RegExp constructor."""
+                arguments: {
+                    pattern: "regular expression pattern string"
+                    flags: "optional regex flags such as 'i', 'g', or 'gi'"
+                }
+            },
+        ]
+    }
+}

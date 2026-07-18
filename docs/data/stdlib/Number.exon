@@ -1,0 +1,14 @@
+fn.lazy {
+    {
+        name: "Number"
+
+        components: [
+            {
+                name: "number.is"
+                signature: "{ a }"
+                description: "true if value is a valid number (not NaN)"
+                largeDescription: """Returns true when the single positional argument is of type number and is not NaN. NaN is explicitly excluded so that the result of a failed parse (such as string.parseInt on a non-numeric string) is correctly identified as not a valid number."""
+            },
+        ]
+    }
+}

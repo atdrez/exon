@@ -1,0 +1,42 @@
+using fn.*
+
+lazy {
+    sequence {
+        closure@tableFn {
+            sequence {
+                string.join@lines {
+                    foreach {
+                        data: parameter{ "components" }
+                        do: sequence {
+                            parameter@obj {}
+                            string.join {
+                                "| `" @obj.name   "`   |   `"  @obj.signature "`   |   " @obj.description "   |"
+                            }
+                        }
+                    }
+                    separator: "\n"
+                }
+
+                string.join {
+                    "| Component           | Signature                  | Description              |\n"
+                    "|---------------------|----------------------------|--------------------------|\n"
+                    @lines
+                }
+            }
+        }
+
+        string.join {
+            foreach {
+                data: ..StandardLib {}
+                do: sequence {
+                    parameter@entry{}
+                    string.join {
+                        "## " @entry.name "\n\n"
+                        call { @tableFn  components: @entry.components }
+                    }
+                }
+            }
+            separator: "\n\n---\n\n"
+        }
+    }
+}

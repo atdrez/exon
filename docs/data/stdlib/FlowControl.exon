@@ -1,0 +1,76 @@
+fn.lazy {
+    {
+        name: "Flow Control"
+
+        components: [
+            {
+                name: "if"
+                signature: "{ condition: v  then: a  else: b }"
+                description: "conditional expression (else is optional)"
+                largeDescription: """Evaluates the condition property and, when truthy, resolves and returns the then branch; otherwise resolves and returns the else branch. The else property is optional — when omitted and the condition is falsy, null is returned. Only the taken branch is evaluated (deferred)."""
+                arguments: {
+                    condition: "condition to be checked (boolean)"
+                    then: "branch executed if condition is true"
+                    else: "optional branch executed if condition is false"
+                }
+            },
+            {
+                name: "while"
+                signature: "{ condition: expr  do: statement  params: obj  includeNull: false }"
+                description: "loop while condition is truthy, collect results into an array"
+                largeDescription: """Repeatedly evaluates condition and executes do for as long as condition is truthy, collecting each result into an array. An optional params object is forwarded to both condition and do on every iteration. By default null and undefined results are excluded from the output array; set includeNull to true to retain them."""
+                arguments: {
+                    condition: "expression evaluated before each iteration"
+                    do: "statement executed on each iteration"
+                    params: "optional object passed as params to condition and do"
+                    includeNull: "when true, null/undefined results are kept in the output array"
+                }
+            },
+            {
+                name: "switch"
+                signature: "{ value: a  [case]: result  __default: fallback }"
+                description: "pattern-match a value against named case keys"
+                largeDescription: """Resolves value, converts it to a string, and looks for a property on the same object with that name to use as the result. If no matching key exists, the optional __default property is used. Only the matching branch is evaluated (deferred). Properties whose names conflict with reserved Exon keys cannot be used as cases."""
+                arguments: {
+                    value: "expression whose string representation is matched against case keys"
+                    __default: "optional fallback resolved when no case matches"
+                }
+            },
+            {
+                name: "sequence"
+                signature: "{ a b ... }"
+                description: "evaluate each argument in order, return the last"
+                largeDescription: """Evaluates one or more positional arguments left to right and returns the value of the last one. All arguments are resolved eagerly in order. Useful for executing side-effectful expressions (such as fn.set or fn.println) while still yielding a final result."""
+            },
+            {
+                name: "pass"
+                signature: "{}"
+                description: "no-op, returns undefined"
+                largeDescription: """A no-operation component that resolves to undefined without doing any work. Useful as a placeholder branch in fn.if or fn.switch when one path should produce no value. Takes no arguments."""
+            },
+                        {
+                name: "coalesce"
+                signature: "{ a b ... }"
+                description: "return the first non-null, non-undefined value"
+                largeDescription: """Evaluates each positional argument in order and returns the first value that is neither null nor undefined. Evaluation is deferred — each argument is only resolved until a non-null value is found. Returns null if every argument evaluates to null or undefined. At least one argument is required."""
+            },
+            {
+                name: "cond"
+                signature: "{ condition result ... [default] }"
+                description: "multi-branch conditional expressed as condition/result pairs"
+                largeDescription: """Evaluates positional arguments as condition/result pairs: each even-indexed item is a condition and each odd-indexed item is the result to return when that condition is truthy. Stops at the first truthy condition and resolves only that result (deferred). An optional trailing default (odd total count) is returned when all conditions are falsy. Returns null if no condition matches and no default is provided."""
+            },
+            {
+                name: "foreach"
+                signature: "{ data: array  do: statement  includeNull: false }"
+                description: "map over an array or object and collect the results"
+                largeDescription: """Iterates over the data array (or object) and resolves the do statement once per element, collecting results into an array. For arrays, each element is passed as @value to do. For objects, each entry is passed as @value with sub-keys key and value. Results that are null or undefined are excluded by default; set includeNull to true to retain them. Deferred."""
+                arguments: {
+                    data: "array or object to iterate over"
+                    do: "statement resolved for each element; receives the element as @value"
+                    includeNull: "when true, null/undefined results are included in the output array"
+                }
+            },
+        ]
+    }
+}

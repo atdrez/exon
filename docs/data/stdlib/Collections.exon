@@ -1,0 +1,46 @@
+fn.lazy {
+    {
+        name: "Collections"
+
+        components: [
+            {
+                name: "map"
+                signature: "{ keys: array  values: array }"
+                description: "build an object from parallel keys and values arrays"
+                largeDescription: """Constructs a plain JavaScript object by pairing each element of the keys array with the corresponding element of the values array. Both arrays must be present and of equal length. The resulting object has one property per key-value pair."""
+                arguments: {
+                    keys: "array of string keys"
+                    values: "array of values with the same length as keys"
+                }
+            },
+            {
+                name: "merge"
+                signature: "{ a b ... }"
+                description: "shallow-merge two or more objects using spread"
+                largeDescription: """Merges zero or more objects into a single new object by applying spread operator left to right. Later arguments override keys from earlier ones. Non-object values spread as-is and may produce unexpected results."""
+            },
+            {
+                name: "reverse"
+                signature: "{ a ... }"
+                description: "reverse an array"
+                largeDescription: """Returns a new array with elements in reversed order. When a single array argument is passed, that array is reversed. When multiple positional arguments are provided, they form an inline array which is then reversed. The original array is not mutated."""
+            },
+            {
+                name: "count"
+                signature: "{ a }"
+                description: "number of elements in an array"
+                largeDescription: """Returns the length of the array passed as the single positional argument. The input must be an array — passing a non-array value throws. Returns 0 for an empty array."""
+            },
+            {
+                name: "repeat"
+                signature: "{ count: n  content: value }"
+                description: "produce an array of n copies of content"
+                largeDescription: """Evaluates content once and returns an array containing that resolved value repeated count times. The count property must be a number and content must be defined. The same resolved value is referenced n times (not deep-cloned). Deferred."""
+                arguments: {
+                    count: "number of repetitions (number)"
+                    content: "value to repeat in the output array"
+                }
+            },
+        ]
+    }
+}

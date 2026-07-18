@@ -1,0 +1,44 @@
+fn.lazy {
+    {
+        name: "Comparison"
+
+        components: [
+            {
+                name: "eq"
+                signature: "{ a b }"
+                description: "a === b"
+                largeDescription: """Performs a strict equality check using === operator. Accepts exactly two positional arguments. Returns true only when both value and type are equal; no type coercion is performed."""
+            },
+            {
+                name: "ne"
+                signature: "{ a b }"
+                description: "a !== b"
+                largeDescription: """Performs a strict inequality check using !== operator. Accepts exactly two positional arguments. Returns true when the values differ in value or type; no type coercion is performed."""
+            },
+            {
+                name: "lt"
+                signature: "{ a b }"
+                description: "a < b"
+                largeDescription: """Returns true when the first argument is strictly less than the second using < operator. Accepts exactly two positional arguments. Applies to numbers and strings (lexicographic order)."""
+            },
+            {
+                name: "gt"
+                signature: "{ a b }"
+                description: "a > b"
+                largeDescription: """Returns true when the first argument is strictly greater than the second using > operator. Accepts exactly two positional arguments. Applies to numbers and strings (lexicographic order)."""
+            },
+            {
+                name: "le"
+                signature: "{ a b }"
+                description: "a <= b"
+                largeDescription: """Returns true when the first argument is less than or equal to the second using <= operator. Accepts exactly two positional arguments."""
+            },
+            {
+                name: "ge"
+                signature: "{ a b }"
+                description: "a >= b"
+                largeDescription: """Returns true when the first argument is greater than or equal to the second using >= operator. Accepts exactly two positional arguments."""
+            },
+        ]
+    }
+}

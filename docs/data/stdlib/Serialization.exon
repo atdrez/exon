@@ -1,0 +1,62 @@
+fn.lazy {
+    {
+        name: "Serialization"
+
+        components: [
+            {
+                name: "json.encode"
+                signature: "{ a  indent: 4 }"
+                description: "serialize an object to a JSON string"
+                largeDescription: """Serializes a JavaScript object or array to a formatted JSON string. The input must be an object or array. The optional indent property controls pretty-printing indentation (number of spaces) and defaults to 4. Double-escaped backslashes (\\\\) are normalized to single backslashes (\\) in the output."""
+                arguments: {
+                    indent: "number of spaces for indentation (default: 4)"
+                }
+            },
+            {
+                name: "json.decode"
+                signature: "{ content: jsonString }"
+                description: "parse a JSON string into an object"
+                largeDescription: """Parses a JSON string into a JavaScript value using JSON.parse. The content property must be a string containing valid JSON. Returns the parsed value, which may be an object, array, string, number, boolean, or null. Throws a descriptive error when parsing fails."""
+                arguments: {
+                    content: "valid JSON string to parse"
+                }
+            },
+            {
+                name: "xml.encode"
+                signature: """{ a  root: "tag" }"""
+                description: "serialize an object to an XML string"
+                largeDescription: """Recursively serializes a JavaScript object into an XML string where each property key becomes an element tag. The optional root property wraps the entire output in a root element. Arrays are serialized by repeating the parent tag once per element. String values are XML-escaped (& < >). No XML declaration header is emitted."""
+                arguments: {
+                    root: "optional tag name used to wrap the output in a root element"
+                }
+            },
+            {
+                name: "yaml.encode"
+                signature: "{ a }"
+                description: "serialize an object to a YAML string"
+                largeDescription: """Recursively serializes a JavaScript object or array to a YAML-formatted string without depending on an external library. Objects become mapping blocks; arrays become sequence blocks with a dash prefix. Scalar strings are quoted when they contain characters that require quoting in YAML."""
+            },
+            {
+                name: "plist.encode"
+                signature: "{ a }"
+                description: "serialize an object to Apple Property List XML"
+                largeDescription: """Serializes a JavaScript value to an Apple Property List (plist) XML string, including the standard XML declaration and DOCTYPE header. Supports all plist value types: string, integer, real, boolean (true/false tags), array, and dict. Null and undefined values are emitted as empty string elements."""
+            },
+            {
+                name: "csv.encode"
+                signature: "{ a }"
+                description: "serialize an array of objects to a CSV string"
+                largeDescription: """Serializes an array of plain objects to a CSV-formatted string. The first row is a header derived from the union of all keys found across all rows. Each subsequent row contains the corresponding field values in the same column order. Values that contain commas, double quotes, or newlines are wrapped in double quotes with internal double quotes escaped."""
+            },
+            {
+                name: "csv.decode"
+                signature: "{ content: csvString }"
+                description: "parse a CSV string into an array of objects"
+                largeDescription: """Parses a CSV string into an array of plain objects where the first row defines the property names and each subsequent row becomes one object. Handles RFC-4180 quoted fields including embedded commas and escaped double quotes. Empty lines are ignored and missing fields default to an empty string."""
+                arguments: {
+                    content: "CSV-formatted string to parse"
+                }
+            },
+        ]
+    }
+}
