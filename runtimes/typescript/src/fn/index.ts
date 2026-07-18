@@ -22,10 +22,26 @@ import StringIs from "./string/is";
 import StringJoin from "./string/join";
 import StringSplit from "./string/split";
 import StringTrim from "./string/trim";
+import StringTrimStart from "./string/trimStart";
+import StringTrimEnd from "./string/trimEnd";
 import StringEndsWith from "./string/endsWith";
+import StringStartsWith from "./string/startsWith";
+import StringIncludes from "./string/includes";
 import StringIsEmpty from "./string/isEmpty";
 import StringLength from "./string/length";
 import StringParseInt from "./string/parseInt";
+import StringParseFloat from "./string/parseFloat";
+import StringReplace from "./string/replace";
+import StringReplaceAll from "./string/replaceAll";
+import StringToUpperCase from "./string/toUpperCase";
+import StringToLowerCase from "./string/toLowerCase";
+import StringSlice from "./string/slice";
+import StringPadStart from "./string/padStart";
+import StringPadEnd from "./string/padEnd";
+import StringRepeat from "./string/stringRepeat";
+import StringIndexOf from "./string/indexOf";
+import StringCharAt from "./string/charAt";
+import StringConcat from "./string/concat";
 import NumberIs from "./number/is";
 import MathMin from "./math/min";
 import MathMax from "./math/max";
@@ -134,8 +150,14 @@ export function components(): any {
         RegexTest,
 
         // string
-        StringIs, StringJoin, StringSplit, StringParseInt, StringIsEmpty,
-        StringLength, StringTrim, StringEndsWith,
+        StringIs, StringJoin, StringSplit, StringConcat,
+        StringParseInt, StringParseFloat, StringIsEmpty,
+        StringLength, StringTrim, StringTrimStart, StringTrimEnd,
+        StringEndsWith, StringStartsWith, StringIncludes, StringIndexOf,
+        StringReplace, StringReplaceAll,
+        StringToUpperCase, StringToLowerCase,
+        StringSlice, StringPadStart, StringPadEnd,
+        StringRepeat, StringCharAt,
 
         // lang
         LangOr, LangAnd, LangIf, LangEq, LangNe, LangLt, LangGt, LangLe, LangGe,
