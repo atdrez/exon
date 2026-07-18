@@ -17,35 +17,38 @@ Usage (from runtimes/typescript/):
 
 using fn.*
 
-{
-    root: string.trim { process.exec { "git rev-parse --show-toplevel" } }
+sequence {
+    closure@updateDocuments {
+        rootDir: string.trim { process.exec { "git rev-parse --show-toplevel" } }
 
-    files: string.split {
-        string.trim {
-            process.exec {
-                "{ "
-                "find " @root.root "/docs -name '*.md'; "
-                "find " @root.root "/site -name '*.html';"
-                " } | sort"
-            }
-        }
-        separator: "\n"
-    }
-
-    foreach {
-        data: @root.files
-        do: sequence@step {
-            filepath: parameter{}
-
-            preprocess@updated {
-                file:  @step.filepath
-                style: "html"
+        sequence {
+            string.split@files {
+                string.trim {
+                    process.exec { "find " @rootDir parameter{"folder"} " -name '" parameter{"name"} "'" }
+                }
+                separator: "\n"
             }
 
-            file.save { path: @step.filepath data: @updated }
-            println { string.join { "updated: " @step.filepath } }
-        }
+            foreach {
+                data: @files
+                do: sequence {
+                    parameter@filepath{}
+
+                    preprocess@updated {
+                        file:  @filepath
+                        style: "html"
+                    }
+
+                    file.save { path: @filepath data: @updated }
+                    println { "updated: " @filepath }
+                }
+            }
+        } 
     }
+
+    call { @updateDocuments  folder: "/docs" name: "*.md" }
+
+    call { @updateDocuments  folder: "/site" name: "*.html" }
 
     process.exec { "cp docs/markdown/README.md README.md" }
 }
