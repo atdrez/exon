@@ -54,7 +54,7 @@ using fn.process.env
 |---------------------|----------------------------|--------------------------|
 | `if`   |   `{ condition: v  then: a  else: b }`   |   conditional expression (else is optional)   |
 | `while`   |   `{ condition: expr  do: statement  params: obj  includeNull: false }`   |   loop while condition is truthy, collect results into an array   |
-| `switch`   |   `{ value: a  [case]: result  __default: fallback }`   |   pattern-match a value against named case keys   |
+| `switch`   |   `{ value: a  case result ... [default] }`   |   pattern-match a value against case/result pairs   |
 | `sequence`   |   `{ a b ... }`   |   evaluate each argument in order, return the last   |
 | `pass`   |   `{}`   |   no-op, returns undefined   |
 | `coalesce`   |   `{ a b ... }`   |   return the first non-null, non-undefined value   |

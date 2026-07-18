@@ -38,10 +38,10 @@ fn.sequence {
             switch {
                 value: @self.command
 
-                fetch: { input: @self.input result: lib.fetch { url: @self.param } }
-                square: { input: @self.input result: mul { @self.param @self.param } }
+                "fetch"  { input: @self.input result: lib.fetch { url: @self.param } }
+                "square" { input: @self.input result: mul { @self.param @self.param } }
 
-                __default: raise { "invalid command received" }
+                raise { "invalid command received" }
             }
         }
     }

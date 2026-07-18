@@ -632,10 +632,10 @@ Server {
     result: fn.switch {
         value: fn.process.env { "CMD" }
 
-        start:   "Starting service..."
-        stop:    "Stopping service..."
+        "start" "Starting service..."
+        "stop"  "Stopping service..."
 
-        __default: fn.string.join { "Unknown command: " fn.process.env { "CMD" } }
+        fn.string.join { "Unknown command: " fn.process.env { "CMD" } }
     }
 }</code></pre>
         <!--#endexon-->
@@ -883,7 +883,7 @@ using fn.process.env</code></pre>
           <thead><tr><th>Component</th><th>Key Arguments</th><th>Description</th></tr></thead>
           <tbody>
             <tr><td><code>if</code></td><td><code>condition, then, else</code></td><td>conditional expression</td></tr>
-            <tr><td><code>switch</code></td><td><code>value, named branches, __default</code></td><td>multi-way branch</td></tr>
+            <tr><td><code>switch</code></td><td><code>value, alternating case/result pairs</code></td><td>multi-way branch</td></tr>
             <tr><td><code>cond</code></td><td>alternating condition/value pairs</td><td>first-match selector</td></tr>
             <tr><td><code>foreach</code></td><td><code>data, do</code></td><td>iterate array, collect results</td></tr>
             <tr><td><code>while</code></td><td><code>condition, do</code></td><td>loop while condition is truthy</td></tr>

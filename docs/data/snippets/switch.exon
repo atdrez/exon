@@ -2,9 +2,9 @@
     result: fn.switch {
         value: fn.process.env { "CMD" }
 
-        start:   "Starting service..."
-        stop:    "Stopping service..."
+        "start" "Starting service..."
+        "stop"  "Stopping service..."
 
-        __default: fn.string.join { "Unknown command: " fn.process.env { "CMD" } }
+        fn.string.join { "Unknown command: " fn.process.env { "CMD" } }
     }
 }

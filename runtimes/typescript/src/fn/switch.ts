@@ -14,15 +14,25 @@ export default class Component extends Base {
         if (obj.value === undefined)
             throw new Error(`${this.name()} should have value`);
 
-        const result = context.resolve(obj.value);
-        const code = `${result}`;
+        const value = context.resolve(obj.value);
+        const content = obj.__content__;
 
-        const statement = obj[code];
+        if (!(content instanceof Array) || content.length === 0) {
+            throw new Error(`${this.name()} requires at least one case`);
+        }
 
-        if (statement !== undefined)
-            return context.resolve(statement);
+        for (let i = 0; i < content.length - 1; i += 2) {
+            const caseValue = context.resolve(content[i]);
 
-        if (obj.__default !== undefined)
-            return context.resolve(obj.__default);
+            if (caseValue === value) {
+                return context.resolve(content[i + 1]);
+            }
+        }
+
+        if (content.length % 2 !== 0) {
+            return context.resolve(content[content.length - 1]);
+        }
+
+        return null;
     }
 }

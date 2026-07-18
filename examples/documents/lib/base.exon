@@ -13,7 +13,7 @@ wrapper {
     content: switch {
         value: process.env { "FMT" }
 
-        html: string.join {
+        "html" string.join {
             @root.html.prefix
             string.join { @root.__content__ separator: "" }
             @root.html.suffix
@@ -21,7 +21,7 @@ wrapper {
             separator: ""
         }
 
-        __default: string.join {
+        string.join {
             @root.md.prefix
             string.join { @root.__content__ separator: "" }
             @root.md.suffix

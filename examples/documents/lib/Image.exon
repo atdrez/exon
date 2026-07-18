@@ -6,6 +6,8 @@ wrapper {
 
     content: switch {
         value: process.env { "FMT" }
+
+        "html"
             if {
                 condition: string.isEmpty { @root.text }
                 then:
@@ -13,8 +15,8 @@ wrapper {
                 else:
                     string.join { "<img src='" @root.url "' alt='" @root.text "'/>" separator: "" }
             }
-        __default:
-            // ![This is an alt text.](/image/Markdown-mark.svg "This is a sample image.")
-            string.join { "![" @root.text "](" @root.url ")" separator: "" }
+
+        // ![This is an alt text.](/image/Markdown-mark.svg "This is a sample image.")
+        string.join { "![" @root.text "](" @root.url ")" separator: "" }
     }
 }

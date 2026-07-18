@@ -28,12 +28,11 @@ fn.lazy {
             },
             {
                 name: "switch"
-                signature: "{ value: a  [case]: result  __default: fallback }"
-                description: "pattern-match a value against named case keys"
-                largeDescription: """Resolves value, converts it to a string, and looks for a property on the same object with that name to use as the result. If no matching key exists, the optional __default property is used. Only the matching branch is evaluated (deferred). Properties whose names conflict with reserved Exon keys cannot be used as cases."""
+                signature: "{ value: a  case result ... [default] }"
+                description: "pattern-match a value against case/result pairs"
+                largeDescription: """Resolves value, then evaluates the remaining positional arguments as case/result pairs: each even-indexed item is a case and each odd-indexed item is the result to return when that case strictly equals value. Stops at the first matching case and resolves only that result (deferred). An optional trailing default (odd total count) is returned when no case matches. Returns null if no case matches and no default is provided."""
                 arguments: {
-                    value: "expression whose string representation is matched against case keys"
-                    __default: "optional fallback resolved when no case matches"
+                    value: "expression matched against each case"
                 }
             },
             {

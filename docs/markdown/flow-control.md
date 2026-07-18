@@ -72,7 +72,7 @@ Without a trailing default, `cond` returns `null` when no condition matches.
 
 ## switch
 
-Compares a single `value` against named branches:
+Compares a single `value` against case/result pairs, in order:
 
 <!--#exon-->
 <!-- ..data.markdown.snippet { "switch" } -->
@@ -81,16 +81,16 @@ Compares a single `value` against named branches:
     result: fn.switch {
         value: fn.process.env { "CMD" }
 
-        start:   "Starting service..."
-        stop:    "Stopping service..."
+        "start" "Starting service..."
+        "stop"  "Stopping service..."
 
-        __default: fn.string.join { "Unknown command: " fn.process.env { "CMD" } }
+        fn.string.join { "Unknown command: " fn.process.env { "CMD" } }
     }
 }
 ```
 <!--#endexon-->
 
-The `__default` key is the fallback when no branch matches.
+An odd trailing item serves as the default (else) branch, run when no case matches.
 
 ## coalesce
 

@@ -9,11 +9,11 @@ using fn.*
     info: switch {
         value: process.env { "ENV" }
 
-        production:
+        "production"
             "This is a production enviroment"
-        development:
+        "development"
             "This is a development enviroment"
-        __default:
-            "No environment found"
+
+        "No environment found"
     }
 }

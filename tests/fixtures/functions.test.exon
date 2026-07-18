@@ -221,12 +221,12 @@ using ...exonmods.fne.test.*
 
             it {
                 "switch ('goal') case goal: "
-                switch { value: "goal"  goal: true }
+                switch { value: "goal"  "goal" true }
             }
 
             it {
                 "switch ('fail') default: "
-                switch { value: "fail"  goal: false  __default: true }
+                switch { value: "fail"  "goal" false  true }
             }
 
             it {
