@@ -1,0 +1,451 @@
+using fn.*
+using ...exonmods.fne.test.*
+
+{
+    __tests__: {
+
+        *** PREDICATES ***
+        describe {
+            description: "string.is"
+
+            it {
+                "string.is { 'hello' } == true"
+                string.is { "hello" }
+            }
+
+            it {
+                "string.is { '' } == true"
+                string.is { "" }
+            }
+
+            it {
+                "string.is { 42 } == false"
+                not { string.is { 42 } }
+            }
+
+            it {
+                "string.is { true } == false"
+                not { string.is { true } }
+            }
+
+            it {
+                "string.is { null } == false"
+                not { string.is { null } }
+            }
+        }
+
+
+        describe {
+            description: "string.isEmpty"
+
+            it {
+                "string.isEmpty { '' } == true"
+                string.isEmpty { "" }
+            }
+
+            it {
+                "string.isEmpty { 'hello' } == false"
+                not { string.isEmpty { "hello" } }
+            }
+        }
+
+
+        *** LENGTH ***
+        describe {
+            description: "string.length"
+
+            it {
+                "string.length { 'hello' } == 5"
+                eq { string.length { "hello" } 5 }
+            }
+
+            it {
+                "string.length { '' } == 0"
+                eq { string.length { "" } 0 }
+            }
+        }
+
+
+        *** CASE ***
+        describe {
+            description: "string.toUpperCase"
+
+            it {
+                "string.toUpperCase { 'hello' } == 'HELLO'"
+                eq { string.toUpperCase { "hello" } "HELLO" }
+            }
+
+            it {
+                "string.toUpperCase { 'Hello World' } == 'HELLO WORLD'"
+                eq { string.toUpperCase { "Hello World" } "HELLO WORLD" }
+            }
+        }
+
+        describe {
+            description: "string.toLowerCase"
+
+            it {
+                "string.toLowerCase { 'HELLO' } == 'hello'"
+                eq { string.toLowerCase { "HELLO" } "hello" }
+            }
+
+            it {
+                "string.toLowerCase { 'Hello World' } == 'hello world'"
+                eq { string.toLowerCase { "Hello World" } "hello world" }
+            }
+        }
+
+
+        *** SEARCH ***
+        describe {
+            description: "string.startsWith"
+
+            it {
+                "string.startsWith { 'hello world' 'hello' } == true"
+                string.startsWith { "hello world" "hello" }
+            }
+
+            it {
+                "string.startsWith { 'hello world' 'world' } == false"
+                not { string.startsWith { "hello world" "world" } }
+            }
+
+            it {
+                "string.startsWith { 'hello' '' } == true"
+                string.startsWith { "hello" "" }
+            }
+        }
+
+        describe {
+            description: "string.endsWith"
+
+            it {
+                "string.endsWith { 'hello world' 'world' } == true"
+                string.endsWith { "hello world" "world" }
+            }
+
+            it {
+                "string.endsWith { 'hello world' 'hello' } == false"
+                not { string.endsWith { "hello world" "hello" } }
+            }
+
+            it {
+                "string.endsWith { 'hello' '' } == true"
+                string.endsWith { "hello" "" }
+            }
+        }
+
+        describe {
+            description: "string.includes"
+
+            it {
+                "string.includes { 'hello world' 'world' } == true"
+                string.includes { "hello world" "world" }
+            }
+
+            it {
+                "string.includes { 'hello world' 'ello' } == true"
+                string.includes { "hello world" "ello" }
+            }
+
+            it {
+                "string.includes { 'hello world' 'xyz' } == false"
+                not { string.includes { "hello world" "xyz" } }
+            }
+        }
+
+        describe {
+            description: "string.indexOf"
+
+            it {
+                "string.indexOf { 'hello world' 'world' } == 6"
+                eq { string.indexOf { "hello world" "world" } 6 }
+            }
+
+            it {
+                "string.indexOf { 'hello world' 'hello' } == 0"
+                eq { string.indexOf { "hello world" "hello" } 0 }
+            }
+
+            it {
+                "string.indexOf { 'hello world' 'xyz' } == -1"
+                eq { string.indexOf { "hello world" "xyz" } -1 }
+            }
+        }
+
+
+        *** TRIM ***
+        describe {
+            description: "string.trim"
+
+            it {
+                "string.trim { '  hello  ' } == 'hello'"
+                eq { string.trim { "  hello  " } "hello" }
+            }
+
+            it {
+                "string.trim { 'hello' } == 'hello'"
+                eq { string.trim { "hello" } "hello" }
+            }
+        }
+
+        describe {
+            description: "string.trimStart"
+
+            it {
+                "string.trimStart { '  hello  ' } == 'hello  '"
+                eq { string.trimStart { "  hello  " } "hello  " }
+            }
+
+            it {
+                "string.trimStart leaves trailing spaces"
+                eq { string.trimStart { "  hi  " } "hi  " }
+            }
+        }
+
+        describe {
+            description: "string.trimEnd"
+
+            it {
+                "string.trimEnd { '  hello  ' } == '  hello'"
+                eq { string.trimEnd { "  hello  " } "  hello" }
+            }
+
+            it {
+                "string.trimEnd leaves leading spaces"
+                eq { string.trimEnd { "  hi  " } "  hi" }
+            }
+        }
+
+
+        *** SLICE & CHAR ***
+        describe {
+            description: "string.slice"
+
+            it {
+                "string.slice { 'hello world' start: 6 } == 'world'"
+                eq { string.slice { "hello world" start: 6 } "world" }
+            }
+
+            it {
+                "string.slice { 'hello world' start: 0 end: 5 } == 'hello'"
+                eq { string.slice { "hello world" start: 0 end: 5 } "hello" }
+            }
+
+            it {
+                "string.slice { 'hello' start: -3 } == 'llo'"
+                eq { string.slice { "hello" start: -3 } "llo" }
+            }
+        }
+
+        describe {
+            description: "string.charAt"
+
+            it {
+                "string.charAt { 'hello' index: 0 } == 'h'"
+                eq { string.charAt { "hello" index: 0 } "h" }
+            }
+
+            it {
+                "string.charAt { 'hello' index: 4 } == 'o'"
+                eq { string.charAt { "hello" index: 4 } "o" }
+            }
+        }
+
+
+        *** REPLACE ***
+        describe {
+            description: "string.replace"
+
+            it {
+                "string.replace replaces first occurrence"
+                eq {
+                    "hXllo world"
+                    string.replace { "hello world"  search: "e"  replacement: "X" }
+                }
+            }
+
+            it {
+                "string.replace only replaces first match"
+                eq {
+                    "hXllo hello"
+                    string.replace { "hello hello"  search: "e"  replacement: "X" }
+                }
+            }
+        }
+
+        describe {
+            description: "string.replaceAll"
+
+            it {
+                "string.replaceAll replaces every occurrence"
+                eq {
+                    "hXllo hXllo"
+                    string.replaceAll { "hello hello"  search: "e"  replacement: "X" }
+                }
+            }
+
+            it {
+                "string.replaceAll with no match is unchanged"
+                eq {
+                    "hello world"
+                    string.replaceAll { "hello world"  search: "xyz"  replacement: "!" }
+                }
+            }
+        }
+
+
+        *** PAD & REPEAT ***
+        describe {
+            description: "string.padStart"
+
+            it {
+                "string.padStart { '5' length: 3 pad: '0' } == '005'"
+                eq { string.padStart { "5" length: 3 pad: "0" } "005" }
+            }
+
+            it {
+                "string.padStart already at length is unchanged"
+                eq { string.padStart { "hello" length: 5 pad: "x" } "hello" }
+            }
+
+            it {
+                "string.padStart default pad is space"
+                eq { string.padStart { "hi" length: 4 } "  hi" }
+            }
+        }
+
+        describe {
+            description: "string.padEnd"
+
+            it {
+                "string.padEnd { '5' length: 3 pad: '0' } == '500'"
+                eq { string.padEnd { "5" length: 3 pad: "0" } "500" }
+            }
+
+            it {
+                "string.padEnd already at length is unchanged"
+                eq { string.padEnd { "hello" length: 5 pad: "x" } "hello" }
+            }
+
+            it {
+                "string.padEnd default pad is space"
+                eq { string.padEnd { "hi" length: 4 } "hi  " }
+            }
+        }
+
+        describe {
+            description: "string.repeat"
+
+            it {
+                "string.repeat { 'ab' count: 3 } == 'ababab'"
+                eq { string.repeat { "ab" count: 3 } "ababab" }
+            }
+
+            it {
+                "string.repeat { 'x' count: 1 } == 'x'"
+                eq { string.repeat { "x" count: 1 } "x" }
+            }
+
+            it {
+                "string.repeat { 'x' count: 0 } == ''"
+                eq { string.repeat { "x" count: 0 } "" }
+            }
+        }
+
+
+        *** JOIN, SPLIT & CONCAT ***
+        describe {
+            description: "string.join"
+
+            it {
+                "string.join { 'A' 'B' 'C' } == 'ABC'"
+                eq { string.join { "A" "B" "C" } "ABC" }
+            }
+
+            it {
+                "string.join with separator"
+                eq { string.join { "A" "B" "C" separator: "-" } "A-B-C" }
+            }
+
+            it {
+                "string.join array with separator"
+                eq { string.join { [ "X", "Y", "Z" ] separator: "," } "X,Y,Z" }
+            }
+        }
+
+        describe {
+            description: "string.split"
+
+            it {
+                "string.split { 'A:B:C' separator: ':' } has 3 items"
+                eq { count { string.split { "A:B:C" separator: ":" } } 3 }
+            }
+
+            it {
+                "string.split first item is 'A'"
+                eq {
+                    "A"
+                    get { target: string.split { "A:B:C" separator: ":" }  index: 0 }
+                }
+            }
+
+            it {
+                "string.split last item is 'C'"
+                eq {
+                    "C"
+                    get { target: string.split { "A:B:C" separator: ":" }  index: 2 }
+                }
+            }
+        }
+
+        describe {
+            description: "string.concat"
+
+            it {
+                "string.concat { 'hello' ' ' 'world' } == 'hello world'"
+                eq { string.concat { "hello" " " "world" } "hello world" }
+            }
+
+            it {
+                "string.concat { 'foo' 'bar' } == 'foobar'"
+                eq { string.concat { "foo" "bar" } "foobar" }
+            }
+        }
+
+
+        *** PARSING ***
+        describe {
+            description: "string.parseInt"
+
+            it {
+                "string.parseInt { '42' } == 42"
+                eq { string.parseInt { "42" } 42 }
+            }
+
+            it {
+                "string.parseInt { '-7' } == -7"
+                eq { string.parseInt { "-7" } -7 }
+            }
+        }
+
+        describe {
+            description: "string.parseFloat"
+
+            it {
+                "string.parseFloat { '3.14' } == 3.14"
+                eq { string.parseFloat { "3.14" } 3.14 }
+            }
+
+            it {
+                "string.parseFloat { '-0.5' } == -0.5"
+                eq { string.parseFloat { "-0.5" } -0.5 }
+            }
+
+            it {
+                "string.parseFloat { '1' } == 1"
+                eq { string.parseFloat { "1" } 1 }
+            }
+        }
+    }
+}
