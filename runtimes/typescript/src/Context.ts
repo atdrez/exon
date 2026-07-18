@@ -13,6 +13,11 @@ type Location = {
 type KeyValueMap = { [key: string]: any };
 type KeyValueSingle = { name: string, value: any };
 
+type ResolverScope = {
+    route?: string[],
+    args?: Record<string, string>
+};
+
 export class Context {
     public location: Location;
 
@@ -40,7 +45,14 @@ export class Context {
         this.#scriptRepository = scriptRepository;
     }
 
-    public resolve(obj: any, params?: { [key: string]: any }): any {
+    public resolve(obj: any, params?: { [key: string]: any }, scope?: ResolverScope): any {
+        if (scope !== undefined) {
+            const route = scope.route;
+            const namedArgv = scope.args;
+            const options = new RuntimeOptions({ route, namedArgv });
+            return this.#resolver.resolveWithOptions(obj, options, params);
+        }
+    
         if (this.isObjectBinding(obj)) {
             obj = this.resolveBinding(obj['__bind__'], obj['__bindFile__']);
         }
@@ -74,10 +86,6 @@ export class Context {
 
     public pathStack(): string[] {
         return [...this.#resolver.getCurrentPathStack()];
-    }
-
-    public resolveRoute(ast: any, route: string[], namedArgv: Record<string, string>): any {
-        return this.#resolver.resolveWithOptions(ast, new RuntimeOptions({ route, namedArgv }));
     }
 
     public getProperty(obj: any, key: string): any {

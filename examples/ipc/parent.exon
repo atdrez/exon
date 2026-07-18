@@ -12,10 +12,37 @@ Commands:
 
 using fn.*
 
-fn.sequence {
-    fn.native { id: "ipc.parent" path: "javascript/parent.js" }
+sequence {
+    native { id: "lib.fork" path: "javascript/fork.js" }
 
-    ipc.parent {
-        worker: "worker.exon"
+    lib.fork@self {
+        command: path.absolute{"../../runtimes/typescript/bin/main.js"}
+        arguments: [ path.absolute{"worker.exon"} ]
+
+        on: closure {
+          sequence@event {
+              t: parameter { "t" }
+              msg: parameter { "msg" }
+              code: parameter { "code" }
+
+              display: closure {
+                println{ "[worker]: " parameter{"message"} }
+              }
+
+              cond {
+                  eq { @event.t "ready" }
+                  println { "[parent] Worker ready. Type /quit to exit." }
+
+                  eq { @event.t "message" }
+                  call { @event.display  message: json.encode { @event.msg } }
+
+                  eq { @event.t "exit" }
+                  sequence {
+                      println { "[parent] Worker exited (code " @event.code ")" }
+                      process.exit { 0 }
+                  }
+              }
+          }
+        }
     }
 }

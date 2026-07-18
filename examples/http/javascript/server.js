@@ -36,7 +36,11 @@ module.exports.resolve = function(obj, context) {
         url.searchParams.forEach((v, k) => { queryParams[k] = v; });
 
         try {
-            sendJson(res, 200, context.resolveRoute(content, segments, queryParams));
+            const options = {
+                args: queryParams,
+                route: segments
+            };
+            sendJson(res, 200, context.resolve(content, {}, options));
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
             sendJson(res, msg.startsWith('not found:') ? 404 : 500, { error: msg });
