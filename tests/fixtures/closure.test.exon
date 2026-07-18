@@ -1,0 +1,206 @@
+using fn.*
+using ...exonmods.fne.test.*
+
+{
+    __tests__: {
+
+        describe {
+            description: "Closure - returns a literal"
+
+            closure@litFn {
+                sequence { 42 }
+            }
+
+            it {
+                "call returns the closure body value"
+                eq { call { @litFn } 42 }
+            }
+        }
+
+
+        describe {
+            description: "Closure - named parameter"
+
+            closure@addFn {
+                add { parameter{"n"} 5 }
+            }
+
+            it {
+                "closure receives named parameter"
+                eq { call { @addFn  n: 10 } 15 }
+            }
+
+            it {
+                "closure is reusable with different args"
+                eq { call { @addFn  n: 20 } 25 }
+            }
+        }
+
+
+        describe {
+            description: "Closure - string parameters"
+
+            closure@joinFn {
+                string.join { parameter{"prefix"}  parameter{"suffix"}  separator: "_" }
+            }
+
+            it {
+                "closure joins two string parameters"
+                eq { call { @joinFn  prefix: "hello"  suffix: "world" } "hello_world" }
+            }
+        }
+
+
+        describe {
+            description: "Closure - scope capture"
+
+            closure@greetFn {
+                greeting: "Hi"
+                string.join { @greeting " there"  separator: "" }
+            }
+
+            it {
+                "closure captures a literal value from its enclosing scope"
+                eq { call { @greetFn } "Hi there" }
+            }
+        }
+
+
+        describe {
+            description: "Closure - scope and parameter"
+
+            closure@prefixFn {
+                prefix: "Mr."
+                string.join { @prefix  parameter{"name"}  separator: " " }
+            }
+
+            it {
+                "closure uses both captured scope and named parameter"
+                eq { call { @prefixFn  name: "Smith" } "Mr. Smith" }
+            }
+        }
+
+
+        describe {
+            description: "Closure - scope capture: computed expression"
+
+            closure@mulFn {
+                factor: add { 2 3 }
+                mul { @factor  parameter{"n"} }
+            }
+
+            it {
+                "closure captures a computed scope value at definition time"
+                eq { call { @mulFn  n: 4 } 20 }
+            }
+        }
+
+
+        describe {
+            description: "Closure - recursion via @root"
+
+            closure@factFn {
+                sequence {
+                    parameter@n{"n"}
+
+                    cond {
+                        le { @n 1 }  1
+                        mul { @n  call { @root  n: sub { @n 1 } } }
+                    }
+                }
+            }
+
+            it {
+                "recursive closure: factorial(1) = 1"
+                eq { call { @factFn  n: 1 } 1 }
+            }
+
+            it {
+                "recursive closure: factorial(5) = 120"
+                eq { call { @factFn  n: 5 } 120 }
+            }
+        }
+
+
+        describe@hocc {
+            description: "Closure - higher-order: captured closure"
+
+            value: 2
+
+            closure@doubleFn {
+                mul { parameter{"n"} 2 }
+            }
+
+            closure@applyFn {
+                fn: @doubleFn
+                x: @hocc.value
+
+                call { @fn  n: add { @x parameter{"n"} } }
+            }
+
+            closure@applyNestedFn {
+                fn: @doubleFn
+                x: @hocc.value
+
+                sequence {
+                    closure@applyNestedFnIn {
+                        outer_fn: @fn
+                        outer_x: @x
+                        call { @outer_fn  n: add { @outer_x parameter{"n"} } }
+                    }
+
+                    call { @applyNestedFnIn  n: parameter{"n"} }
+                }
+            }
+
+            it {
+                "closure captures another closure and delegates to it"
+                eq { call { @applyFn  n: 5 } 14 }
+            }
+
+            it {
+                "nested closure captures another closure and delegates to it"
+                eq { call { @applyNestedFn  n: 5 } 14 }
+            }
+        }
+
+
+        describe {
+            description: "Closure - nested closure calls"
+
+            closure@nestedD1Fn {
+                sequence {
+                    closure@nestedDoubleFn {
+                        mul { parameter{"x"} 2 }
+                    }
+                    call { @nestedDoubleFn  x: parameter{"n"} }
+                }
+            }
+
+            closure@nestedD2Fn {
+                sequence {
+                    closure@nestedAddFn {
+                        sequence {
+                            closure@nestedDoubleFn {
+                                mul { parameter{"n"} 2 }
+                            }
+
+                            call { @nestedDoubleFn  n: add { parameter{"n"} 1 } }
+                        }
+                    }
+                    call { @nestedAddFn  n: parameter{"n"} }
+                }
+            }
+
+            it {
+                "nested closure call (depth 1)"
+                eq { call { @nestedD1Fn  n: 5 } 10 }
+            }
+
+            it {
+                "nested closure call (depth 2)"
+                eq { call { @nestedD2Fn  n: 5 } 12 }
+            }
+        }
+    }
+}
