@@ -14,6 +14,7 @@ import ForEach from "./foreach";
 import ProcessEnv from "./process/env";
 import ProcessArgv from "./process/argv";
 import ProcessExec from "./process/exec";
+import ProcessExit from "./process/exit";
 import XmlEncode from "./xml/encode";
 import YamlEncode from "./yaml/encode";
 import PlistEncode from "./plist/encode";
@@ -112,7 +113,7 @@ export function components(): any {
         Map, Merge,
 
         // process
-        ProcessEnv, ProcessExec, ProcessArgv,
+        ProcessEnv, ProcessExec, ProcessArgv, ProcessExit,
 
         // path
         PathIsFile, PathIsDirectory, PathDirName, PathBaseName, PathExtension, PathAbsolute,
