@@ -1,0 +1,5 @@
+fn.csv.decode {
+    content: fn.file.load {
+        path: "./users.csv"
+    }
+}

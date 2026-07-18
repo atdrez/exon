@@ -1,0 +1,29 @@
+***
+HTTP server example.
+
+Start the server:
+  ./ts-run.sh -r examples/http/main.run.exon
+
+Examples:
+  http://localhost:3030
+  http://localhost:3030/name
+  http://localhost:3030/users
+  http://localhost:3030/users/2
+  http://localhost:3030/users/2/name
+  http://localhost:3030/pages/about
+  http://localhost:3030/pages/html
+  http://localhost:3030/pages/markdown
+  http://localhost:3030/hello?name=Alice
+***
+
+fn.sequence {
+  fn.native {
+      id: "httpServer"
+      path: "./javascript/server.js"
+  }
+
+  httpServer {
+    port: 3030
+    content: ..route.main { }
+  }
+}

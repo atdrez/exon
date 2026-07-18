@@ -1,0 +1,5 @@
+fn.lazy {
+    fn.file.load {
+        path: "../data/lorem.md"
+    }
+}

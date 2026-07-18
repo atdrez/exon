@@ -1,0 +1,7 @@
+using fn.*
+
+lazy {
+    string.join {
+        "Hello " or { process.argv{"name"} "World" } "!"
+    }
+}

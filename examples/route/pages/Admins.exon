@@ -1,0 +1,14 @@
+using fn.*
+
+lazy {
+    foreach {
+        data: ..data.Users {}
+        do: sequence {
+            parameter@user{}
+
+            cond {
+                eq { @user.admin "y" } @user
+            }
+        }
+    }
+}

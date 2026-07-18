@@ -1,0 +1,6 @@
+fn.lazy {
+    {
+        title: "This is the about page title"
+        description: "This is the about page description."
+    }
+}

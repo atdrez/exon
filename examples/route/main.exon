@@ -1,0 +1,29 @@
+***
+Lazy route evaluation
+
+Examples:
+  ./ts-run.sh --route . examples/route/main.exon
+  ./ts-run.sh --route name examples/route/main.exon
+  ./ts-run.sh --route users examples/route/main.exon
+  ./ts-run.sh --route users/2 examples/route/main.exon
+  ./ts-run.sh --route users/2/name examples/route/main.exon
+  ./ts-run.sh --route pages/about examples/route/main.exon
+  ./ts-run.sh --route pages/markdown examples/route/main.exon
+  ./ts-run.sh --route hello examples/route/main.exon name=Alice
+***
+
+{
+  name: "Lorem ipsum"
+
+  hello: pages.Hello {}
+
+  users: pages.Users {}
+
+  admins: pages.Admins {}
+
+  pages: {
+      about: pages.About {}
+      html: pages.Html {}
+      markdown: pages.Markdown {}
+  }
+}
