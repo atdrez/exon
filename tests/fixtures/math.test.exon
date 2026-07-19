@@ -1,0 +1,171 @@
+using fn.*
+using ...exonmods.fne.test.*
+
+{
+    __tests__: {
+
+        *** MIN, MAX & CLAMP ***
+        describe {
+            description: "math.min"
+
+            it {
+                "math.min { 3 1 2 } == 1"
+                eq { math.min { 3 1 2 } 1 }
+            }
+        }
+
+        describe {
+            description: "math.max"
+
+            it {
+                "math.max { 3 1 2 } == 3"
+                eq { math.max { 3 1 2 } 3 }
+            }
+        }
+
+        describe {
+            description: "math.clamp"
+
+            it {
+                "math.clamp { 5 0 10 } == 5"
+                eq { math.clamp { 5 0 10 } 5 }
+            }
+
+            it {
+                "math.clamp { -5 0 10 } == 0"
+                eq { math.clamp { -5 0 10 } 0 }
+            }
+
+            it {
+                "math.clamp { 15 0 10 } == 10"
+                eq { math.clamp { 15 0 10 } 10 }
+            }
+        }
+
+
+        *** ROUNDING ***
+        describe {
+            description: "math.abs"
+
+            it {
+                "math.abs { -5 } == 5"
+                eq { math.abs { -5 } 5 }
+            }
+
+            it {
+                "math.abs { 5 } == 5"
+                eq { math.abs { 5 } 5 }
+            }
+        }
+
+        describe {
+            description: "math.round"
+
+            it {
+                "math.round { 2.4 } == 2"
+                eq { math.round { 2.4 } 2 }
+            }
+
+            it {
+                "math.round { 2.5 } == 3"
+                eq { math.round { 2.5 } 3 }
+            }
+        }
+
+        describe {
+            description: "math.floor"
+
+            it {
+                "math.floor { 2.9 } == 2"
+                eq { math.floor { 2.9 } 2 }
+            }
+
+            it {
+                "math.floor { -2.1 } == -3"
+                eq { math.floor { -2.1 } -3 }
+            }
+        }
+
+        describe {
+            description: "math.ceil"
+
+            it {
+                "math.ceil { 2.1 } == 3"
+                eq { math.ceil { 2.1 } 3 }
+            }
+
+            it {
+                "math.ceil { -2.9 } == -2"
+                eq { math.ceil { -2.9 } -2 }
+            }
+        }
+
+        describe {
+            description: "math.truncate"
+
+            it {
+                "math.truncate { 2.9 } == 2"
+                eq { math.truncate { 2.9 } 2 }
+            }
+
+            it {
+                "math.truncate { -2.9 } == -2"
+                eq { math.truncate { -2.9 } -2 }
+            }
+        }
+
+
+        *** POWER & LOG ***
+        describe {
+            description: "math.sqrt"
+
+            it {
+                "math.sqrt { 9 } == 3"
+                eq { math.sqrt { 9 } 3 }
+            }
+
+            it {
+                "math.sqrt { 0 } == 0"
+                eq { math.sqrt { 0 } 0 }
+            }
+        }
+
+        describe {
+            description: "math.log"
+
+            it {
+                "math.log { 1 } == 0"
+                eq { math.log { 1 } 0 }
+            }
+        }
+
+
+        *** TRIGONOMETRY ***
+        describe {
+            description: "math.sin"
+
+            it {
+                "math.sin { 0 } == 0"
+                eq { math.sin { 0 } 0 }
+            }
+        }
+
+        describe {
+            description: "math.cos"
+
+            it {
+                "math.cos { 0 } == 1"
+                eq { math.cos { 0 } 1 }
+            }
+        }
+
+        describe {
+            description: "math.tan"
+
+            it {
+                "math.tan { 0 } == 0"
+                eq { math.tan { 0 } 0 }
+            }
+        }
+    }
+}

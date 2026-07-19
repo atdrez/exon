@@ -46,6 +46,16 @@ import NumberIs from "./number/is";
 import MathMin from "./math/min";
 import MathMax from "./math/max";
 import MathClamp from "./math/clamp";
+import MathAbs from "./math/abs";
+import MathRound from "./math/round";
+import MathFloor from "./math/floor";
+import MathCeil from "./math/ceil";
+import MathSqrt from "./math/sqrt";
+import MathTruncate from "./math/truncate";
+import MathLog from "./math/log";
+import MathTan from "./math/tan";
+import MathSin from "./math/sin";
+import MathCos from "./math/cos";
 import Property from "./property";
 import Parameter from "./parameter";
 import Sequence from "./sequence";
@@ -137,6 +147,8 @@ export function components(): any {
 
         // math
         MathMin, MathMax, MathClamp,
+        MathAbs, MathRound, MathFloor, MathCeil, MathSqrt, MathTruncate,
+        MathLog, MathTan, MathSin, MathCos,
 
         NativeLoader, ComponentLoader, ImportLoader,
         Parameter, Try, Raise, Switch, Sequence, Wrapper, PrintLn, Count, Pass, Reverse, While, Repeat,

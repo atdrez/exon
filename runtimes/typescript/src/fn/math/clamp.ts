@@ -5,7 +5,7 @@ import { OpVariadic } from "../opVariadic";
 export default class Component extends OpVariadic {
     constructor() { super("math.clamp", 3, 3); }
 
-    public evaluate(obj: any, values: Array<any>, _context: Context) : any {
+    public evaluate(_obj: any, values: Array<any>, _context: Context) : any {
         const value = values[0];
         const min = values[1];
         const max = values[2];
