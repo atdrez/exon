@@ -20,7 +20,9 @@ export interface IScript {
 
     // onComponentParsed: called right after the enclosing object is parsed;
     // use `register` to eagerly make a new script available to the parser.
-    onComponentParsed?(result: any, dirName: string, register: (script: IScript) => void): void;
+    // defaultId: the dotted type name this object was loaded as (e.g. "z.string"),
+    // when this object is the root of a file resolved through a type reference.
+    onComponentParsed?(result: any, dirName: string, register: (script: IScript) => void, defaultId?: string): void;
 }
 
 export interface IPropertyScript extends IScript {

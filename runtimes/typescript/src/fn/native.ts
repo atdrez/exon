@@ -7,11 +7,12 @@ import { Context, IScript } from "../IScript";
 export default class Component extends Base {
     constructor() { super("native"); }
 
-    public onComponentParsed(result: any, dirName: string, register: (script: IScript) => void): void {
-        if (typeof result.id !== 'string' || typeof result.path !== 'string') {
+    public onComponentParsed(result: any, dirName: string, register: (script: IScript) => void, defaultId?: string): void {
+        const id: string | undefined = typeof result.id === 'string' ? result.id : defaultId;
+
+        if (typeof id !== 'string' || typeof result.path !== 'string') {
             return;
         }
-        const id: string = result.id;
         const absPath = Path.resolve(dirName, result.path);
         let mod: any;
         try {

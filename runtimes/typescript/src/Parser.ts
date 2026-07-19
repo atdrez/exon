@@ -112,7 +112,7 @@ export class Parser {
 
             const usingNamespaces = this.extractUsingDirectives(lexer);
 
-            const result = this.parseObject(lexer, usingNamespaces, true);
+            const result = this.parseObject(lexer, usingNamespaces, true, objectName);
             this.#parseCache.set(fileName, result);
             return result;
         } finally {
@@ -213,22 +213,22 @@ export class Parser {
         return objectName;
     }
 
-    private parseObject(lexer: Lexer, usingNamespaces: UsingEntry[], isRoot: boolean = false) : any {
+    private parseObject(lexer: Lexer, usingNamespaces: UsingEntry[], isRoot: boolean = false, defaultId?: string) : any {
         const token = lexer.readToken();
 
         if (token.tokenType === TokenType.LeftCurlyBracket) {
             lexer.putTokenBack();
-            return this.parseObjectBody(Parser.#defaultObjectName, lexer, usingNamespaces, isRoot);
+            return this.parseObjectBody(Parser.#defaultObjectName, lexer, usingNamespaces, isRoot, defaultId);
         }
 
         if (token.tokenType !== TokenType.Identifier)
             throw new ParserError(`Invalid token found '${token.toString()}', expected <identifier>`,
                                   lexer);
 
-        return this.parseObjectBody(token.toString(), lexer, usingNamespaces, isRoot);
+        return this.parseObjectBody(token.toString(), lexer, usingNamespaces, isRoot, defaultId);
     }
 
-    private parseObjectBody(objectName: string, lexer: Lexer, usingNamespaces: UsingEntry[], isRoot: boolean = false) : any {
+    private parseObjectBody(objectName: string, lexer: Lexer, usingNamespaces: UsingEntry[], isRoot: boolean = false, defaultId?: string) : any {
         let token = lexer.readToken();
 
         let objectId: string | null = null;
@@ -334,7 +334,7 @@ export class Parser {
         const nativeName = result['__native__'];
         if (typeof nativeName === 'string') {
             this.#scriptManager.find(nativeName)?.onComponentParsed?.(
-                result, lexer.dirName, (s) => this.#scriptManager.register(s)
+                result, lexer.dirName, (s) => this.#scriptManager.register(s), defaultId
             );
         }
 
