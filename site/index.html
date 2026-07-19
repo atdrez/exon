@@ -189,12 +189,27 @@ using fn.process.env
               }
             }
           -->
-<div class="principle-card"><h3>Simplicity</h3><p>The language reduces to a single concept: a named object block with key-value properties. There are no special syntax forms for operators, loops, or functions. Every construct, from arithmetic to file I/O, is expressed as a named object call. This uniformity makes Exon fast to learn, predictable to read, and straightforward to extend without touching the grammar.</p></div>
-<div class="principle-card"><h3>Extensibility</h3><p>The language specification deliberately omits arithmetic, logic, flow control, and I/O. These capabilities are implemented as components (pluggable objects that the resolver dispatches to at runtime). A standard library ships with over 90 components covering math, strings, collections, serialization, and process interaction. You can add your own in JavaScript or TypeScript without modifying the runtime.</p></div>
-<div class="principle-card"><h3>Easy to Port</h3><p>The interpreter is a small tree-walking resolver with no bytecode compiler, no JIT, and no built-in type system. The entire pipeline is: lexer, parser, and resolver with a component registry. Porting Exon to a new host language requires implementing this pipeline over a map/array data model, nothing more.</p></div>
-<div class="principle-card"><h3>Multipurpose</h3><p>Because Exon has no built-in semantics beyond object resolution, the same syntax can power configuration management, document generation, build pipelines, GUI layout, CSS authoring, automation scripting, or any domain-specific language you need. Swap the component library and the language speaks a different domain, with no changes to the parser or resolver.</p></div>
-<div class="principle-card"><h3>Type Agnostic</h3><p>The language works over four primitive constructs (strings, numbers, booleans, and null) plus arrays and generic objects. There are no built-in named types, classes, or schemas in the language core. Complex types emerge by composing existing components or writing native ones, keeping the specification minimal and the type model fully open-ended.</p></div>
-<div class="principle-card"><h3>Type and Data Constraints</h3><p>Exon's property system turns plain fields into active validators. A property object defines <code>get</code> and <code>set</code> handlers that execute on every read and write. This lets you enforce type constraints, value ranges, format rules, and business logic at the field level, without scattering validation code through calling logic. The result is self-validating data structures with no external schema language required.</p></div>
+<div class="principle-card"><h3>Simplicity</h3><p>The language reduces to a single concept: a named object block with key-value properties.
+There are no special syntax forms for operators, loops, or functions. Every construct, from arithmetic
+to file I/O, is expressed as a named object call. This uniformity makes Exon fast to learn, predictable
+to read, and straightforward to extend without touching the grammar.</p></div>
+<div class="principle-card"><h3>Extensibility</h3><p>The language specification deliberately omits arithmetic, logic, flow control, and I/O. These capabilities
+are implemented as components (pluggable objects that the resolver dispatches to at runtime). A standard
+library ships with over 90 components covering math, strings, collections, serialization, and process interaction.
+You can add your own in JavaScript or TypeScript without modifying the runtime.</p></div>
+<div class="principle-card"><h3>Easy to Port</h3><p>The interpreter is a small tree-walking resolver with no bytecode compiler, no JIT, and no built-in type system.
+The entire pipeline is: lexer, parser, and resolver with a component registry. Porting Exon to a new host language
+requires implementing this pipeline over a map/array data model, nothing more.</p></div>
+<div class="principle-card"><h3>Multipurpose</h3><p>Because Exon has no built-in semantics beyond object resolution, the same syntax can power configuration management,
+document generation, build pipelines, GUI layout, CSS authoring, automation scripting, or any domain-specific language
+you need. Swap the component library and the language speaks a different domain, with no changes to the parser or resolver.</p></div>
+<div class="principle-card"><h3>Type Agnostic</h3><p>The language works over four primitive constructs (strings, numbers, booleans, and null) plus arrays and generic objects.
+There are no built-in named types, classes, or schemas in the language core. Complex types emerge by composing existing
+components or writing native ones, keeping the specification minimal and the type model fully open-ended.</p></div>
+<div class="principle-card"><h3>Type and Data Constraints</h3><p>Exon's property system turns plain fields into active validators.
+A property object defines <code>get</code> and <code>set</code> handlers that execute on every read and write. This lets you enforce type
+constraints, value ranges, format rules, and business logic at the field level, without scattering validation code through
+calling logic. The result is self-validating data structures with no external schema language required.</p></div>
           <!--#endexon-->
 
         </div>

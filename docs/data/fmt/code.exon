@@ -1,0 +1,18 @@
+using fn.*
+
+wrapper {
+    __content__: []
+
+    content: sequence {
+        get@text{ target: @root  property: "__content__"  index: 0 }
+        assert { eq { typeof{ @text } "string" } }
+
+        switch {
+            value: process.argv{ "fmt" }
+
+            "md"    string.join { "`" @text "`" }
+            "html"  string.join { "<code>" @text "</code>" }
+            @text
+        }
+    }
+}

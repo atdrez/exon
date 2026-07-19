@@ -1,0 +1,18 @@
+using fn.*
+
+wrapper {
+    __content__: []
+    prefix: ""
+    suffix: ""
+
+    content: sequence@seq {
+        get@text{ target: @root  property: "__content__"  index: 0 }
+
+        assert { eq { typeof{ @text } "string" } }
+
+        string.join {
+            string.split { @text separator: "\n" }
+            separator: string.join { @root.prefix "\n" @root.suffix }
+        }
+    }
+}
