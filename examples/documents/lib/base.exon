@@ -1,12 +1,6 @@
 using fn.*
 
 wrapper {
-    // load native script
-    fn.native {
-        id: "lib.TrimLines"
-        path: "js/trimlines.js"
-    }
-
     md: { prefix: "" suffix: "" }
     html: { prefix: "" suffix: "" }
 

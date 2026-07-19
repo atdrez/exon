@@ -20,10 +20,10 @@ Document {
 
     Subtitle { "Motivation" }
 
-    TrimLines { // trim lines in this multiline string
-      """Exon was created in 2017 to solve a practical infrastructure problem: managing massive CloudFormation "spaghetti"
-      files full of duplicated JSON and increasingly complex structures."""
-    }
+    """
+    Exon was created in 2017 to solve a practical infrastructure problem: managing massive CloudFormation "spaghetti"
+    files full of duplicated JSON and increasingly complex structures.
+    """
 
     LineBreak {}
 
