@@ -1,36 +1,11 @@
 fn.lazy {
-    fn.sequence {
-        [
-            {
-                icon: "&#x2699;"
-                name: "Inheritance"
-                description: "Base types let you share and override configuration across environments with zero duplication."
-            },
-            {
-                icon: "&#x1F4E6;"
-                name: "Multi-format output"
-                description: "Encode the same object to JSON, YAML, XML, or plist by swapping a single wrapper."
-            },
-            {
-                icon: "&#x26A1;"
-                name: "Computed values"
-                description: "Built-in arithmetic, string operations, flow control, and environment variable access."
-            },
-            {
-                icon: "&#x1F9E9;"
-                name: "Extensible"
-                description: "Add custom components as plain JavaScript modules. No recompile required."
-            },
-            {
-                icon: "&#x1F4C4;"
-                name: "File splitting"
-                description: "Dot-notation type names map to file paths, enabling clean modular configurations."
-            },
-            {
-                icon: "&#x1F50D;"
-                name: "Bindings"
-                description: "Reference any property anywhere with <code>@</code>bindings, resolved lazily at runtime."
-            },
-        ]
+    fn.table {
+        columns: [ "icon", "name", "description" ]
+        "&#x2699;"      "Inheritance"           "Base types let you share and override configuration across environments with zero duplication."
+        "&#x1F4E6;"     "Multi-format output"   "Encode the same object to JSON, YAML, XML, or plist by swapping a single wrapper."
+        "&#x26A1;"      "Computed values"       "Built-in arithmetic, string operations, flow control, and environment variable access."
+        "&#x1F9E9;"     "Extensible"            "Add custom components as plain JavaScript modules. No recompile required."
+        "&#x1F4C4;"     "File splitting"        "Dot-notation type names map to file paths, enabling clean modular configurations."
+        "&#x1F50D;"     "Bindings"              "Reference any property anywhere with <code>@</code>bindings, resolved lazily at runtime."
     }
 }
