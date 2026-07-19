@@ -22,9 +22,11 @@ sequence {
         rootDir: string.trim { process.exec { "git rev-parse --show-toplevel" } }
 
         sequence {
+            parameter@extension{"extension"}
+
             string.split@files {
                 string.trim {
-                    process.exec { "find " @rootDir parameter{"folder"} " -name '" parameter{"name"} "'" }
+                    process.exec { "find " @rootDir parameter{"folder"} " -name '*." @extension "'" }
                 }
                 separator: "\n"
             }
@@ -37,6 +39,7 @@ sequence {
                     preprocess@updated {
                         file:  @filepath
                         style: "html"
+                        argv: [ string.join { "fmt=" @extension } ]
                     }
 
                     file.save { path: @filepath data: @updated }
@@ -46,9 +49,9 @@ sequence {
         } 
     }
 
-    call { @updateDocuments  folder: "/docs" name: "*.md" }
+    call { @updateDocuments  folder: "/docs" extension: "md" }
 
-    call { @updateDocuments  folder: "/site" name: "*.html" }
+    call { @updateDocuments  folder: "/site" extension: "html" }
 
     process.exec { "cp docs/markdown/README.md README.md" }
 }
