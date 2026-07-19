@@ -1,51 +1,74 @@
 using fn.*
 
-{
+fn.dict {
     // 10 + 5
-    addition: add { 10 5 }
+    "10 + 5" add { 10 5 }
 
     // 10 - 5
-    subtraction: sub { 10 5 }
+    "10 - 5" sub { 10 5 }
 
     // 10 * 5
-    multiplication: mul { 10 5 }
+    "10 * 5" mul { 10 5 }
 
     // 10 / 5
-    division: div { 10 5 }
+    "10 / 5" div { 10 5 }
 
     // (10 * 5) - 13 + 2 = 39
-    expression: add { sub { mul { 10 5 } 13 } 2 }
-
-    // root.addition (15) * 3 = 45
-    multiplicationOverAddition: mul { @root.addition 3 }
+    "(10 * 5) - 13 + 2" add { sub { mul { 10 5 } 13 } 2 }
 
     // min (15, 10) = 10
-    minBetween10And15: math.min { 15 10 }
+    "min (15, 10)" math.min { 15 10 }
 
     // max (15, 10) = 15
-    maxBetween10And15: math.max { 15 10 }
+    "max (15, 10)" math.max { 15 10 }
 
     // clamp (15, min: 10, max: 20) = 15
-    clamp15InRangeMin10Max20: math.clamp { 15 10 20 }
+    "clamp (15, 10, 20)" math.clamp { 15 10 20 }
 
     // clamp (5, min: 10, max: 20) = 10
-    clamp5InRangeMin10Max20: math.clamp { 5 10 20 }
+    "clamp (5, 10, 20)" math.clamp { 5 10 20 }
 
-    // clamp (35, min: 10, max: 20) = 10
-    clamp35InRangeMin10Max20: math.clamp { 35 10 20 }
+    // clamp (35, min: 10, max: 20) = 20
+    "clamp (35, 10, 20)" math.clamp { 35 10 20 }
 
     // 10 % 3 = 1
-    modulo: mod { 10 3 }
+    "10 % 3" mod { 10 3 }
 
     // 2 ^ 8 = 256
-    power: pow { 2 8 }
+    "2 ^ 8" pow { 2 8 }
 
     // -(15) = -15
-    negate: neg { 15 }
-
-    // -(addition) = -15
-    negateRef: neg { @root.addition }
+    "-(15)" neg { 15 }
 
     // (2 ^ 10) % 100 = 24
-    composedModPow: mod { pow { 2 10 } 100 }
+    "(2 ^ 10) % 100" mod { pow { 2 10 } 100 }
+    
+    "abs(-15)" math.abs { -15 }
+
+    // round(4.5) = 5
+    "round(4.5)" math.round { 4.5 }
+
+    // floor(4.7) = 4
+    "floor(4.7)" math.floor { 4.7 }
+
+    // ceil(4.2) = 5
+    "ceil(4.2)" math.ceil { 4.2 }
+
+    // sqrt(16) = 4
+    "sqrt(16)" math.sqrt { 16 }
+
+    // truncate(4.9) = 4
+    "truncate(4.9)" math.truncate { 4.9 }
+
+    // log(1) = 0
+    "log(1)" math.log { 1 }
+
+    // sin(0) = 0
+    "sin(0)" math.sin { 0 }
+
+    // cos(0) = 1
+    "cos(0)" math.cos { 0 }
+
+    // tan(0) = 0
+    "tan(0)" math.tan { 0 }
 }
