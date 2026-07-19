@@ -21,6 +21,66 @@ fn.lazy {
                 description: "clamp a value to the [min, max] range"
                 largeDescription: """Constrains a numeric value to a specified inclusive range. Accepts exactly three positional arguments: the value to clamp, the minimum bound, and the maximum bound. Values below min are raised to min; values above max are lowered to max; values within range are returned unchanged."""
             },
+            {
+                name: "math.abs"
+                signature: "{ a }"
+                description: "absolute value of a number"
+                largeDescription: """Returns the absolute value of a numeric value."""
+            },
+            {
+                name: "math.ceil"
+                signature: "{ a }"
+                description: "round a number up to the nearest integer"
+                largeDescription: """Rounds a numeric value up to the nearest integer."""
+            },
+            {
+                name: "math.floor"
+                signature: "{ a }"
+                description: "round a number down to the nearest integer"
+                largeDescription: """Rounds a numeric value down to the nearest integer."""
+            },
+            {
+                name: "math.round"
+                signature: "{ a }"
+                description: "round a number to the nearest integer"
+                largeDescription: """Rounds a numeric value to the nearest integer."""
+            },
+            {
+                name: "math.truncate"
+                signature: "{ a }"
+                description: "integer part of a number, discarding any fractional digits"
+                largeDescription: """Truncates a numeric value to its integer part by discarding any fractional digits."""
+            },
+            {
+                name: "math.sqrt"
+                signature: "{ a }"
+                description: "square root of a number"
+                largeDescription: """Returns the square root of a numeric value."""
+            },
+            {
+                name: "math.log"
+                signature: "{ a }"
+                description: "natural logarithm of a number"
+                largeDescription: """Returns the natural logarithm (base e) of a numeric value."""
+            },
+            {
+                name: "math.sin"
+                signature: "{ a }"
+                description: "sine of an angle in radians"
+                largeDescription: """Returns the sine of a numeric value expressed in radians."""
+            },
+            {
+                name: "math.cos"
+                signature: "{ a }"
+                description: "cosine of an angle in radians"
+                largeDescription: """Returns the cosine of a numeric value expressed in radians."""
+            },
+            {
+                name: "math.tan"
+                signature: "{ a }"
+                description: "tangent of an angle in radians"
+                largeDescription: """Returns the tangent of a numeric value expressed in radians."""
+            },
         ]
     }
 }

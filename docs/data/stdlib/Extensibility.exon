@@ -24,6 +24,16 @@ fn.lazy {
                 }
             },
             {
+                name: "import"
+                signature: "{ path }  or  { id: name  path }"
+                description: "load and resolve another .exon file, or register it as a component"
+                largeDescription: """Parses another .exon file, resolved relative to the current file's directory. Without an id property, the imported file is resolved immediately and its value is returned in place. With an id property, the imported file is registered as a new named component instead of being resolved right away, deferring evaluation until the component is used."""
+                arguments: {
+                    path: "relative path to the .exon file to import"
+                    id: "optional unique string identifier; when present, registers the import as a component instead of resolving it immediately"
+                }
+            },
+            {
                 name: "property"
                 signature: "{ get: expr  set: expr  init: expr }"
                 description: "define a typed getter/setter property"

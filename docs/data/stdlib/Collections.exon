@@ -41,6 +41,22 @@ fn.lazy {
                     content: "value to repeat in the output array"
                 }
             },
+            {
+                name: "dict"
+                signature: "{ key value ... }"
+                description: "build an object from a flat list of key/value pairs"
+                largeDescription: """Constructs a plain object from a flat sequence of positional key/value pairs. Useful when keys contain characters that aren't valid in normal object syntax, like spaces or slashes. Requires an even number of positional arguments, and each key must be a string."""
+            },
+            {
+                name: "table"
+                signature: "{ columns: array  a b ... }"
+                description: "build an array of row objects from column names and flat values"
+                largeDescription: """Constructs an array of objects from a list of column names and a flat sequence of positional row values, assigning each value to its matching column in row-major order. The columns property must be a non-empty array of strings, and the number of positional values must be a multiple of the number of columns."""
+                arguments: {
+                    columns: "non-empty array of string column names"
+                    values: "flat list of row values, its length must be a multiple of columns.length"
+                }
+            },
         ]
     }
 }

@@ -47,7 +47,7 @@ fn.lazy {
                 description: "no-op, returns undefined"
                 largeDescription: """A no-operation component that resolves to undefined without doing any work. Useful as a placeholder branch in fn.if or fn.switch when one path should produce no value. Takes no arguments."""
             },
-                        {
+            {
                 name: "coalesce"
                 signature: "{ a b ... }"
                 description: "return the first non-null, non-undefined value"

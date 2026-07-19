@@ -141,6 +141,16 @@ using fn.process.env
 | `math.min`   |   `{ a b ... }`   |   smallest of two or more numbers   |
 | `math.max`   |   `{ a b ... }`   |   largest of two or more numbers   |
 | `math.clamp`   |   `{ value min max }`   |   clamp a value to the [min, max] range   |
+| `math.abs`   |   `{ a }`   |   absolute value of a number   |
+| `math.ceil`   |   `{ a }`   |   round a number up to the nearest integer   |
+| `math.floor`   |   `{ a }`   |   round a number down to the nearest integer   |
+| `math.round`   |   `{ a }`   |   round a number to the nearest integer   |
+| `math.truncate`   |   `{ a }`   |   integer part of a number, discarding any fractional digits   |
+| `math.sqrt`   |   `{ a }`   |   square root of a number   |
+| `math.log`   |   `{ a }`   |   natural logarithm of a number   |
+| `math.sin`   |   `{ a }`   |   sine of an angle in radians   |
+| `math.cos`   |   `{ a }`   |   cosine of an angle in radians   |
+| `math.tan`   |   `{ a }`   |   tangent of an angle in radians   |
 
 ---
 
@@ -161,6 +171,8 @@ using fn.process.env
 | `reverse`   |   `{ a ... }`   |   reverse an array   |
 | `count`   |   `{ a }`   |   number of elements in an array   |
 | `repeat`   |   `{ count: n  content: value }`   |   produce an array of n copies of content   |
+| `dict`   |   `{ key value ... }`   |   build an object from a flat list of key/value pairs   |
+| `table`   |   `{ columns: array  a b ... }`   |   build an array of row objects from column names and flat values   |
 
 ---
 
@@ -246,6 +258,7 @@ using fn.process.env
 |---------------------|----------------------------|--------------------------|
 | `component`   |   `{ id: name  content: obj }`   |   define a reusable inline component   |
 | `native`   |   `{ id: name  path: relPath }`   |   load a JavaScript module as a component   |
+| `import`   |   `{ path }  or  { id: name  path }`   |   load and resolve another .exon file, or register it as a component   |
 | `property`   |   `{ get: expr  set: expr  init: expr }`   |   define a typed getter/setter property   |
 | `parameter`   |   `{ }  or  { name }`   |   read a named parameter from the caller   |
 | `wrapper`   |   `{ content: expr }`   |   resolve and return the content property   |
