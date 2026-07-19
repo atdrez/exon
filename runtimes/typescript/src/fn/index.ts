@@ -9,6 +9,7 @@ import FileLoad from "./file/load";
 import FileSave from "./file/save";
 import Map from "./map";
 import Merge from "./merge";
+import Dict from "./dict";
 import Assert from "./assert";
 import ForEach from "./foreach";
 import ProcessEnv from "./process/env";
@@ -137,7 +138,7 @@ export function components(): any {
         PlistEncode,
 
         // collection
-        Map, Merge,
+        Map, Merge, Dict,
 
         // process
         ProcessEnv, ProcessExec, ProcessArgv, ProcessExit,

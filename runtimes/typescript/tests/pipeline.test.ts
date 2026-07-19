@@ -292,6 +292,36 @@ describe('fn.merge', () => {
 });
 
 // ---------------------------------------------------------------------------
+// fn.dict
+// ---------------------------------------------------------------------------
+
+describe('fn.dict', () => {
+    it('builds an object from inline key/value pairs', () => {
+        const result = compile(`{
+            d: fn.dict {
+                "name" "Foo Bar"
+                "age" 3
+            }
+        }`);
+        expect(result).toEqual({ d: { name: 'Foo Bar', age: 3 } });
+    });
+
+    it('produces an empty object for no pairs', () => {
+        const result = compile(`{ d: fn.dict {} }`);
+        expect(result).toEqual({ d: {} });
+    });
+
+    it('resolves values before pairing them', () => {
+        const result = compile(`{
+            d: fn.dict {
+                "sum" fn.add { 1 2 }
+            }
+        }`);
+        expect(result).toEqual({ d: { sum: 3 } });
+    });
+});
+
+// ---------------------------------------------------------------------------
 // fn.process.env
 // ---------------------------------------------------------------------------
 

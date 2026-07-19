@@ -92,6 +92,18 @@ describe('native component validation errors', () => {
         ).toThrow();
     });
 
+    it('fn.dict throws with an odd number of arguments', () => {
+        expect(() =>
+            compile(`{ d: fn.dict { "a" 1 "b" } }`)
+        ).toThrow();
+    });
+
+    it('fn.dict throws when a key is not a string', () => {
+        expect(() =>
+            compile(`{ d: fn.dict { 1 "a" } }`)
+        ).toThrow();
+    });
+
     it('fn.json.decode throws when content is not a string', () => {
         expect(() =>
             compile(`{ d: fn.json.decode { content: 42 } }`)

@@ -1,0 +1,31 @@
+// fn.dict builds an object from a flat list of key/value pairs. It's
+// especially useful when keys contain characters that aren't valid in
+// normal object syntax, like spaces or slashes.
+
+fn.dict {
+    "Company Name" "FooBar Ltd."
+    "Founded Year" 2014
+    "Active" true
+
+    "Address" fn.dict {
+        "City" "San Francisco"
+        "State" "California"
+        "Country/Code" "US"
+        "Country/Name" "United States"
+    }
+
+    "Statistics" {
+        employees: 248
+        customers: 12500
+        revenue: 18400000.50
+    }
+
+    "Product List" [
+        "Cloud Platform",
+        "Analytics Suite",
+        "Developer SDK"
+    ]
+
+    // dynamically constructed key
+    fn.string.join { "Products/" 2020 "/License" }  "MIT"
+}
