@@ -322,6 +322,61 @@ describe('fn.dict', () => {
 });
 
 // ---------------------------------------------------------------------------
+// fn.table
+// ---------------------------------------------------------------------------
+
+describe('fn.table', () => {
+    it('builds an array of objects from columns and row values', () => {
+        const result = compile(`{
+            t: fn.table {
+                columns: [ "name", "age" ]
+
+                "John" 32
+                "Jane" 26
+            }
+        }`);
+        expect(result).toEqual({ t: [
+            { name: 'John', age: 32 },
+            { name: 'Jane', age: 26 }
+        ] });
+    });
+
+    it('produces an empty array for no rows', () => {
+        const result = compile(`{
+            t: fn.table {
+                columns: [ "name", "age" ]
+            }
+        }`);
+        expect(result).toEqual({ t: [] });
+    });
+
+    it('resolves values before assigning them', () => {
+        const result = compile(`{
+            t: fn.table {
+                columns: [ "sum" ]
+
+                fn.add { 1 2 }
+            }
+        }`);
+        expect(result).toEqual({ t: [ { sum: 3 } ] });
+    });
+
+    it('throws when content length is not a multiple of columns', () => {
+        expect(() => compile(`{
+            t: fn.table {
+                columns: [ "name", "age" ]
+
+                "John" 32 "Jane"
+            }
+        }`)).toThrow();
+    });
+
+    it('throws when columns is missing or empty', () => {
+        expect(() => compile(`{ t: fn.table { "John" 32 } }`)).toThrow();
+    });
+});
+
+// ---------------------------------------------------------------------------
 // fn.process.env
 // ---------------------------------------------------------------------------
 

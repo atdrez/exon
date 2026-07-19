@@ -1,0 +1,10 @@
+// fn.table builds an array of objects from a list of column names and a
+// flat list of row values, assigning each value to its matching column.
+
+fn.table {
+    columns: [ "name", "surname", "age", "job", "active" ]
+
+    "John"      "Doe"       32      "Tester"                true
+    "Foo"       "Bar"       22      "Software Engineer"     true
+    "Jane"      "Smith"     26      "Product Owner"         false
+}
