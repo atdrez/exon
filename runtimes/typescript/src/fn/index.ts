@@ -95,6 +95,7 @@ import PathIsDirectory from "./path/isdir";
 import PathAbsolute from "./path/absolute";
 import PathReal from "./path/real";
 import PathIsInside from "./path/isInside";
+import PathRelative from "./path/relative";
 import PathListDir from "./path/listDir";
 import PathWalk from "./path/walk";
 import LangOr from "./lang/or";
@@ -164,7 +165,7 @@ export function components(): any {
 
         // path
         PathIsFile, PathIsDirectory, PathDirName, PathBaseName, PathExtension, PathAbsolute,
-        PathReal, PathIsInside, PathListDir, PathWalk,
+        PathReal, PathIsInside, PathRelative, PathListDir, PathWalk,
 
         // math
         MathMin, MathMax, MathClamp,
