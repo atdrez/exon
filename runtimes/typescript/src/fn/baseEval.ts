@@ -37,7 +37,7 @@ export class BaseEval extends Base {
         return true;
     }
 
-    protected evaluateContent(content: any) : any {
-        return new Function(content)();
+    protected evaluateContent(_content: any) : any {
+        throw new Error(`${this.name()}.content: evaluateContent not implemented`);
     }
 }
