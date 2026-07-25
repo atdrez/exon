@@ -134,5 +134,34 @@ using ...exonmods.fne.test.*
                 try { array.concat { [1, 2] 3 }  then: false  catch: true }
             }
         }
+
+        describe {
+            description: "array.contains"
+
+            it {
+                "array.contains { [1, 2, 3] 2 } == true"
+                array.contains { [1, 2, 3] 2 }
+            }
+
+            it {
+                "array.contains { [1, 2, 3] 4 } == false"
+                not { array.contains { [1, 2, 3] 4 } }
+            }
+
+            it {
+                "array.contains { ['a', 'b'] 'b' } == true"
+                array.contains { ["a", "b"] "b" }
+            }
+
+            it {
+                "array.contains { [] 1 } == false"
+                not { array.contains { [] 1 } }
+            }
+
+            it {
+                "array.contains { 'hello' 1 } raises"
+                try { array.contains { "hello" 1 }  then: false  catch: true }
+            }
+        }
     }
 }

@@ -54,6 +54,7 @@ import ArrayIs from "./array/is";
 import ArrayIsEmpty from "./array/isEmpty";
 import ArrayJoin from "./array/join";
 import ArrayConcat from "./array/concat";
+import ArrayContains from "./array/contains";
 import MathMin from "./math/min";
 import MathMax from "./math/max";
 import MathClamp from "./math/clamp";
@@ -185,7 +186,7 @@ export function components(): any {
         NumberIs,
 
         // array
-        ArrayIs, ArrayIsEmpty, ArrayJoin, ArrayConcat,
+        ArrayIs, ArrayIsEmpty, ArrayJoin, ArrayConcat, ArrayContains,
 
         // regex
         RegexTest, RegexMatch, RegexMatchAll,
