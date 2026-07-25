@@ -11,6 +11,8 @@ using ...exonmods.fne.test.*
         count: 3
     }
 
+    listDirResult: path.listDir { "./samples" }
+
     whileResult: while {
         condition: lt { @root.counter 3 }
         do: {
@@ -272,6 +274,112 @@ using ...exonmods.fne.test.*
             it {
                 "path.isdir on a file is false"
                 not { path.isdir { "helloworld.txt" } }
+            }
+        }
+
+
+        *** path.real ***
+        describe {
+            description: "path.real"
+
+            it {
+                "path.real on a plain existing file matches path.absolute"
+                eq { path.real { "./helloworld.txt" } path.absolute { "./helloworld.txt" } }
+            }
+
+            it {
+                "path.real on a non-existing path falls back to lexical resolution"
+                eq { path.real { "./nonexistent_file_xyz.json" } path.absolute { "./nonexistent_file_xyz.json" } }
+            }
+        }
+
+
+        *** path.isInside ***
+        describe {
+            description: "path.isInside"
+
+            it {
+                "a file directly under root is inside root"
+                path.isInside { "./helloworld.txt" "." }
+            }
+
+            it {
+                "a nested file under root is inside root"
+                path.isInside { "./samples/bindings/A.exon" "./samples" }
+            }
+
+            it {
+                "root itself is inside root"
+                path.isInside { "." "." }
+            }
+
+            it {
+                "a path outside root is not inside root"
+                not { path.isInside { "../../src" "./samples" } }
+            }
+
+            it {
+                "a sibling path with a matching prefix is not inside root"
+                not { path.isInside { "../fixtures-evil" "../fixtures" } }
+            }
+        }
+
+
+        *** path.listDir ***
+        describe {
+            description: "path.listDir"
+
+            get@listDirEntry { target: @root.listDirResult  index: 0 }
+
+            it {
+                "listDir on samples returns exactly one entry"
+                eq { count { @root.listDirResult } 1 }
+            }
+
+            it {
+                "listDir entry is named 'bindings'"
+                eq { @listDirEntry.name "bindings" }
+            }
+
+            it {
+                "listDir entry is reported as a directory"
+                @listDirEntry.isDir
+            }
+
+            it {
+                "listDir entry is not reported as a file"
+                not { @listDirEntry.isFile }
+            }
+        }
+
+
+        *** path.walk ***
+        describe {
+            description: "path.walk"
+
+            it {
+                "walk on samples finds nested .exon files"
+                eq {
+                    count {
+                        path.walk { "./samples" pattern: "\\.exon$" }
+                    }
+                    6
+                }
+            }
+
+            it {
+                "walk maxDepth=1 only sees the immediate 'bindings' entry"
+                eq { count { path.walk { "./samples" maxDepth: 1 } } 1 }
+            }
+
+            it {
+                "walk with no pattern also finds the 'bindings' directory itself"
+                eq {
+                    count {
+                        path.walk { "./samples" pattern: "^bindings$" }
+                    }
+                    1
+                }
             }
         }
     }
