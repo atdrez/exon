@@ -23,6 +23,53 @@ fn.lazy {
                     data: "the string or Buffer content to write"
                 }
             },
+            {
+                name: "file.exists"
+                signature: "{ path: str }"
+                description: "true if a file or directory exists at the given path"
+                largeDescription: """Checks whether a file or directory exists at path using fs.statSync. The path must be a string; relative paths are resolved relative to the directory of the current .exon file. Returns true when the stat call succeeds and false for any failure (missing path, permission error, etc.) — it does not distinguish files from directories."""
+                arguments: {
+                    path: "file or directory path (absolute or relative to the current .exon file)"
+                }
+            },
+            {
+                name: "file.stat"
+                signature: "{ path: str }"
+                description: "return filesystem metadata for a path"
+                largeDescription: """Reads filesystem metadata for the given path using fs.statSync and returns an object with size, isDir, isFile, isSymlink, mtimeMs, ctimeMs, atimeMs, and birthtimeMs. The path must be a string; relative paths are resolved relative to the directory of the current .exon file. Throws when the path does not exist or is inaccessible."""
+                arguments: {
+                    path: "file or directory path (absolute or relative to the current .exon file)"
+                }
+            },
+            {
+                name: "file.delete"
+                signature: "{ path: str }"
+                description: "delete a file or directory"
+                largeDescription: """Recursively deletes the file or directory at path using fs.rmSync with recursive: true. The path must be a string; relative paths are resolved relative to the directory of the current .exon file. Throws when the target cannot be removed. Returns null on success."""
+                arguments: {
+                    path: "file or directory path to delete (absolute or relative to the current .exon file)"
+                }
+            },
+            {
+                name: "file.copy"
+                signature: "{ from: str  to: str }"
+                description: "copy a file or directory"
+                largeDescription: """Recursively copies the file or directory at from to to using fs.cpSync with recursive: true. Both paths must be strings; relative paths are resolved relative to the directory of the current .exon file. Throws when the copy fails. Returns null on success."""
+                arguments: {
+                    from: "source path (absolute or relative to the current .exon file)"
+                    to: "destination path (absolute or relative to the current .exon file)"
+                }
+            },
+            {
+                name: "file.move"
+                signature: "{ from: str  to: str }"
+                description: "move or rename a file or directory"
+                largeDescription: """Moves or renames the file or directory at from to to using fs.renameSync. Both paths must be strings; relative paths are resolved relative to the directory of the current .exon file. Throws when the move fails (for example, across different filesystems/drives). Returns null on success."""
+                arguments: {
+                    from: "source path (absolute or relative to the current .exon file)"
+                    to: "destination path (absolute or relative to the current .exon file)"
+                }
+            },
         ]
     }
 }

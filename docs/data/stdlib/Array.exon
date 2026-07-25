@@ -1,0 +1,38 @@
+fn.lazy {
+    {
+        name: "Array"
+
+        components: [
+            {
+                name: "array.is"
+                signature: "{ a }"
+                description: "true if value is an array"
+                largeDescription: """Returns true when the single positional argument is an array, using Array.isArray. Returns false for objects, strings, numbers, and every other non-array type."""
+            },
+            {
+                name: "array.isEmpty"
+                signature: "{ a }"
+                description: "true if array has zero length"
+                largeDescription: """Returns true when the array has zero elements. The input must be an array — passing a non-array value throws. Use array.is to verify the type first if the value may not be an array."""
+            },
+            {
+                name: "array.join"
+                signature: "{ a b ... }  or  { arr }"
+                description: "collect positional values, or flatten a single array argument, into one array"
+                largeDescription: """Builds a plain array from its arguments. When called with a single array argument, that array's own elements become the result. When called with two or more positional arguments, each argument becomes one element of the result array, in order. Unlike array.concat, the individual arguments do not need to be arrays themselves."""
+            },
+            {
+                name: "array.concat"
+                signature: "{ a b ... }  or  { arr }"
+                description: "concatenate two or more arrays into one"
+                largeDescription: """Concatenates its arguments into a single flat array. When called with a single array argument, that array is used as the list of arrays to concatenate. Every value passed must itself be an array — passing a non-array value throws. Equivalent to Array.prototype.concat applied across all arguments."""
+            },
+            {
+                name: "array.contains"
+                signature: "{ a b }"
+                description: "true if array a includes value b"
+                largeDescription: """Returns true when the array given as the first argument includes the second argument as one of its elements, using Array.includes (strict equality for scalars, reference equality for objects/arrays). The first argument must be an array — passing a non-array value throws. Accepts exactly two positional arguments."""
+            },
+        ]
+    }
+}

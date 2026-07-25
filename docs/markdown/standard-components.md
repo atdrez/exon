@@ -134,6 +134,18 @@ using fn.process.env
 
 ---
 
+## Array
+
+| Component           | Signature                  | Description              |
+|---------------------|----------------------------|--------------------------|
+| `array.is`   |   `{ a }`   |   true if value is an array   |
+| `array.isEmpty`   |   `{ a }`   |   true if array has zero length   |
+| `array.join`   |   `{ a b ... }  or  { arr }`   |   collect positional values, or flatten a single array argument, into one array   |
+| `array.concat`   |   `{ a b ... }  or  { arr }`   |   concatenate two or more arrays into one   |
+| `array.contains`   |   `{ a b }`   |   true if array a includes value b   |
+
+---
+
 ## Math
 
 | Component           | Signature                  | Description              |
@@ -159,6 +171,8 @@ using fn.process.env
 | Component           | Signature                  | Description              |
 |---------------------|----------------------------|--------------------------|
 | `regex.test`   |   `{ a  pattern: "regex"  flags: "" }`   |   test if a string matches a regular expression   |
+| `regex.match`   |   `{ a  pattern: "regex"  flags: "" }`   |   find the first match of a regular expression in a string   |
+| `regex.matchAll`   |   `{ a  pattern: "regex"  flags: "" }`   |   find all matches of a regular expression in a string   |
 
 ---
 
@@ -191,6 +205,10 @@ using fn.process.env
 | Component           | Signature                  | Description              |
 |---------------------|----------------------------|--------------------------|
 | `println`   |   `{ a ... }`   |   print concatenated arguments to stdout   |
+| `io.write`   |   `{ a ... }`   |   write concatenated arguments to stdout, no trailing newline   |
+| `io.writeLine`   |   `{ a ... }`   |   write concatenated arguments to stdout followed by a newline   |
+| `io.read`   |   `{}`   |   block and read all of stdin until EOF   |
+| `io.readLine`   |   `{}`   |   block and read a single line from stdin   |
 
 ---
 
@@ -211,6 +229,11 @@ using fn.process.env
 |---------------------|----------------------------|--------------------------|
 | `file.load`   |   `{ path: str  binary: false }`   |   read a file from disk   |
 | `file.save`   |   `{ path: str  data: content }`   |   write data to a file on disk   |
+| `file.exists`   |   `{ path: str }`   |   true if a file or directory exists at the given path   |
+| `file.stat`   |   `{ path: str }`   |   return filesystem metadata for a path   |
+| `file.delete`   |   `{ path: str }`   |   delete a file or directory   |
+| `file.copy`   |   `{ from: str  to: str }`   |   copy a file or directory   |
+| `file.move`   |   `{ from: str  to: str }`   |   move or rename a file or directory   |
 
 ---
 
@@ -224,6 +247,12 @@ using fn.process.env
 | `path.isfile`   |   `{ a }`   |   true if the path points to an existing file   |
 | `path.isdir`   |   `{ a }`   |   true if the path points to an existing directory   |
 | `path.absolute`   |   `{ a }`   |   resolve a path to an absolute path   |
+| `path.real`   |   `{ a }`   |   resolve symlinks in a path as far as they exist on disk   |
+| `path.resolve`   |   `{ a b }`   |   join and normalize two path segments   |
+| `path.isInside`   |   `{ a b }`   |   true if path a is inside directory b   |
+| `path.relative`   |   `{ a b }`   |   relative path from a to b   |
+| `path.listDir`   |   `{ a }`   |   list the immediate entries of a directory   |
+| `path.walk`   |   `{ a  pattern: "regex"  flags: ""  maxDepth: -1 }`   |   recursively list filesystem entries under a directory   |
 
 ---
 
@@ -235,6 +264,14 @@ using fn.process.env
 | `os.arch`   |   `{}`   |   CPU architecture identifier   |
 | `os.type`   |   `{}`   |   operating system name   |
 | `os.release`   |   `{}`   |   operating system release version string   |
+
+---
+
+## HTTP
+
+| Component           | Signature                  | Description              |
+|---------------------|----------------------------|--------------------------|
+| `http.fetch`   |   `{ url: str  method: "GET"  headers: {}  body: str }`   |   perform a synchronous HTTP request   |
 
 ---
 

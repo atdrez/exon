@@ -1,0 +1,20 @@
+fn.lazy {
+    {
+        name: "HTTP"
+
+        components: [
+            {
+                name: "http.fetch"
+                signature: """{ url: str  method: "GET"  headers: {}  body: str }"""
+                description: "perform a synchronous HTTP request"
+                largeDescription: """Performs an HTTP request and returns the response, blocking the calling resolve() until it completes. The request actually runs on a worker thread (communicated with via a SharedArrayBuffer and Atomics.wait) so the surrounding synchronous resolver can still block on it. The url property is required and must be a non-empty string. method defaults to GET and is upper-cased. headers, when given, must be a plain object (not an array). body, when given, must be a string. Throws when the request fails or the worker reports an error."""
+                arguments: {
+                    url: "target URL (required, non-empty string)"
+                    method: "HTTP method, upper-cased automatically (default: GET)"
+                    headers: "optional plain object of request headers"
+                    body: "optional request body string"
+                }
+            },
+        ]
+    }
+}

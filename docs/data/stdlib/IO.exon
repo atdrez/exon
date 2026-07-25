@@ -9,6 +9,30 @@ fn.lazy {
                 description: "print concatenated arguments to stdout"
                 largeDescription: """Prints the concatenation of all positional arguments to standard output followed by a newline, using console.log. Only emits output when the runtime is in run or test mode; in normal resolve mode the call is a no-op. Accepts one or more arguments which are joined without a separator before printing."""
             },
+            {
+                name: "io.write"
+                signature: "{ a ... }"
+                description: "write concatenated arguments to stdout, no trailing newline"
+                largeDescription: """Writes the concatenation of one or more positional arguments directly to process.stdout with no separator and no trailing newline. Unlike println, this always writes regardless of run/test/normal mode — there is no output-suppression check."""
+            },
+            {
+                name: "io.writeLine"
+                signature: "{ a ... }"
+                description: "write concatenated arguments to stdout followed by a newline"
+                largeDescription: """Writes the concatenation of one or more positional arguments directly to process.stdout followed by a single newline. Unlike println, this always writes regardless of run/test/normal mode — there is no output-suppression check."""
+            },
+            {
+                name: "io.read"
+                signature: "{}"
+                description: "block and read all of stdin until EOF"
+                largeDescription: """Synchronously reads standard input until EOF is reached and returns the accumulated content as a single UTF-8 string. Blocks the runtime while waiting for input. Takes no arguments."""
+            },
+            {
+                name: "io.readLine"
+                signature: "{}"
+                description: "block and read a single line from stdin"
+                largeDescription: """Synchronously reads a single line from standard input, blocking until a newline or EOF is reached, and returns it without the trailing newline. Returns null once EOF has been reached and no further data is available. Takes no arguments."""
+            },
         ]
     }
 }

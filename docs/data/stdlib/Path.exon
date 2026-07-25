@@ -39,6 +39,47 @@ fn.lazy {
                 description: "resolve a path to an absolute path"
                 largeDescription: """Converts a relative path to an absolute path by resolving it against the directory of the current .exon file. If the input is already absolute it is returned as-is after normalization. Delegates to Node.js's path.resolve. Accepts exactly one positional string argument."""
             },
+            {
+                name: "path.real"
+                signature: "{ a }"
+                description: "resolve symlinks in a path as far as they exist on disk"
+                largeDescription: """Resolves the path to an absolute path (against the current .exon file's directory when relative) and then resolves symlinks along it using fs.realpathSync, walking up to the nearest existing ancestor. Path segments that do not exist yet (for example a file about to be created) are kept as-is rather than throwing, so a not-yet-created target path can still be validated."""
+            },
+            {
+                name: "path.resolve"
+                signature: "{ a b }"
+                description: "join and normalize two path segments"
+                largeDescription: """Joins two path segments using Node.js's path.resolve(a, b) and returns the normalized result. Unlike path.absolute, both arguments are used as given and are not resolved relative to the current .exon file — this is a plain wrapper around Node's path.resolve. Accepts exactly two positional string arguments."""
+            },
+            {
+                name: "path.isInside"
+                signature: "{ a b }"
+                description: "true if path a is inside directory b"
+                largeDescription: """Resolves both paths to absolute, symlink-resolved real paths (relative paths are resolved against the current .exon file's directory) and returns true when a is equal to or nested inside b. Returns false when a escapes b via a relative '..' segment. Accepts exactly two positional string arguments."""
+            },
+            {
+                name: "path.relative"
+                signature: "{ a b }"
+                description: "relative path from a to b"
+                largeDescription: """Resolves both arguments against the directory of the current .exon file, then returns the relative path from a to b using Node.js's path.relative. Accepts exactly two positional string arguments."""
+            },
+            {
+                name: "path.listDir"
+                signature: "{ a }"
+                description: "list the immediate entries of a directory"
+                largeDescription: """Lists the immediate (non-recursive) entries of the directory at path, resolved relative to the current .exon file's directory when not absolute. Returns an array of objects, one per entry, each with name, path, isDir, isFile, and isSymlink. Uses fs.lstatSync per entry so symlinks are reported as symlinks rather than silently followed. Throws when the directory cannot be read."""
+            },
+            {
+                name: "path.walk"
+                signature: """{ a  pattern: "regex"  flags: ""  maxDepth: -1 }"""
+                description: "recursively list filesystem entries under a directory"
+                largeDescription: """Recursively walks the directory at path (resolved relative to the current .exon file's directory when not absolute) and returns a flat array of matching entry paths. The optional pattern (with optional flags) filters entries by matching their basename against a regular expression; without it every entry is included. The optional maxDepth caps recursion depth (default: unlimited). The walk never descends into symlinked directories, so it cannot escape the starting directory or loop on a symlink cycle, though a symlink entry itself is still reported when it matches."""
+                arguments: {
+                    pattern: "optional regular expression string tested against each entry's basename"
+                    flags: "optional regex flags used together with pattern"
+                    maxDepth: "optional maximum recursion depth (default: unlimited)"
+                }
+            },
         ]
     }
 }

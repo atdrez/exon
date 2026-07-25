@@ -17,7 +17,7 @@ fn.lazy {
                 name: "native"
                 signature: "{ id: name  path: relPath }"
                 description: "load a JavaScript module as a component"
-                largeDescription: """Loads a CommonJS JavaScript module from the given path and registers it as a named component. The path is resolved relative to the current .exon file's directory. The module must export a default class that extends Base and implements a resolve(obj, context) method."""
+                largeDescription: """Loads a CommonJS JavaScript module from the given path and registers it as a named component. The path is resolved relative to the current .exon file's directory. The module must export a resolve(obj, context) function (module.exports.resolve); it may optionally export an isDeferred() function returning true to receive unresolved arguments, the same contract fn.native-loaded modules always use — no class or Base inheritance is involved."""
                 arguments: {
                     id: "unique string identifier for the new component"
                     path: "relative path to the JavaScript module file"

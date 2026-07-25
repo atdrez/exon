@@ -19,7 +19,7 @@ fn.lazy {
                 name: "process.argv"
                 signature: "{ }  or  { index }  or  { name }"
                 description: "access command-line arguments passed to the runtime"
-                largeDescription: """Reads command-line arguments passed to the Exon runtime. With no argument, returns the full argv array. With a numeric argument, returns the element at that zero-based index. With a string argument, returns the value of the matching named argument (parsed from --name=value or --name value syntax), or null when not provided. At most one argument is accepted."""
+                largeDescription: """Reads command-line arguments passed to the Exon runtime. With no argument, returns the full argv array (index 0 is the entry file path itself, matching what was passed on the command line). With a numeric argument, returns the element at that zero-based index. With a string argument, returns the value of the matching named argument; named arguments are any plain argv token containing an '=', such as name=Alice (no leading dashes), or null when not provided. At most one argument is accepted."""
             },
             {
                 name: "process.exit"
