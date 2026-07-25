@@ -122,6 +122,10 @@ import OsArch from "./os/arch";
 import OsType from "./os/type";
 import OsRelease from "./os/release";
 import HttpFetch from "./http/fetch";
+import IoWrite from "./io/write";
+import IoWriteLine from "./io/writeLine";
+import IoRead from "./io/read";
+import IoReadLine from "./io/readLine";
 
 export function components(): any {
     return [
@@ -196,6 +200,9 @@ export function components(): any {
         OsPlatform, OsArch, OsType, OsRelease,
 
         // http
-        HttpFetch
+        HttpFetch,
+
+        // io
+        IoWrite, IoWriteLine, IoRead, IoReadLine
     ];
 }
