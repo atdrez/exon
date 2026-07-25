@@ -45,6 +45,10 @@ import StringIndexOf from "./string/indexOf";
 import StringCharAt from "./string/charAt";
 import StringConcat from "./string/concat";
 import NumberIs from "./number/is";
+import ArrayIs from "./array/is";
+import ArrayIsEmpty from "./array/isEmpty";
+import ArrayJoin from "./array/join";
+import ArrayConcat from "./array/concat";
 import MathMin from "./math/min";
 import MathMax from "./math/max";
 import MathClamp from "./math/clamp";
@@ -161,6 +165,9 @@ export function components(): any {
 
         // number
         NumberIs,
+
+        // array
+        ArrayIs, ArrayIsEmpty, ArrayJoin, ArrayConcat,
 
         // regex
         RegexTest,

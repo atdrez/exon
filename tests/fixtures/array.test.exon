@@ -1,0 +1,138 @@
+using fn.*
+using ...exonmods.fne.test.*
+
+{
+    __tests__: {
+
+        *** PREDICATES ***
+        describe {
+            description: "array.is"
+
+            it {
+                "array.is { [1, 2, 3] } == true"
+                array.is { [1, 2, 3] }
+            }
+
+            it {
+                "array.is { [] } == true"
+                array.is { [] }
+            }
+
+            it {
+                "array.is { 'hello' } == false"
+                not { array.is { "hello" } }
+            }
+
+            it {
+                "array.is { 42 } == false"
+                not { array.is { 42 } }
+            }
+
+            it {
+                "array.is { null } == false"
+                not { array.is { null } }
+            }
+        }
+
+
+        describe {
+            description: "array.isEmpty"
+
+            it {
+                "array.isEmpty { [] } == true"
+                array.isEmpty { [] }
+            }
+
+            it {
+                "array.isEmpty { [1] } == false"
+                not { array.isEmpty { [1] } }
+            }
+
+            it {
+                "array.isEmpty { [1, 2, 3] } == false"
+                not { array.isEmpty { [1, 2, 3] } }
+            }
+
+            it {
+                "array.isEmpty { 'hello' } raises"
+                try { array.isEmpty { "hello" }  then: false  catch: true }
+            }
+        }
+
+
+        *** JOIN & CONCAT ***
+        describe {
+            description: "array.join"
+
+            it {
+                "array.join { 1 2 3 } == [1, 2, 3]"
+                eq {
+                    json.encode { [1, 2, 3]  indent: 0 }
+                    json.encode { array.join { 1 2 3 }  indent: 0 }
+                }
+            }
+
+            it {
+                "array.join { [1, 2, 3] } == [1, 2, 3]"
+                eq {
+                    json.encode { [1, 2, 3]  indent: 0 }
+                    json.encode { array.join { [1, 2, 3] }  indent: 0 }
+                }
+            }
+
+            it {
+                "array.join { [1, 2] [3, 4] } keeps nested arrays"
+                eq {
+                    json.encode { [[1, 2], [3, 4]]  indent: 0 }
+                    json.encode { array.join { [1, 2] [3, 4] }  indent: 0 }
+                }
+            }
+
+            it {
+                "array.join { 1 [2, 3] 4 } keeps nested arrays"
+                eq {
+                    json.encode { [1, [2, 3], 4]  indent: 0 }
+                    json.encode { array.join { 1 [2, 3] 4 }  indent: 0 }
+                }
+            }
+
+            it {
+                "array.join { [] } == []"
+                array.isEmpty { array.join { [] } }
+            }
+        }
+
+        describe {
+            description: "array.concat"
+
+            it {
+                "array.concat { [1, 2] [3, 4] } == [1, 2, 3, 4]"
+                eq {
+                    json.encode { [1, 2, 3, 4]  indent: 0 }
+                    json.encode { array.concat { [1, 2] [3, 4] }  indent: 0 }
+                }
+            }
+
+            it {
+                "array.concat { [[1, 2], [3, 4]] } == [1, 2, 3, 4]"
+                eq {
+                    json.encode { [1, 2, 3, 4]  indent: 0 }
+                    json.encode { array.concat { [[1, 2], [3, 4]] }  indent: 0 }
+                }
+            }
+
+            it {
+                "array.concat { [] [1, 2] } == [1, 2]"
+                eq {
+                    json.encode { [1, 2]  indent: 0 }
+                    json.encode { array.concat { [] [1, 2] }  indent: 0 }
+                }
+            }
+
+            it {
+                "array.concat { [1, 2] 3 } raises when a value isn't an array"
+                try { array.concat { [1, 2] 3 }  then: false  catch: true }
+            }
+        }
+    }
+}
