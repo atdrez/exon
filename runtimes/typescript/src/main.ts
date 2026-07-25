@@ -40,21 +40,28 @@ function runNormal(manager: IScriptRepository, paths: string[], fileName: string
     }
 }
 
-const params = parseArgs(process.argv.slice(2));
+export function execute() {
 
-const fileName : string = params.targets[0];
-const paths : string[] = params.options.path;
-const scriptArgv : string[] = params.targets;
+    const params = parseArgs(process.argv.slice(2));
 
-const manager = new ScriptRepository();
+    const fileName : string = params.targets[0];
+    const paths : string[] = params.options.path;
+    const scriptArgv : string[] = params.targets;
 
-if (!params.options.bare) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Native: { components(): any[] } = require("./fn");
-    const components = Native.components();
-    for (let i = 0; i < components.length; i++) {
-        manager.register(new components[i]);
+    const manager = new ScriptRepository();
+
+    if (!params.options.bare) {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const Native: { components(): any[] } = require("./fn");
+        const components = Native.components();
+        for (let i = 0; i < components.length; i++) {
+            manager.register(new components[i]);
+        }
     }
+
+    runNormal(manager, paths, fileName, params.options, scriptArgv);
 }
 
-runNormal(manager, paths, fileName, params.options, scriptArgv);
+if (process.argv[1] === __filename) {
+    execute();
+}
