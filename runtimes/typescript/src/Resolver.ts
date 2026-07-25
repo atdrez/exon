@@ -131,11 +131,15 @@ export class Resolver implements IResolver {
         this.registerObjectIds(id, idFile, isFileRoot, myFileName, result);
 
         let native = obj['__native__'];
+        let nativeSource = obj;
 
         if (!native) {
             let base = obj['__base__'];
             while (base && !native) {
-                native = base['__native__'];
+                if (base['__native__']) {
+                    native = base['__native__'];
+                    nativeSource = base;
+                }
                 base = base['__base__'];
             }
         }
@@ -154,12 +158,19 @@ export class Resolver implements IResolver {
 
                 const savedIds = this.saveBaseChainIds(obj);
                 this.registerBaseChainIds(obj, rawForLazy);
+
+                this.#context.location.file = nativeSource['__file__'] ?? myFileName;
+                this.#context.location.line = nativeSource['__line__'] ?? myLine;
+
                 result = this.#context.resolveScript(script, rawForLazy, this.#params);
                 this.restoreIds(savedIds);
             } else {
                 this.resolveRecursive(result, obj);
 
                 if (script) {
+                    this.#context.location.file = nativeSource['__file__'] ?? myFileName;
+                    this.#context.location.line = nativeSource['__line__'] ?? myLine;
+
                     result = this.#context.resolveScript(script, result, this.#params);
                 }
             }
