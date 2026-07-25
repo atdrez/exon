@@ -37,23 +37,29 @@ export default class Component extends Base {
 
         const includeNull = (obj.includeNull === true);
 
+        let index = 0;
+
         if (isArray) {
             for (const rawItem of rawContent) {
                 const value = context.resolve(rawItem);
-                const response = context.resolve(statement, { value });
+                const response = context.resolve(statement, { value, index });
 
                 if (includeNull || (response !== null && response !== undefined)) {
                     result.push(response);
                 }
+
+                index++;
             }
         } else {
             for (const [key, rawItem] of Object.entries(rawContent)) {
                 const value = context.resolve(rawItem);
-                const response = context.resolve(statement, { value: { key, value } });
+                const response = context.resolve(statement, { value: { key, value }, index });
 
                 if (includeNull || (response !== null && response !== undefined)) {
                     result.push(response);
                 }
+
+                index++;
             }
         }
 
