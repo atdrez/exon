@@ -1,0 +1,23 @@
+***
+HTTP fetch example.
+
+Usage:
+  ./ts-run.sh examples/http/fetch.run.exon post=3
+***
+using fn.*
+
+sequence {
+  http.fetch@response {
+    method: "GET"
+    url: string.join { "https://jsonplaceholder.typicode.com/posts/" or { process.argv{"post"} "1" } }
+    headers: {
+      Content-Type: "application/json"
+      User-Agent: "Mozilla/5.0 (compatible; ExonFetchDemo/0.1; +https://github.com/atdrez/exon)"
+    }
+  }
+
+  cond {
+    @response.ok  @response.body
+    string.join { "Invalid response: " @response.status }
+  }
+}

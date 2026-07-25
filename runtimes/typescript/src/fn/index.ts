@@ -117,6 +117,7 @@ import OsPlatform from "./os/platform";
 import OsArch from "./os/arch";
 import OsType from "./os/type";
 import OsRelease from "./os/release";
+import HttpFetch from "./http/fetch";
 
 export function components(): any {
     return [
@@ -185,6 +186,9 @@ export function components(): any {
         Preprocess,
 
         // os
-        OsPlatform, OsArch, OsType, OsRelease
+        OsPlatform, OsArch, OsType, OsRelease,
+
+        // http
+        HttpFetch
     ];
 }
