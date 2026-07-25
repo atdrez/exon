@@ -99,7 +99,11 @@ export class Resolver implements IResolver {
     }
 
     private resolveImpl(obj: any): any {
-        if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+        if (Array.isArray(obj)) {
+            return this.parseArrayRecursive(obj);
+        }
+
+        if (obj === null || typeof obj !== 'object') {
             return obj;
         }
 
