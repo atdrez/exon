@@ -87,6 +87,8 @@ import PropertyGet from "./get";
 import PropertySet from "./set";
 import Del from "./del";
 import RegexTest from "./regex/test";
+import RegexMatch from "./regex/match";
+import RegexMatchAll from "./regex/matchAll";
 import PathDirName from "./path/dirname";
 import PathBaseName from "./path/basename";
 import PathExtension from "./path/extension";
@@ -185,7 +187,7 @@ export function components(): any {
         ArrayIs, ArrayIsEmpty, ArrayJoin, ArrayConcat,
 
         // regex
-        RegexTest,
+        RegexTest, RegexMatch, RegexMatchAll,
 
         // string
         StringIs, StringJoin, StringSplit, StringConcat,

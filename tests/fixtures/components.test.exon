@@ -119,6 +119,151 @@ using ...exonmods.fne.test.*
         }
 
 
+        *** regex.match ***
+        describe {
+            description: "regex.match"
+
+            it {
+                "regex.match returns null when no match"
+                eq {
+                    regex.match {
+                        "notanemail"
+                        pattern: "^[^@]+@[^@]+$"
+                    }
+                    null
+                }
+            }
+
+            it {
+                "regex.match returns matched value"
+                eq {
+                    get {
+                        target: regex.match {
+                            "user@example.com"
+                            pattern: "^[^@]+@[^@]+$"
+                        }
+                        property: "value"
+                    }
+                    "user@example.com"
+                }
+            }
+
+            it {
+                "regex.match returns capture groups count"
+                eq {
+                    count {
+                        get {
+                            target: regex.match {
+                                "2026-07-11"
+                                pattern: "^(\\d+)-(\\d+)-(\\d+)$"
+                            }
+                            property: "groups"
+                        }
+                    }
+                    3
+                }
+            }
+
+            it {
+                "regex.match returns first capture group"
+                eq {
+                    get {
+                        target: get {
+                            target: regex.match {
+                                "2026-07-11"
+                                pattern: "^(\\d+)-(\\d+)-(\\d+)$"
+                            }
+                            property: "groups"
+                        }
+                        index: 0
+                    }
+                    "2026"
+                }
+            }
+
+            it {
+                "regex.match returns named groups"
+                eq {
+                    get {
+                        target: get {
+                            target: regex.match {
+                                "2026-07-11"
+                                pattern: "^(?<year>\\d+)-(?<month>\\d+)-(?<day>\\d+)$"
+                            }
+                            property: "named"
+                        }
+                        property: "year"
+                    }
+                    "2026"
+                }
+            }
+
+            it {
+                "regex.match returns match index"
+                eq {
+                    get {
+                        target: regex.match {
+                            "hello world"
+                            pattern: "world"
+                        }
+                        property: "index"
+                    }
+                    6
+                }
+            }
+        }
+
+
+        *** regex.matchAll ***
+        describe {
+            description: "regex.matchAll"
+
+            it {
+                "regex.matchAll returns empty array when no match"
+                eq {
+                    count { regex.matchAll { "no numbers here"  pattern: "\\d+" } }
+                    0
+                }
+            }
+
+            it {
+                "regex.matchAll returns all matches"
+                eq {
+                    count { regex.matchAll { "a1 b22 c333"  pattern: "\\d+" } }
+                    3
+                }
+            }
+
+            it {
+                "regex.matchAll first match value"
+                eq {
+                    get {
+                        target: get {
+                            target: regex.matchAll { "a1 b22 c333"  pattern: "\\d+" }
+                            index: 0
+                        }
+                        property: "value"
+                    }
+                    "1"
+                }
+            }
+
+            it {
+                "regex.matchAll last match value"
+                eq {
+                    get {
+                        target: get {
+                            target: regex.matchAll { "a1 b22 c333"  pattern: "\\d+" }
+                            index: 2
+                        }
+                        property: "value"
+                    }
+                    "333"
+                }
+            }
+        }
+
+
         *** string.trim ***
         describe {
             description: "string.trim"

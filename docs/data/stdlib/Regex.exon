@@ -13,6 +13,26 @@ fn.lazy {
                     flags: "optional regex flags such as 'i', 'g', or 'gi'"
                 }
             },
+            {
+                name: "regex.match"
+                signature: """{ a  pattern: "regex"  flags: "" }"""
+                description: "find the first match of a regular expression in a string"
+                largeDescription: """Searches the input string for the first match of the given regular expression pattern. Returns null when there is no match, otherwise an object with 'value' (the matched text), 'index' (the position of the match), 'groups' (an array of captured groups, with unmatched groups as null), and 'named' (an object of named capture groups)."""
+                arguments: {
+                    pattern: "regular expression pattern string"
+                    flags: "optional regex flags such as 'i', 'g', or 'gi'"
+                }
+            },
+            {
+                name: "regex.matchAll"
+                signature: """{ a  pattern: "regex"  flags: "" }"""
+                description: "find all matches of a regular expression in a string"
+                largeDescription: """Searches the input string for every match of the given regular expression pattern, regardless of whether the 'g' flag was passed (it is applied automatically). Returns an array of match objects, each with 'value', 'index', 'groups', and 'named', in the same shape as regex.match. Returns an empty array when there are no matches."""
+                arguments: {
+                    pattern: "regular expression pattern string"
+                    flags: "optional regex flags such as 'i', 'g', or 'gi'"
+                }
+            },
         ]
     }
 }
