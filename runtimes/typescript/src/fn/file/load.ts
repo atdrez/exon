@@ -13,7 +13,7 @@ export default class Component extends Base {
             throw new Error(`${this.name()}.path: invalid type (expected string)`);
 
         const dirName = Path.dirname(context.location.file);
-        const fileName = Path.isAbsolute(obj.path) ? obj.path : `${dirName}/${obj.path}`;
+        const fileName = Path.resolve(dirName, obj.path);
         const isBinary = (obj.binary === true);
 
         try {

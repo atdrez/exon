@@ -6,23 +6,20 @@ import { Base } from "../base";
 import { Context } from "../../IScript";
 
 export default class Component extends Base {
-    constructor() { super("file.save"); }
+    constructor() { super("file.delete"); }
 
     public resolve(obj: any, context: Context) : any {
         if (typeof obj.path !== "string")
             throw new Error(`${this.name()}.path: invalid type (expected string)`);
 
-        if (obj.data === undefined || obj.data === null)
-            throw new Error(`${this.name()}.data: missing required parameter`);
-
         const dirName = Path.dirname(context.location.file);
         const fileName = Path.resolve(dirName, obj.path);
 
         try {
-            FS.writeFileSync(fileName, obj.data);
+            FS.rmSync(fileName, { recursive: true });
             return null;
         } catch {
-            throw new Error(`${this.name()} unable to save '${fileName}' file`);
+            throw new Error(`${this.name()} unable to delete '${fileName}' file`);
         }
     }
 }

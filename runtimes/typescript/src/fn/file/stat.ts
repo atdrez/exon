@@ -6,23 +6,32 @@ import { Base } from "../base";
 import { Context } from "../../IScript";
 
 export default class Component extends Base {
-    constructor() { super("file.save"); }
+    constructor() { super("file.stat"); }
 
     public resolve(obj: any, context: Context) : any {
         if (typeof obj.path !== "string")
             throw new Error(`${this.name()}.path: invalid type (expected string)`);
 
-        if (obj.data === undefined || obj.data === null)
-            throw new Error(`${this.name()}.data: missing required parameter`);
-
         const dirName = Path.dirname(context.location.file);
         const fileName = Path.resolve(dirName, obj.path);
 
+        let stat: FS.Stats;
+
         try {
-            FS.writeFileSync(fileName, obj.data);
-            return null;
+            stat = FS.statSync(fileName);
         } catch {
-            throw new Error(`${this.name()} unable to save '${fileName}' file`);
+            throw new Error(`${this.name()} unable to stat '${fileName}' file`);
         }
+
+        return {
+            size: stat.size,
+            isDir: stat.isDirectory(),
+            isFile: stat.isFile(),
+            isSymlink: stat.isSymbolicLink(),
+            mtimeMs: stat.mtimeMs,
+            ctimeMs: stat.ctimeMs,
+            atimeMs: stat.atimeMs,
+            birthtimeMs: stat.birthtimeMs
+        };
     }
 }

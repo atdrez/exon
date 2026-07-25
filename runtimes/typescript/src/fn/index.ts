@@ -7,6 +7,11 @@ import CsvEncode from "./csv/encode";
 import CsvDecode from "./csv/decode";
 import FileLoad from "./file/load";
 import FileSave from "./file/save";
+import FileStat from "./file/stat";
+import FileExists from "./file/exists";
+import FileDelete from "./file/delete";
+import FileCopy from "./file/copy";
+import FileMove from "./file/move";
 import Map from "./map";
 import Merge from "./merge";
 import Dict from "./dict";
@@ -134,7 +139,7 @@ import IoReadLine from "./io/readLine";
 export function components(): any {
     return [
         JsEval,
-        FileLoad, FileSave,
+        FileLoad, FileSave, FileStat, FileExists, FileDelete, FileCopy, FileMove,
         JsonEncode,
         JsonDecode,
         CsvEncode,
