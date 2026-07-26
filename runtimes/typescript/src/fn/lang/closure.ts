@@ -2,6 +2,7 @@
 
 import { Base } from "../base";
 import { Context } from "../../IScript";
+import { Location } from "../../Context";
 import { Resolver } from "../../Resolver";
 import { RuntimeOptions } from "../../RuntimeOptions";
 import { IScriptRepository } from "../../IScriptRepository";
@@ -22,6 +23,10 @@ export class Closure {
         this.#scope = scope;
         this.#manager = manager;
         this.#options = options;
+    }
+
+    public get location(): Location {
+        return { file: this.#file, line: this.#line };
     }
 
     public resolve(params?: Record<string, any>): any {

@@ -5,7 +5,7 @@ import { RuntimeOptions } from "./RuntimeOptions";
 import { IScript, IPropertyScript } from "./IScript"
 import { IScriptRepository } from "./IScriptRepository";
 
-type Location = {
+export type Location = {
     file: string;
     line: number;
 };
