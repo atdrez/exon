@@ -28,7 +28,8 @@ if [ "$1" = "-r" ]; then
     printf "\n${color}Results: %d ok, %d errors\033[0m\n" "$ok" "$fail"
     [ "$fail" -gt 0 ] && exit 1 || exit 0
 else
-    cd $REPO_DIR/runtimes/typescript/ && npm run test && cd $REPO_DIR
+    cd "$REPO_DIR/runtimes/typescript/" && npm run test || exit 1
+    cd "$REPO_DIR"
 
     for f in "$FIXTURES"/*.exon; do
         "$NODE" "$MAIN" -t -p "$EXAMPLES" "$f" 2>&1
