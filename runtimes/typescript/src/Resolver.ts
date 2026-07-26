@@ -21,6 +21,8 @@ export class Resolver implements IResolver {
         '__idFile__',  // file where __id__ was declared; scopes IDs per file in the registry
         '__ref__',     // marks this object as a binding reference
         '__native__',  // native component name to invoke during resolution
+        '__nativeId__', // id an fn.native{id,path} declaration self-registered under;
+                        // consulted only when walking __base__ for inheritance (see below)
         '__base__',    // parsed base-type object (inheritance)
         '__bind__',    // binding target for @ref declarations
     ]);
@@ -136,8 +138,11 @@ export class Resolver implements IResolver {
         if (!native) {
             let base = obj['__base__'];
             while (base && !native) {
-                if (base['__native__']) {
-                    native = base['__native__'];
+                // __nativeId__ (a self-registered fn.native{id, path}) takes priority
+                // over __native__
+                const baseNative = base['__nativeId__'] || base['__native__'];
+                if (baseNative) {
+                    native = baseNative;
                     nativeSource = base;
                 }
                 base = base['__base__'];
