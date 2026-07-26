@@ -7,7 +7,7 @@ import * as http from 'http';
 import * as tar from 'tar';
 import { describe, it, expect, afterEach } from 'vitest';
 import { installDependencies, installNodeDependencies, uninstallAll, uninstallDependency } from '../src/PackageInstaller';
-import type { PackageConfig } from 'exon';
+import type { PackageConfig } from 'exon-runtime';
 
 let tmpDirs: string[] = [];
 

@@ -2,7 +2,7 @@
 
 import * as Path from "path";
 import { spawnSync } from "child_process";
-import { findProject, PACKAGE_FILE_NAME } from "exon";
+import { findProject, PACKAGE_FILE_NAME } from "exon-runtime";
 
 import { installDependencies, installNodeDependencies, uninstallAll, uninstallDependency } from "./PackageInstaller";
 

@@ -5,8 +5,8 @@ import * as FileSystem from "fs";
 import * as OS from "os";
 import * as tar from "tar";
 import { spawnSync } from "child_process";
-import { loadPackageConfig, PACKAGE_FILE_NAME } from "exon";
-import type { PackageConfig } from "exon";
+import { loadPackageConfig, PACKAGE_FILE_NAME } from "exon-runtime";
+import type { PackageConfig } from "exon-runtime";
 
 export interface InstallLogger {
     info(message: string): void;

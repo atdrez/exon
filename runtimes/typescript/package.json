@@ -1,17 +1,38 @@
 {
-  "name": "exon",
-  "version": "1.0.0",
+  "name": "exon-runtime",
+  "version": "0.1.0",
   "description": "Exon language",
   "license": "MIT",
   "main": "bin/library.js",
+  "types": "bin/library.d.ts",
   "bin": {
     "exon": "./exon.js"
   },
   "files": [
     "bin/**/*.js",
     "bin/**/*.js.map",
+    "bin/**/*.d.ts",
     "exon.js"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atdrez/exon.git",
+    "directory": "runtimes/typescript"
+  },
+  "homepage": "https://github.com/atdrez/exon#readme",
+  "bugs": {
+    "url": "https://github.com/atdrez/exon/issues"
+  },
+  "keywords": [
+    "exon",
+    "config",
+    "language",
+    "runtime",
+    "object graph"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node bin/main.js",
     "lint": "eslint src",
@@ -21,10 +42,8 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "dependencies": {
-    "@types/node": "^25.6.0"
-  },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "eslint": "^10.4.0",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.59.4",
