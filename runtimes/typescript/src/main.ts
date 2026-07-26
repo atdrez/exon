@@ -6,6 +6,7 @@ import { RuntimeOptions } from "./RuntimeOptions";
 import { ScriptRepository } from "./ScriptRepository";
 import { IScriptRepository } from "./IScriptRepository";
 import { parseArgs } from "./parseArgs";
+import { loadNativeExtensions } from "./NativeExtensionLoader";
 
 function printOutput(result: any) {
     if (result instanceof Object) {
@@ -56,6 +57,10 @@ export function execute() {
         const components = Native.components();
         for (let i = 0; i < components.length; i++) {
             manager.register(new components[i]);
+        }
+
+        for (const searchPath of paths) {
+            loadNativeExtensions(manager, searchPath);
         }
     }
 
