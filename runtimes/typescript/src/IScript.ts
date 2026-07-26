@@ -13,6 +13,10 @@ export interface IScript {
     // and false if it's immediate
     isDeferred?(): boolean;
 
+    // Should return true if inheritance concatenates __content__ arrays
+    // instead of the default override
+    isComposable?(): boolean;
+
     // Parser-time hooks (optional).
     // isComponent: return true to store this object as a component definition
     // rather than inline content.

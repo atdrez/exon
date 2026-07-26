@@ -5,6 +5,7 @@ import { IResolver } from "./IResolver";
 import { CallSite, LocatedError } from "./ResolverError";
 import { RuntimeOptions } from "./RuntimeOptions";
 import { IScriptRepository } from "./IScriptRepository";
+import { IScript } from "./IScript";
 
 export class Resolver implements IResolver {
     #context: Context;
@@ -40,11 +41,11 @@ export class Resolver implements IResolver {
         this.#context = new Context(this, manager, options);
     }
 
-    private shouldSkipField(key: string): boolean {
+    static #shouldSkipField(key: string, context: Context): boolean {
         if (Resolver.#METADATA_KEYS.has(key))
             return true;
 
-        return (key === '__tests__' && !this.#context.options.testMode);
+        return (key === '__tests__' && !context.options.testMode);
     }
 
     private registerIdInFile(id: string, file: string, value: any): void {
@@ -157,7 +158,7 @@ export class Resolver implements IResolver {
 
         try {
             if (script?.isDeferred?.()) {
-                const rawForLazy = obj['__base__'] ? this.mergeRawForLazy(obj) : obj;
+                const rawForLazy = obj['__base__'] ? this.mergeRawForLazy(obj, script) : obj;
 
                 this.registerObjectIds(id, idFile, isFileRoot, myFileName, rawForLazy);
 
@@ -236,27 +237,50 @@ export class Resolver implements IResolver {
         }
     }
 
-    private mergeRawForLazy(obj: any): any {
+    static #composeObjectFields(obj: any, merged: any, mergeContent: boolean, context: Context): any {
+        for (const key of Object.keys(obj)) {
+            if (Resolver.#shouldSkipField(key, context))
+                continue;
+
+            if (!mergeContent || key !== '__content__') {
+                merged[key] = obj[key];
+                continue;
+            }
+
+            // __content__ should always be an array
+            if (!Array.isArray(obj[key])) {
+                throw new Error(`__content__ must be an array (got ${typeof obj[key]})`);
+            }
+
+            const source: any[] = obj[key];
+            const target = merged[key];
+
+            if (Array.isArray(target)) {
+                // compose into the cloned array
+                for (let i = 0; i < source.length; i++) {
+                    target.push(source[i]);
+                }
+            } else {
+                // first contribution. copy so later pushes never mutate obj's own array
+                merged[key] = source.slice();
+            }
+        }
+    }
+
+    private mergeRawForLazy(obj: any, script: IScript): any {
         const merged: any = {};
+        const isComposable = script.isComposable?.() === true;
 
         const collectBase = (source: any) => {
             const parent = source['__base__'];
             if (parent) {
                 collectBase(parent);
             }
-            for (const key of Object.keys(source)) {
-                if (!this.shouldSkipField(key)) {
-                    merged[key] = source[key];
-                }
-            }
+            Resolver.#composeObjectFields(source, merged, isComposable, this.#context);
         };
 
         collectBase(obj['__base__']);
-        for (const key of Object.keys(obj)) {
-            if (!this.shouldSkipField(key)) {
-                merged[key] = obj[key];
-            }
-        }
+        Resolver.#composeObjectFields(obj, merged, isComposable, this.#context);
 
         return merged;
     }
@@ -270,7 +294,7 @@ export class Resolver implements IResolver {
         }
 
         for (const key of Object.keys(source)) {
-            if (this.shouldSkipField(key)) {
+            if (Resolver.#shouldSkipField(key, this.#context)) {
                 continue;
             }
 

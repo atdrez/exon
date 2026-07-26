@@ -6,13 +6,15 @@ import { Context, IScript } from "../IScript";
 
 type NativeTarget = {
     isDeferred?: () => boolean;
+    isComposable?: () => boolean;
     resolve: (obj: any, context: Context) => any;
 };
 
 function wrapNativeTarget(target: any): NativeTarget {
     return {
         resolve: (o: any, ctx: Context) => target.resolve(o, ctx),
-        ...(typeof target.isDeferred === 'function' && { isDeferred: () => target.isDeferred() })
+        ...(typeof target.isDeferred === 'function' && { isDeferred: () => target.isDeferred() }),
+        ...(typeof target.isComposable === 'function' && { isComposable: () => target.isComposable() })
     };
 }
 
@@ -53,7 +55,8 @@ function makeNamedScript(id: string, target: NativeTarget): IScript {
     return {
         name: () => id,
         resolve: target.resolve,
-        ...(target.isDeferred && { isDeferred: target.isDeferred })
+        ...(target.isDeferred && { isDeferred: target.isDeferred }),
+        ...(target.isComposable && { isComposable: target.isComposable })
     };
 }
 
