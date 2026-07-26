@@ -1,16 +1,16 @@
 {
-  "name": "exon",
+  "name": "exon-package-manager",
   "version": "1.0.0",
-  "description": "Exon language",
+  "description": "Package manager for exon projects: installs dependencies declared in exon-package.json",
   "license": "MIT",
-  "main": "bin/library.js",
+  "main": "bin/main.js",
   "bin": {
-    "exon": "./exon.js"
+    "expm": "./expm.js"
   },
   "files": [
     "bin/**/*.js",
     "bin/**/*.js.map",
-    "exon.js"
+    "expm.js"
   ],
   "scripts": {
     "start": "node bin/main.js",
@@ -22,7 +22,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "exon": "file:../../runtimes/typescript",
+    "tar": "^7.5.20"
   },
   "devDependencies": {
     "eslint": "^10.4.0",

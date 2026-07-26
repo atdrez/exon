@@ -132,6 +132,33 @@ describe('parseArgs', () => {
             expect(result.targets).toEqual(['script.exon', 'arg1', '--foo']);
         });
     });
+
+    describe('-s / --script flag', () => {
+        it('defaults to null', () => {
+            expect(parseArgs(['script.exon']).options.script).toBeNull();
+        });
+
+        it('recognizes -s <name>', () => {
+            const result = parseArgs(['-s', 'dev']);
+            expect(result.options.script).toBe('dev');
+            expect(result.targets).toEqual([]);
+        });
+
+        it('recognizes --script <name>', () => {
+            const result = parseArgs(['--script', 'dev']);
+            expect(result.options.script).toBe('dev');
+        });
+
+        it('forwards extra args after the script name as targets', () => {
+            const result = parseArgs(['-s', 'dev', 'devmode=1']);
+            expect(result.options.script).toBe('dev');
+            expect(result.targets).toEqual(['devmode=1']);
+        });
+
+        it('leaves script null when -s is given with no following arg', () => {
+            expect(parseArgs(['-s']).options.script).toBeNull();
+        });
+    });
 });
 
 describe('fn.process.argv', () => {

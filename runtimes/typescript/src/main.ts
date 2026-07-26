@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+import { spawnSync } from "child_process";
+
 import { Parser } from "./Parser";
 import { Resolver } from "./Resolver";
 import { RuntimeOptions } from "./RuntimeOptions";
@@ -7,6 +9,7 @@ import { ScriptRepository } from "./ScriptRepository";
 import { IScriptRepository } from "./IScriptRepository";
 import { parseArgs } from "./parseArgs";
 import { loadNativeExtensions } from "./NativeExtensionLoader";
+import { findProject, resolveProjectForTarget, resolveEntryFile, isDirectoryTarget, ExonProject, PACKAGE_FILE_NAME } from "./Project";
 
 function printOutput(result: any) {
     if (result instanceof Object) {
@@ -41,13 +44,70 @@ function runNormal(manager: IScriptRepository, paths: string[], fileName: string
     }
 }
 
+function reportError(message: string): never {
+    console.error("[ERROR]:");
+    console.error(message);
+    return process.exit(1) as never;
+}
+
+function requireProject(dir: string): ExonProject {
+    const project = findProject(dir);
+
+    if (project === null) {
+        reportError(`No ${PACKAGE_FILE_NAME} found in ${dir}`);
+    }
+
+    return project;
+}
+
+// Runs a script's shell command line and forwards its exit code.
+function runShellCommand(cwd: string, command: string, extraArgs: string[]): never {
+    const fullCommand = extraArgs.length > 0 ? `${command} ${extraArgs.join(" ")}` : command;
+    const result = spawnSync(fullCommand, { cwd, stdio: "inherit", shell: true });
+
+    if (result.error) {
+        if ((result.error as NodeJS.ErrnoException).code === "ENOENT") {
+            reportError(`Command not found: ${command}`);
+        }
+        reportError(result.error.message);
+    }
+
+    return process.exit(result.status ?? 0) as never;
+}
+
+function runScript(dir: string, scriptName: string, extraArgs: string[]): never {
+    const project = requireProject(dir);
+    const command = project.config.scripts[scriptName];
+
+    if (command === undefined) {
+        reportError(`Script "${scriptName}" not found in ${project.packagePath}`);
+    }
+
+    return runShellCommand(project.projectDir, command, extraArgs);
+}
+
 export function execute() {
-
     const params = parseArgs(process.argv.slice(2));
+    const cwd = process.cwd();
 
-    const fileName : string = params.targets[0];
-    const paths : string[] = params.options.path;
-    const scriptArgv : string[] = params.targets;
+    if (params.options.script !== null) {
+        runScript(cwd, params.options.script, params.targets);
+        return;
+    }
+
+    let fileName: string = params.targets[0];
+    let paths: string[] = params.options.path;
+    const scriptArgv: string[] = params.targets;
+
+    const project = resolveProjectForTarget(fileName, cwd);
+
+    if (project !== null) {
+        paths = [project.modulesDir, ...paths];
+
+        if (fileName !== undefined && isDirectoryTarget(fileName, cwd)) {
+            fileName = resolveEntryFile(project);
+        }
+    }
 
     const manager = new ScriptRepository();
 

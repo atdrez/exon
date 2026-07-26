@@ -8,6 +8,7 @@ export type ParsedArgs = {
         run: boolean;
         bare: boolean;
         route: string[] | null;
+        script: string | null;
     };
     targets: string[];
 };
@@ -20,6 +21,7 @@ export function parseArgs(raw: string[]): ParsedArgs {
         run: false,
         bare: false,
         route: null,
+        script: null,
     };
 
     let i = 0;
@@ -37,6 +39,12 @@ export function parseArgs(raw: string[]): ParsedArgs {
         } else if (arg === "-b" || arg === "--bare") {
             opts.bare = true;
             i++;
+        } else if (arg === "-s" || arg === "--script") {
+            i++;
+            if (i < raw.length) {
+                opts.script = raw[i];
+                i++;
+            }
         } else if (arg === "--route") {
             i++;
             if (i < raw.length) {
