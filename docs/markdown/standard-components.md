@@ -217,7 +217,7 @@ using fn.process.env
 | Component           | Signature                  | Description              |
 |---------------------|----------------------------|--------------------------|
 | `process.env`   |   `{ "VAR_NAME" }`   |   read an environment variable by name   |
-| `process.exec`   |   `{ a ... }`   |   run a shell command synchronously and return stdout   |
+| `process.exec`   |   `{ a ... }  or  { a ... argv: [...] stdin: "..." shell: bool }`   |   run a shell command synchronously and return stdout   |
 | `process.argv`   |   `{ }  or  { index }  or  { name }`   |   access command-line arguments passed to the runtime   |
 | `process.exit`   |   `{ code }`   |   terminate the process with an exit code   |
 

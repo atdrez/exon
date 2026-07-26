@@ -11,9 +11,10 @@ fn.lazy {
             },
             {
                 name: "process.exec"
-                signature: "{ a ... }"
+                signature: "{ a ... }  or  { a ... argv: [...] stdin: \"...\" shell: bool }"
                 description: "run a shell command synchronously and return stdout"
-                largeDescription: """Executes a shell command synchronously using Node.js's execSync and returns its standard output as a string. One or more positional arguments are concatenated into the final command string. Throws when the command exits with a non-zero status code."""
+                largeDescription: """Executes a command synchronously and returns its standard output as a string. One or more positional arguments are concatenated into a string. By default (no 'argv' key) the concatenated string is run through the shell via Node's execSync, same as before.
+                    When an 'argv' key is provided (an array of strings), the concatenated string is instead treated as an executable path and run directly via execFileSync with 'argv' as its argument list. An optional 'stdin' key (a string) is written to the child process's standard input in any mode."""
             },
             {
                 name: "process.argv"
