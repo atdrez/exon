@@ -9,7 +9,8 @@
     "outDir": "./bin",
     "strictNullChecks": true,
     "sourceMap": true,
-    "declaration": true
+    "declaration": true,
+    "removeComments": true
   },
   "exclude": [
     "bin",

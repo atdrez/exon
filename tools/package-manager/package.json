@@ -1,6 +1,6 @@
 {
   "name": "exon-package-manager",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Package manager for exon projects: installs dependencies declared in exon-package.json",
   "license": "MIT",
   "main": "bin/main.js",
@@ -12,6 +12,23 @@
     "bin/**/*.js.map",
     "expm.js"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atdrez/exon.git",
+    "directory": "tools/package-manager"
+  },
+  "homepage": "https://github.com/atdrez/exon#readme",
+  "bugs": {
+    "url": "https://github.com/atdrez/exon/issues"
+  },
+  "keywords": [
+    "exon",
+    "package-manager",
+    "cli"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node bin/main.js",
     "lint": "eslint src",
@@ -23,7 +40,7 @@
   },
   "dependencies": {
     "@types/node": "^25.6.0",
-    "exon-runtime": "file:../../runtimes/typescript",
+    "exon-runtime": "^0.1.0",
     "tar": "^7.5.20"
   },
   "devDependencies": {
