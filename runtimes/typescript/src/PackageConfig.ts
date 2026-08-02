@@ -5,8 +5,8 @@ import * as FileSystem from "fs";
 export const DEFAULT_ENTRY_FILE = "main.exon";
 
 export interface PackageDependency {
-    source: string;
-    retarget?: string;
+    version: string;
+    registry?: string;
 }
 
 export interface PackageConfig {
@@ -61,18 +61,18 @@ function parseDependencies(raw: any, packagePath: string): Record<string, Packag
 
     for (const key of Object.keys(source)) {
         const entry = expectObject(source[key], `dependencies.${key}`, packagePath);
-        const depSource = expectString(entry.source, `dependencies.${key}.source`, packagePath);
+        const version = expectString(entry.version, `dependencies.${key}.version`, packagePath);
 
-        if (depSource.length === 0) {
-            throw new Error(`${packagePath}: "dependencies.${key}.source" must not be empty`);
+        if (version.length === 0) {
+            throw new Error(`${packagePath}: "dependencies.${key}.version" must not be empty`);
         }
 
-        const dependency: PackageDependency = { source: depSource };
+        const dependency: PackageDependency = { version };
 
-        if (entry.retarget !== undefined) {
-            const retarget = expectString(entry.retarget, `dependencies.${key}.retarget`, packagePath);
-            if (retarget.length > 0) {
-                dependency.retarget = retarget;
+        if (entry.registry !== undefined) {
+            const registry = expectString(entry.registry, `dependencies.${key}.registry`, packagePath);
+            if (registry.length > 0) {
+                dependency.registry = registry;
             }
         }
 

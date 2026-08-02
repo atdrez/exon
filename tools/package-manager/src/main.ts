@@ -5,8 +5,21 @@ import { spawnSync } from "child_process";
 import { findProject, PACKAGE_FILE_NAME } from "exon-runtime";
 
 import { installDependencies, installNodeDependencies, uninstallAll, uninstallDependency } from "./PackageInstaller";
+import { packProject } from "./PackagePacker";
 
-const USAGE = "Usage: expm install [dir]\n       expm uninstall [name]";
+const USAGE = "Usage: expm install [dir]\n       expm uninstall [name]\n       expm pack [dir] [--compress] [--output <dir>]";
+
+function extractFlag(args: string[], flag: string): { rest: string[]; present: boolean } {
+    return { rest: args.filter((arg) => arg !== flag), present: args.includes(flag) };
+}
+
+function extractValueFlag(args: string[], flag: string): { rest: string[]; value: string | undefined } {
+    const index = args.indexOf(flag);
+    if (index === -1) return { rest: args, value: undefined };
+    const value = args[index + 1];
+    const rest = args.filter((_, i) => i !== index && i !== index + 1);
+    return { rest, value };
+}
 
 function reportError(message: string): never {
     console.error("[ERROR]:");
@@ -78,6 +91,26 @@ function runUninstall(args: string[]): void {
     }
 }
 
+async function runPack(args: string[]): Promise<void> {
+    const { rest: rest1, present: compress } = extractFlag(args, "--compress");
+    const { rest: rest2, value: outputArg } = extractValueFlag(rest1, "--output");
+    const cwd = process.cwd();
+    const targetDir = rest2[0] !== undefined ? Path.resolve(cwd, rest2[0]) : cwd;
+    const outputDir = outputArg !== undefined ? Path.resolve(cwd, outputArg) : undefined;
+    const project = findProject(targetDir);
+
+    if (project === null) {
+        reportError(`No ${PACKAGE_FILE_NAME} found in ${targetDir}`);
+        return;
+    }
+
+    try {
+        await packProject(project.projectDir, project.config, undefined, { compress, outputDir });
+    } catch (e) {
+        reportError(e instanceof Error ? e.message : String(e));
+    }
+}
+
 export async function execute(): Promise<void> {
     const [command, ...args] = process.argv.slice(2);
 
@@ -93,6 +126,11 @@ export async function execute(): Promise<void> {
 
     if (command === "uninstall") {
         runUninstall(args);
+        return;
+    }
+
+    if (command === "pack") {
+        await runPack(args);
         return;
     }
 

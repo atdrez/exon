@@ -6,7 +6,7 @@ import * as OS from "os";
 import * as tar from "tar";
 import { spawnSync } from "child_process";
 import { loadPackageConfig, PACKAGE_FILE_NAME } from "exon-runtime";
-import type { PackageConfig } from "exon-runtime";
+import type { PackageConfig, PackageDependency } from "exon-runtime";
 
 export interface InstallLogger {
     info(message: string): void;
@@ -16,12 +16,15 @@ const consoleLogger: InstallLogger = {
     info: (message) => console.log(message),
 };
 
-function isHttpSource(source: string): boolean {
-    return /^https?:\/\//i.test(source);
+const DEFAULT_REGISTRY = "https://packages.exonlang.org";
+
+function urlFor(name: string, dependency: PackageDependency): string {
+    const registry = dependency.registry ?? DEFAULT_REGISTRY;
+    return `${registry}/${name}/${dependency.version}.expkg`;
 }
 
-function targetDirFor(modulesDir: string, name: string, dependency: { retarget?: string }): string {
-    return Path.join(modulesDir, dependency.retarget ?? name);
+function targetDirFor(modulesDir: string, name: string): string {
+    return Path.join(modulesDir, name);
 }
 
 export async function installDependencies(
@@ -33,12 +36,11 @@ export async function installDependencies(
     const projectDir = Path.dirname(packagePath);
     const visited = new Set<string>();
     const nodeDependencies: Record<string, string> = {};
-    await installDependenciesInto(packagePath, config, modulesDir, projectDir, logger, visited, true, nodeDependencies);
+    await installDependenciesInto(config, modulesDir, projectDir, logger, visited, true, nodeDependencies);
     return nodeDependencies;
 }
 
 async function installDependenciesInto(
-    packagePath: string,
     config: PackageConfig,
     modulesDir: string,
     projectDir: string,
@@ -58,24 +60,18 @@ async function installDependenciesInto(
 
     FileSystem.mkdirSync(modulesDir, { recursive: true });
 
-    const packageDir = Path.dirname(packagePath);
-
     for (const name of names) {
         const dependency = config.dependencies[name];
-        const targetDir = targetDirFor(modulesDir, name, dependency);
+        const targetDir = targetDirFor(modulesDir, name);
 
         if (visited.has(targetDir)) {
             continue;
         }
         visited.add(targetDir);
 
-        logger.info(`Installing "${name}" -> exon_modules/${dependency.retarget ?? name} ...`);
+        logger.info(`Installing "${name}" -> exon_modules/${name} ...`);
 
-        if (isHttpSource(dependency.source)) {
-            await installFromHttp(dependency.source, targetDir);
-        } else {
-            installFromLocalPath(dependency.source, packageDir, targetDir);
-        }
+        await installFromHttp(urlFor(name, dependency), targetDir);
 
         await collectTransitive(targetDir, modulesDir, projectDir, logger, visited, nodeDependencies);
     }
@@ -98,7 +94,7 @@ async function collectTransitive(
     const nestedConfig = loadPackageConfig(nestedPackagePath);
 
     Object.assign(nodeDependencies, nestedConfig.nodeDependencies);
-    await installDependenciesInto(nestedPackagePath, nestedConfig, modulesDir, projectDir, logger, visited, false, nodeDependencies);
+    await installDependenciesInto(nestedConfig, modulesDir, projectDir, logger, visited, false, nodeDependencies);
 }
 
 export function uninstallAll(modulesDir: string, logger: InstallLogger = consoleLogger): void {
@@ -123,7 +119,7 @@ export function uninstallDependency(
         throw new Error(`Dependency "${name}" is not declared in exon-package.json`);
     }
 
-    const targetDir = targetDirFor(modulesDir, name, dependency);
+    const targetDir = targetDirFor(modulesDir, name);
 
     if (!FileSystem.existsSync(targetDir)) {
         logger.info(`"${name}" is not installed.`);
@@ -131,7 +127,7 @@ export function uninstallDependency(
     }
 
     FileSystem.rmSync(targetDir, { recursive: true, force: true });
-    logger.info(`Removed "${name}" (exon_modules/${dependency.retarget ?? name}).`);
+    logger.info(`Removed "${name}" (exon_modules/${name}).`);
 }
 
 export function installNodeDependencies(
@@ -161,17 +157,6 @@ export function installNodeDependencies(
     }
 }
 
-function installFromLocalPath(source: string, packageDir: string, targetDir: string): void {
-    const sourceDir = Path.isAbsolute(source) ? source : Path.resolve(packageDir, source);
-
-    if (!FileSystem.existsSync(sourceDir)) {
-        throw new Error(`Dependency source does not exist: ${sourceDir}`);
-    }
-
-    FileSystem.rmSync(targetDir, { recursive: true, force: true });
-    FileSystem.cpSync(sourceDir, targetDir, { recursive: true });
-}
-
 async function installFromHttp(url: string, targetDir: string): Promise<void> {
     const response = await fetch(url);
 
@@ -181,7 +166,7 @@ async function installFromHttp(url: string, targetDir: string): Promise<void> {
 
     const buffer = Buffer.from(await response.arrayBuffer());
     const tmpDir = FileSystem.mkdtempSync(Path.join(OS.tmpdir(), "exon-install-"));
-    const tmpFile = Path.join(tmpDir, "package.tar.gz");
+    const tmpFile = Path.join(tmpDir, "package.expkg");
 
     try {
         FileSystem.writeFileSync(tmpFile, buffer);

@@ -75,27 +75,23 @@ describe('loadPackageConfig', () => {
         expect(loadPackageConfig(filePath).scripts).toEqual({});
     });
 
-    it('parses dependencies with source and optional retarget', () => {
+    it('parses dependencies with version and optional registry', () => {
         const filePath = writePackageJson(`{
             "dependencies": {
-                "ui": {
-                    "source": "http://link.com/ui/v1.0"
+                "std/flow": {
+                    "version": "0.1.0"
                 },
-                "http": {
-                    "retarget": "otherHttp",
-                    "source": "http://link.com/http/v2.0"
-                },
-                "local": {
-                    "source": "../../myfavoritepackage"
+                "std/shaderlab": {
+                    "version": "0.1.0",
+                    "registry": "https://abc.org"
                 }
             }
         }`);
 
         const config = loadPackageConfig(filePath);
 
-        expect(config.dependencies.ui).toEqual({ source: 'http://link.com/ui/v1.0' });
-        expect(config.dependencies.http).toEqual({ retarget: 'otherHttp', source: 'http://link.com/http/v2.0' });
-        expect(config.dependencies.local).toEqual({ source: '../../myfavoritepackage' });
+        expect(config.dependencies['std/flow']).toEqual({ version: '0.1.0' });
+        expect(config.dependencies['std/shaderlab']).toEqual({ version: '0.1.0', registry: 'https://abc.org' });
     });
 
     it('defaults dependencies to an empty object when missing', () => {
@@ -103,12 +99,12 @@ describe('loadPackageConfig', () => {
         expect(loadPackageConfig(filePath).dependencies).toEqual({});
     });
 
-    it('throws when a dependency is missing "source"', () => {
+    it('throws when a dependency is missing "version"', () => {
         const filePath = writePackageJson(`{
-            "dependencies": { "ui": { "retarget": "foo" } }
+            "dependencies": { "ui": { "registry": "https://abc.org" } }
         }`);
 
-        expect(() => loadPackageConfig(filePath)).toThrow(/source/);
+        expect(() => loadPackageConfig(filePath)).toThrow(/version/);
     });
 
     it('throws when "scripts" is not an object', () => {
