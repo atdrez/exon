@@ -7,6 +7,7 @@ import { Lexer } from "./Lexer"
 import { TokenType } from "./TokenType";
 import { ParserError } from "./ParserError";
 import { IScriptRepository } from "./IScriptRepository";
+import { PathResolver } from "./PathResolver";
 
 type UsingEntry = { namespace: string; alias: string; isWildcard: boolean };
 
@@ -57,22 +58,7 @@ export class Parser {
     }
 
     private resolveFileName(objectName: string, dirName: string) : string {
-        let resolvedDir = dirName;
-        let name = objectName;
-
-        if (name.startsWith('..')) {
-            let dotCount = 0;
-            while (dotCount < name.length && name[dotCount] === '.')
-                dotCount++;
-            const levelsUp = dotCount - 1;
-            for (let i = 0; i < levelsUp; i++) {
-                resolvedDir = Path.dirname(resolvedDir);
-            }
-            name = name.slice(dotCount);
-        }
-
-        const basePath = name.split(".").join("/");
-        const fileName = Path.join(resolvedDir, basePath + Parser.#extension);
+        const fileName = PathResolver.resolveDottedPath(objectName, dirName);
 
         if (this.fileExists(fileName))
             return fileName;

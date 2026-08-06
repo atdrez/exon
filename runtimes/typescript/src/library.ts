@@ -2,6 +2,7 @@
 
 export { Parser } from "./Parser";
 export { Resolver } from "./Resolver";
+export { PathResolver } from "./PathResolver";
 export { IScript, IPropertyScript } from "./IScript";
 export { Context, Location } from "./Context";
 export { IScriptRepository } from "./IScriptRepository";
