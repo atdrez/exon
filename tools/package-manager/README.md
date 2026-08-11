@@ -41,7 +41,16 @@ expm publish [dir] [--compress] [--registry <url>]
 ```
 
 - `expm install [dir]` - installs the dependencies declared in the
-  `exon-package.json` found in `dir` (defaults to the current directory).
+  `exon-package.json` found in `dir` (defaults to the current directory). Each
+  dependency is fetched from its registry (the `registry` field in its
+  `dependencies` entry, or `https://packages.exonlang.org` by default) via the
+  registry backend's package API: a `GET /api/v1/packages/<name>/<version>`
+  metadata request, which carries the published SHA-256 hash, followed by a
+  `GET .../download` request for the archive itself. The downloaded archive
+  is hashed and checked against the metadata's hash before extraction, so a
+  corrupted or truncated download is rejected instead of silently installed.
+  Both requests require an `EXON_REGISTRY_TOKEN` environment variable holding
+  a bearer token.
 - `expm uninstall [name]` - uninstalls the given dependency, or all installed
   dependencies if `name` is omitted.
 - `expm pack [dir] [--compress]` - packages the contents of `dir` (defaults to

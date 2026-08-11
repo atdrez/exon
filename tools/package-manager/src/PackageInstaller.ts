@@ -3,13 +3,19 @@
 import * as Path from "path";
 import * as FileSystem from "fs";
 import * as OS from "os";
+import * as Crypto from "crypto";
 import * as tar from "tar";
 import { spawnSync } from "child_process";
 import { loadPackageConfig, PACKAGE_FILE_NAME } from "exon-runtime";
-import type { PackageConfig, PackageDependency } from "exon-runtime";
+import type { PackageConfig } from "exon-runtime";
 
 export interface InstallLogger {
     info(message: string): void;
+}
+
+interface PackageMetadata {
+    hash: string;
+    downloadUrl: string;
 }
 
 const consoleLogger: InstallLogger = {
@@ -18,9 +24,28 @@ const consoleLogger: InstallLogger = {
 
 const DEFAULT_REGISTRY = "https://packages.exonlang.org";
 
-function urlFor(name: string, dependency: PackageDependency): string {
-    const registry = dependency.registry ?? DEFAULT_REGISTRY;
-    return `${registry}/${name}/${dependency.version}.expkg`;
+function metadataUrlFor(registry: string, name: string, version: string): string {
+    return `${registry.replace(/\/+$/, "")}/api/v1/packages/${name}/${version}`;
+}
+
+function authToken(): string {
+    const token = process.env.EXON_REGISTRY_TOKEN;
+
+    if (token === undefined || token.length === 0) {
+        throw new Error("No registry auth token found. Set the EXON_REGISTRY_TOKEN environment variable.");
+    }
+
+    return token;
+}
+
+async function fetchAuthenticated(url: string): Promise<Response> {
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${authToken()}` } });
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch "${url}": ${response.status} ${response.statusText}`);
+    }
+
+    return response;
 }
 
 function targetDirFor(modulesDir: string, name: string): string {
@@ -71,7 +96,7 @@ async function installDependenciesInto(
 
         logger.info(`Installing "${name}" -> exon_modules/${name} ...`);
 
-        await installFromHttp(urlFor(name, dependency), targetDir);
+        await installFromHttp(dependency.registry ?? DEFAULT_REGISTRY, name, dependency.version, targetDir);
 
         await collectTransitive(targetDir, modulesDir, projectDir, logger, visited, nodeDependencies);
     }
@@ -157,14 +182,24 @@ export function installNodeDependencies(
     }
 }
 
-async function installFromHttp(url: string, targetDir: string): Promise<void> {
-    const response = await fetch(url);
+// Fetches the package's metadata (which carries the same hash the registry wrote to
+// "{name}@{version}/meta.json" on publish, see backend/docs/api.md) before downloading the
+// archive, so the downloaded bytes can be checksummed against it - catching a corrupted or
+// truncated download before it gets extracted into exon_modules.
+async function installFromHttp(registry: string, name: string, version: string, targetDir: string): Promise<void> {
+    const metadataUrl = metadataUrlFor(registry, name, version);
+    const metadataResponse = await fetchAuthenticated(metadataUrl);
+    const metadata = (await metadataResponse.json()) as PackageMetadata;
 
-    if (!response.ok) {
-        throw new Error(`Failed to download "${url}": ${response.status} ${response.statusText}`);
+    const downloadUrl = new URL(metadata.downloadUrl, metadataUrl).toString();
+    const downloadResponse = await fetchAuthenticated(downloadUrl);
+    const buffer = Buffer.from(await downloadResponse.arrayBuffer());
+
+    const hash = Crypto.createHash("sha256").update(buffer).digest("hex");
+    if (hash !== metadata.hash) {
+        throw new Error(`Checksum mismatch for "${name}@${version}": expected ${metadata.hash}, got ${hash}.`);
     }
 
-    const buffer = Buffer.from(await response.arrayBuffer());
     const tmpDir = FileSystem.mkdtempSync(Path.join(OS.tmpdir(), "exon-install-"));
     const tmpFile = Path.join(tmpDir, "package.expkg");
 

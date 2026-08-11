@@ -4,12 +4,17 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
+import * as crypto from 'crypto';
 import * as tar from 'tar';
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { installDependencies, installNodeDependencies, uninstallAll, uninstallDependency } from '../src/PackageInstaller';
 import type { PackageConfig } from 'exon-runtime';
 
 let tmpDirs: string[] = [];
+
+beforeEach(() => {
+    vi.stubEnv('EXON_REGISTRY_TOKEN', 'test-token');
+});
 
 function mkTmpDir(prefix: string): string {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -45,19 +50,56 @@ async function makeArchive(files: Record<string, string>): Promise<Buffer> {
     return fs.readFileSync(archivePath);
 }
 
-function startServer(routes: Record<string, Buffer>): Promise<{ baseUrl: string; close: () => Promise<void> }> {
+interface ServedPackage {
+    archive: Buffer;
+    // Override the hash reported by the metadata endpoint, to simulate a corrupted download.
+    hash?: string;
+}
+
+const API_PREFIX = '/api/v1/packages/';
+
+// Serves the same two-step, Bearer-authenticated shape the real registry backend does: a
+// metadata endpoint carrying the published hash, and a download endpoint for the archive
+// itself, keyed by "name/version" (name may itself contain "/" for scoped packages).
+function startServer(packages: Record<string, ServedPackage>): Promise<{ baseUrl: string; close: () => Promise<void> }> {
     return new Promise((resolve) => {
         const server = http.createServer((req, res) => {
-            const buffer = req.url !== undefined ? routes[req.url] : undefined;
+            const url = req.url ?? '';
 
-            if (buffer === undefined) {
+            if (!url.startsWith(API_PREFIX)) {
                 res.writeHead(404);
                 res.end('not found');
                 return;
             }
 
-            res.writeHead(200, { 'Content-Type': 'application/gzip' });
-            res.end(buffer);
+            const isDownload = url.endsWith('/download');
+            const pathPart = isDownload ? url.slice(API_PREFIX.length, -'/download'.length) : url.slice(API_PREFIX.length);
+            const segments = pathPart.split('/');
+            const version = segments.pop();
+            const key = `${segments.join('/')}/${version}`;
+            const served = packages[key];
+
+            if (served === undefined) {
+                res.writeHead(404);
+                res.end('not found');
+                return;
+            }
+
+            if (req.headers.authorization !== 'Bearer test-token') {
+                res.writeHead(401);
+                res.end('unauthorized');
+                return;
+            }
+
+            if (isDownload) {
+                res.writeHead(200, { 'Content-Type': 'application/octet-stream' });
+                res.end(served.archive);
+                return;
+            }
+
+            const hash = served.hash ?? crypto.createHash('sha256').update(served.archive).digest('hex');
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ hash, downloadUrl: `${API_PREFIX}${key}/download` }));
         });
 
         server.listen(0, () => {
@@ -78,10 +120,11 @@ afterEach(() => {
     }
     tmpDirs = [];
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
 });
 
 describe('installDependencies: URL construction', () => {
-    it('builds the download URL from name and version against the default registry when "registry" is omitted', async () => {
+    it('builds the metadata URL from name and version against the default registry when "registry" is omitted', async () => {
         const { projectDir, packagePath } = makeProject();
         const modulesDir = path.join(projectDir, 'exon_modules');
         const config = makeConfig({ 'std/flow': { version: '0.1.0' } });
@@ -89,7 +132,7 @@ describe('installDependencies: URL construction', () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' }));
 
         await expect(installDependencies(packagePath, config, modulesDir)).rejects.toThrow(
-            'https://packages.exonlang.org/std/flow/0.1.0.expkg'
+            'https://packages.exonlang.org/api/v1/packages/std/flow/0.1.0'
         );
     });
 
@@ -101,8 +144,17 @@ describe('installDependencies: URL construction', () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' }));
 
         await expect(installDependencies(packagePath, config, modulesDir)).rejects.toThrow(
-            'https://abc.org/std/shaderlab/0.1.0.expkg'
+            'https://abc.org/api/v1/packages/std/shaderlab/0.1.0'
         );
+    });
+
+    it('throws a clear error when EXON_REGISTRY_TOKEN is not set', async () => {
+        vi.unstubAllEnvs();
+        const { projectDir, packagePath } = makeProject();
+        const modulesDir = path.join(projectDir, 'exon_modules');
+        const config = makeConfig({ ui: { version: '1.0.0' } });
+
+        await expect(installDependencies(packagePath, config, modulesDir)).rejects.toThrow(/EXON_REGISTRY_TOKEN/);
     });
 });
 
@@ -110,7 +162,7 @@ describe('installDependencies: http downloads', () => {
     it('downloads and extracts a .expkg archive into exon_modules/<name>', async () => {
         const { projectDir, packagePath } = makeProject();
         const archive = await makeArchive({ 'index.exon': '{ served: true }' });
-        const { baseUrl, close } = await startServer({ '/ui/1.0.0.expkg': archive });
+        const { baseUrl, close } = await startServer({ 'ui/1.0.0': { archive } });
 
         try {
             const modulesDir = path.join(projectDir, 'exon_modules');
@@ -129,7 +181,7 @@ describe('installDependencies: http downloads', () => {
     it('nests a scoped/namespaced dependency name into matching subdirectories in exon_modules', async () => {
         const { projectDir, packagePath } = makeProject();
         const archive = await makeArchive({ 'lib.exon': '{}' });
-        const { baseUrl, close } = await startServer({ '/std/utils/math/2.0.0.expkg': archive });
+        const { baseUrl, close } = await startServer({ 'std/utils/math/2.0.0': { archive } });
 
         try {
             const modulesDir = path.join(projectDir, 'exon_modules');
@@ -157,6 +209,22 @@ describe('installDependencies: http downloads', () => {
         }
     });
 
+    it('throws a checksum mismatch error when the downloaded archive does not match the published hash', async () => {
+        const { projectDir, packagePath } = makeProject();
+        const archive = await makeArchive({ 'index.exon': '{}' });
+        const { baseUrl, close } = await startServer({ 'ui/1.0.0': { archive, hash: 'deadbeef' } });
+
+        try {
+            const modulesDir = path.join(projectDir, 'exon_modules');
+            const config = makeConfig({ ui: { version: '1.0.0', registry: baseUrl } });
+
+            await expect(installDependencies(packagePath, config, modulesDir)).rejects.toThrow(/checksum mismatch/i);
+            expect(fs.existsSync(path.join(modulesDir, 'ui'))).toBe(false);
+        } finally {
+            await close();
+        }
+    });
+
     it('does nothing when there are no dependencies', async () => {
         const { projectDir, packagePath } = makeProject();
         const modulesDir = path.join(projectDir, 'exon_modules');
@@ -178,7 +246,7 @@ describe('installDependencies: transitive nodeDependencies', () => {
                 nodeDependencies: { 'some-pkg': '^1.0.0' },
             }),
         });
-        const { baseUrl, close } = await startServer({ '/mylib/1.0.0.expkg': archive });
+        const { baseUrl, close } = await startServer({ 'mylib/1.0.0': { archive } });
 
         try {
             const modulesDir = path.join(projectDir, 'exon_modules');
@@ -209,7 +277,7 @@ describe('installDependencies: transitive nodeDependencies', () => {
             }),
         });
 
-        const { baseUrl, close } = await startServer({ '/b/1.0.0.expkg': archiveB });
+        const { baseUrl, close } = await startServer({ 'b/1.0.0': { archive: archiveB } });
 
         try {
             const archiveA = await makeArchive({
@@ -221,7 +289,7 @@ describe('installDependencies: transitive nodeDependencies', () => {
                 }),
             });
 
-            const { baseUrl: rootUrl, close: closeRoot } = await startServer({ '/a/1.0.0.expkg': archiveA });
+            const { baseUrl: rootUrl, close: closeRoot } = await startServer({ 'a/1.0.0': { archive: archiveA } });
 
             try {
                 const modulesDir = path.join(projectDir, 'exon_modules');
@@ -243,7 +311,7 @@ describe('uninstallAll', () => {
     it('removes the entire modules directory', async () => {
         const { projectDir, packagePath } = makeProject();
         const archive = await makeArchive({ 'lib.exon': '{}' });
-        const { baseUrl, close } = await startServer({ '/mylib/1.0.0.expkg': archive });
+        const { baseUrl, close } = await startServer({ 'mylib/1.0.0': { archive } });
 
         try {
             const modulesDir = path.join(projectDir, 'exon_modules');
@@ -273,8 +341,8 @@ describe('uninstallDependency', () => {
         const archiveA = await makeArchive({ 'a.exon': '{}' });
         const archiveB = await makeArchive({ 'b.exon': '{}' });
         const { baseUrl, close } = await startServer({
-            '/http/1.0.0.expkg': archiveA,
-            '/keep/1.0.0.expkg': archiveB,
+            'http/1.0.0': { archive: archiveA },
+            'keep/1.0.0': { archive: archiveB },
         });
 
         try {
