@@ -96,7 +96,7 @@ async function installDependenciesInto(
 
         logger.info(`Installing "${name}" -> exon_modules/${name} ...`);
 
-        await installFromHttp(dependency.registry ?? DEFAULT_REGISTRY, name, dependency.version, targetDir);
+        await installFromHttp(dependency.registry ?? process.env.EXON_REGISTRY_API ?? DEFAULT_REGISTRY, name, dependency.version, targetDir);
 
         await collectTransitive(targetDir, modulesDir, projectDir, logger, visited, nodeDependencies);
     }
