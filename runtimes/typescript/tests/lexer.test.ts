@@ -50,6 +50,19 @@ describe('Lexer', () => {
             expect(tokens[1]).toMatchObject({ type: TokenType.Minus });
             expect(tokens[2]).toMatchObject({ type: TokenType.Identifier, text: 'b' });
         });
+
+        it('reads a scoped package identifier with a leading plus as a single token', () => {
+            const [t] = readAll('+google.apis');
+            expect(t.type).toBe(TokenType.Identifier);
+            expect(t.text).toBe('+google.apis');
+        });
+
+        it('does not accept a plus in the middle of an identifier', () => {
+            const tokens = readAll('foo+bar');
+            expect(tokens).toHaveLength(2);
+            expect(tokens[0]).toMatchObject({ type: TokenType.Identifier, text: 'foo' });
+            expect(tokens[1]).toMatchObject({ type: TokenType.Identifier, text: '+bar' });
+        });
     });
 
     describe('keywords', () => {

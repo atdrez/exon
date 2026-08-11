@@ -113,6 +113,11 @@ describe('compressExon', () => {
         const source = 'flow.node{name:"foo";value:1}';
         expect(compressExon(source)).toBe(source);
     });
+
+    it('does not need a separator before a scoped package identifier, since the leading plus already breaks the token', () => {
+        const source = 'using +google.apis';
+        expect(compressExon(source)).toBe('using+google.apis');
+    });
 });
 
 describe('compressJs', () => {

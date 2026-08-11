@@ -11,6 +11,7 @@ const CH_CR         =  13;
 const CH_SPACE      =  32;
 const CH_DQUOTE     =  34;
 const CH_STAR       =  42;
+const CH_PLUS       =  43;
 const CH_COMMA      =  44;
 const CH_MINUS      =  45;
 const CH_DOT        =  46;
@@ -294,9 +295,10 @@ export class Lexer {
 
         // identifiers
         default: {
-            // valid identifier start: A-Z a-z _ * .
+            // valid identifier start: A-Z a-z _ * . +
             let isValidChar = (ch >= CH_A && ch <= CH_Z) || (ch >= CH_a && ch <= CH_z)
-                           || ch === CH_UNDERSCORE || ch === CH_STAR || ch === CH_DOT;
+                           || ch === CH_UNDERSCORE || ch === CH_STAR || ch === CH_DOT
+                           || ch === CH_PLUS;
 
             if (!isValidChar) {
                 throw new LexerError("Unexpected character: " + String.fromCharCode(ch),

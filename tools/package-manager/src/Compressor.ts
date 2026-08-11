@@ -18,7 +18,7 @@ export async function compressJs(source: string, fileName?: string): Promise<str
 }
 
 const NUMBER_CONTINUE = /[0-9.]/;
-const IDENTIFIER_START = /[A-Za-z_*.]/;
+const IDENTIFIER_START = /[A-Za-z_*.+]/;
 const IDENTIFIER_CONTINUE = /[A-Za-z0-9_.*-]/;
 
 // Punctuation tokens that are always exactly one character and never enter a
