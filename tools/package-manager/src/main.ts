@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: MIT
 
 import * as Path from "path";
+import * as FileSystem from "fs";
+import * as OS from "os";
 import { spawnSync } from "child_process";
 import { findProject, PACKAGE_FILE_NAME } from "exon-runtime";
 
 import { installDependencies, installNodeDependencies, uninstallAll, uninstallDependency } from "./PackageInstaller";
 import { packProject } from "./PackagePacker";
+import { PackagePublisher } from "./PackagePublisher";
 
-const USAGE = "Usage: expm install [dir]\n       expm uninstall [name]\n       expm pack [dir] [--compress] [--output <dir>]";
+const USAGE = "Usage: expm install [dir]\n       expm uninstall [name]\n"
+    + "       expm pack [dir] [--compress] [--output <dir>]\n"
+    + "       expm publish [dir] [--compress] [--registry <url>]";
 
 function extractFlag(args: string[], flag: string): { rest: string[]; present: boolean } {
     return { rest: args.filter((arg) => arg !== flag), present: args.includes(flag) };
@@ -111,6 +116,38 @@ async function runPack(args: string[]): Promise<void> {
     }
 }
 
+async function runPublish(args: string[]): Promise<void> {
+    const { rest: rest1, present: compress } = extractFlag(args, "--compress");
+    const { rest: rest2, value: registry } = extractValueFlag(rest1, "--registry");
+    const cwd = process.cwd();
+    const targetDir = rest2[0] !== undefined ? Path.resolve(cwd, rest2[0]) : cwd;
+    const project = findProject(targetDir);
+
+    if (project === null) {
+        reportError(`No ${PACKAGE_FILE_NAME} found in ${targetDir}`);
+        return;
+    }
+
+    const { name, version, description } = project.config;
+
+    if (name === undefined || version === undefined) {
+        reportError(`${PACKAGE_FILE_NAME} must declare "name" and "version" to publish.`);
+        return;
+    }
+
+    const stagingDir = FileSystem.mkdtempSync(Path.join(OS.tmpdir(), "exon-publish-"));
+
+    try {
+        const archivePath = await packProject(project.projectDir, project.config, undefined, { compress, outputDir: stagingDir });
+        const publisher = new PackagePublisher({ registry });
+        await publisher.publish(archivePath, name, version, description);
+    } catch (e) {
+        reportError(e instanceof Error ? e.message : String(e));
+    } finally {
+        FileSystem.rmSync(stagingDir, { recursive: true, force: true });
+    }
+}
+
 export async function execute(): Promise<void> {
     const [command, ...args] = process.argv.slice(2);
 
@@ -131,6 +168,11 @@ export async function execute(): Promise<void> {
 
     if (command === "pack") {
         await runPack(args);
+        return;
+    }
+
+    if (command === "publish") {
+        await runPublish(args);
         return;
     }
 

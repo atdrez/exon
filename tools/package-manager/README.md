@@ -37,6 +37,7 @@ npx expm install
 expm install [dir]
 expm uninstall [name]
 expm pack [dir] [--compress]
+expm publish [dir] [--compress] [--registry <url>]
 ```
 
 - `expm install [dir]` - installs the dependencies declared in the
@@ -54,3 +55,19 @@ expm pack [dir] [--compress]
   `.exon` files have comments and insignificant whitespace removed (string
   contents, including triple-quoted multiline strings, are left untouched);
   all other files are copied through unchanged.
+- `expm publish [dir] [--compress] [--registry <url>]` - packs the project in
+  `dir` (defaults to the current directory) the same way as `pack`, then
+  publishes the resulting archive to the exon package registry. `name` and
+  `version` must be set in `exon-package.json`. Publishing requires an
+  `EXON_REGISTRY_TOKEN` environment variable holding a bearer token (obtained
+  by logging in against the registry's backend); the registry API base URL
+  defaults to `https://packages.exonlang.org` and can be overridden with the
+  `EXON_REGISTRY_API` environment variable or the `--registry` flag.
+
+  Publishing follows the registry's three-step, upload-direct-to-storage
+  flow: declare the package and get back presigned upload URLs for each part
+  of the archive, upload every part straight to storage, then report the
+  uploaded parts back so the registry can finalize and publish the package.
+  Archive bytes are never proxied through this tool's own process beyond
+  reading the packed file and streaming it out - see the backend's
+  `backend/docs/api.md` for the full protocol.
