@@ -60,11 +60,12 @@ export class Parser {
     private resolveFileName(objectName: string, dirName: string) : string {
         const fileName = PathResolver.resolveDottedPath(objectName, dirName);
 
-        if (this.fileExists(fileName))
-            return fileName;
+        if (objectName.startsWith('.')) {
+            if (this.fileExists(fileName))
+                return fileName;
 
-        if (objectName.startsWith('..'))
             throw new Error(`File does not exists: ${fileName}`);
+        }
 
         const relativePath = Path.relative(dirName, fileName);
 
@@ -74,6 +75,9 @@ export class Parser {
             if (this.fileExists(resolvedPath))
                 return resolvedPath;
         }
+
+        if (this.fileExists(fileName))
+            return fileName;
 
         throw new Error(`File does not exists: ${relativePath}`);
     }

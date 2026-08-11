@@ -9,7 +9,7 @@ export class PathResolver {
         let resolvedDir = dirName;
         let name = objectName;
 
-        if (name.startsWith('..')) {
+        if (name.startsWith('.')) {
             let dotCount = 0;
             while (dotCount < name.length && name[dotCount] === '.')
                 dotCount++;

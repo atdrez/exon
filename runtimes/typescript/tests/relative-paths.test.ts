@@ -1,7 +1,10 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { describe, it, expect } from 'vitest';
 import { Lexer } from '../src/Lexer';
 import { TokenType } from '../src/TokenType';
-import { compileAt } from './helpers';
+import { compileAt, parseAndResolve } from './helpers';
 
 function readTokens(source: string) {
     const lexer = new Lexer(Buffer.from(source), 'test.exon');
@@ -47,6 +50,153 @@ describe('lexer: leading-dot identifiers', () => {
         const [t] = readTokens('....ns.*');
         expect(t.type).toBe(TokenType.Identifier);
         expect(t.text).toBe('....ns.*');
+    });
+
+    it('tokenizes .foo as a single identifier', () => {
+        const [t] = readTokens('.foo');
+        expect(t.type).toBe(TokenType.Identifier);
+        expect(t.text).toBe('.foo');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Parser: . (local file, not exon_modules)
+// ---------------------------------------------------------------------------
+
+describe('. (local file, not exon_modules)', () => {
+    it('inherits from a file in the same directory', () => {
+        const result = compileAt(
+            'sub',
+            `.Echo { }`,
+            { 'sub/Echo.exon': `{ msg: "hi" }` }
+        );
+        expect(result).toEqual({ msg: 'hi' });
+    });
+
+    it('overrides a property from the local file', () => {
+        const result = compileAt(
+            'sub',
+            `.Base { color: "blue" }`,
+            { 'sub/Base.exon': `{ color: "red" size: 10 }` }
+        );
+        expect(result).toEqual({ color: 'blue', size: 10 });
+    });
+
+    it('resolves a dotted name in the same directory', () => {
+        const result = compileAt(
+            'sub',
+            `.dir.Widget { }`,
+            { 'sub/dir/Widget.exon': `{ w: 1 }` }
+        );
+        expect(result).toEqual({ w: 1 });
+    });
+
+    it('throws when the local file does not exist', () => {
+        expect(() =>
+            compileAt('sub', `.Missing { }`)
+        ).toThrow();
+    });
+
+    it('does not fall back to a same-named file on the module search path', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'exon-test-'));
+        try {
+            const mainDir = path.join(dir, 'sub');
+            fs.mkdirSync(mainDir, { recursive: true });
+            const mainFile = path.join(mainDir, 'Main.exon');
+            fs.writeFileSync(mainFile, `.Echo { }`);
+
+            const modulesDir = path.join(dir, 'exon_modules');
+            fs.mkdirSync(modulesDir, { recursive: true });
+            fs.writeFileSync(path.join(modulesDir, 'Echo.exon'), `{ msg: "from module" }`);
+
+            expect(() => parseAndResolve(mainFile, [modulesDir])).toThrow();
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+    });
+
+    it('resolves a bare name (no leading dot) via the module search path', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'exon-test-'));
+        try {
+            const mainDir = path.join(dir, 'sub');
+            fs.mkdirSync(mainDir, { recursive: true });
+            const mainFile = path.join(mainDir, 'Main.exon');
+            fs.writeFileSync(mainFile, `Echo { }`);
+
+            const modulesDir = path.join(dir, 'exon_modules');
+            fs.mkdirSync(modulesDir, { recursive: true });
+            fs.writeFileSync(path.join(modulesDir, 'Echo.exon'), `{ msg: "from module" }`);
+
+            const result = parseAndResolve(mainFile, [modulesDir]);
+            expect(result).toEqual({ msg: 'from module' });
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Name-clash resolution: module search paths vs. local files
+// ---------------------------------------------------------------------------
+
+describe('module search paths take priority over local files for bare names', () => {
+    it('prefers the module search path when a bare name exists in both places', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'exon-test-'));
+        try {
+            const mainDir = path.join(dir, 'sub');
+            fs.mkdirSync(mainDir, { recursive: true });
+            const mainFile = path.join(mainDir, 'Main.exon');
+            fs.writeFileSync(mainFile, `Echo { }`);
+            fs.writeFileSync(path.join(mainDir, 'Echo.exon'), `{ msg: "local" }`);
+
+            const modulesDir = path.join(dir, 'exon_modules');
+            fs.mkdirSync(modulesDir, { recursive: true });
+            fs.writeFileSync(path.join(modulesDir, 'Echo.exon'), `{ msg: "from module" }`);
+
+            const result = parseAndResolve(mainFile, [modulesDir]);
+            expect(result).toEqual({ msg: 'from module' });
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+    });
+
+    it('falls back to the local file when the bare name is not found in any search path', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'exon-test-'));
+        try {
+            const mainDir = path.join(dir, 'sub');
+            fs.mkdirSync(mainDir, { recursive: true });
+            const mainFile = path.join(mainDir, 'Main.exon');
+            fs.writeFileSync(mainFile, `Echo { }`);
+            fs.writeFileSync(path.join(mainDir, 'Echo.exon'), `{ msg: "local" }`);
+
+            const modulesDir = path.join(dir, 'exon_modules');
+            fs.mkdirSync(modulesDir, { recursive: true });
+
+            const result = parseAndResolve(mainFile, [modulesDir]);
+            expect(result).toEqual({ msg: 'local' });
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+    });
+
+    it('uses a leading dot to force resolution to the local file despite a clash', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'exon-test-'));
+        try {
+            const mainDir = path.join(dir, 'sub');
+            fs.mkdirSync(mainDir, { recursive: true });
+            const mainFile = path.join(mainDir, 'Main.exon');
+            fs.writeFileSync(mainFile, `.Echo { }`);
+            fs.writeFileSync(path.join(mainDir, 'Echo.exon'), `{ msg: "local" }`);
+
+            const modulesDir = path.join(dir, 'exon_modules');
+            fs.mkdirSync(modulesDir, { recursive: true });
+            fs.writeFileSync(path.join(modulesDir, 'Echo.exon'), `{ msg: "from module" }`);
+
+            const result = parseAndResolve(mainFile, [modulesDir]);
+            expect(result).toEqual({ msg: 'local' });
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
     });
 });
 
@@ -125,6 +275,17 @@ describe('.... (three levels up)', () => {
 // ---------------------------------------------------------------------------
 // using alias with leading dots
 // ---------------------------------------------------------------------------
+
+describe('using alias with a single leading dot', () => {
+    it('resolves a type via using alias to a local file', () => {
+        const result = compileAt(
+            'sub',
+            `using .Base\n{ b: Base { } }`,
+            { 'sub/Base.exon': `{ val: 7 }` }
+        );
+        expect(result).toEqual({ b: { val: 7 } });
+    });
+});
 
 describe('using alias with leading dots', () => {
     it('resolves a type via using alias', () => {
