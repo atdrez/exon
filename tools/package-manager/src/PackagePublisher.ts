@@ -2,6 +2,7 @@
 
 import * as Crypto from "crypto";
 import * as FileSystem from "fs";
+import type { PackageAuthor, PackageRepository } from "exon-runtime";
 
 export interface PublishLogger {
     info(message: string): void;
@@ -10,6 +11,17 @@ export interface PublishLogger {
 export interface PublishOptions {
     registry?: string;
     token?: string;
+}
+
+// Metadata read off exon-package.json (see PackageConfig) and forwarded to the registry on
+// publish. All optional - a package.publish request is valid with only name/version/size/hash.
+export interface PublishMetadata {
+    description?: string;
+    license?: string;
+    category?: string;
+    homepage?: string;
+    repository?: PackageRepository;
+    author?: PackageAuthor;
 }
 
 export interface PublishedPackage {
@@ -21,6 +33,11 @@ export interface PublishedPackage {
     hash: string;
     createdAt: string;
     downloadUrl: string;
+    license?: string;
+    category?: string;
+    homepage?: string;
+    repository?: PackageRepository;
+    author?: PackageAuthor;
 }
 
 interface PresignedUploadPart {
@@ -83,13 +100,13 @@ export class PackagePublisher {
         this.#logger = logger;
     }
 
-    public async publish(archivePath: string, name: string, version: string, description?: string): Promise<PublishedPackage> {
+    public async publish(archivePath: string, name: string, version: string, metadata: PublishMetadata = {}): Promise<PublishedPackage> {
         const content = FileSystem.readFileSync(archivePath);
         const hash = Crypto.createHash("sha256").update(content).digest("hex");
 
         this.#logger.info(`Publishing "${name}" ${version} (${content.length} bytes) ...`);
 
-        const created = await this.#createRequest(name, version, description, content.length, hash);
+        const created = await this.#createRequest(name, version, metadata, content.length, hash);
 
         this.#logger.info(`Uploading ${created.parts.length} part(s) ...`);
         const parts = await this.#uploadParts(content, created.parts);
@@ -102,9 +119,20 @@ export class PackagePublisher {
     }
 
     async #createRequest(
-        name: string, version: string, description: string | undefined, size: number, hash: string
+        name: string, version: string, metadata: PublishMetadata, size: number, hash: string
     ): Promise<CreatePackageRequestResponse> {
-        return this.#postJson<CreatePackageRequestResponse>("/packages", { name, version, description, size, hash });
+        return this.#postJson<CreatePackageRequestResponse>("/packages", {
+            name,
+            version,
+            size,
+            hash,
+            description: metadata.description,
+            license: metadata.license,
+            category: metadata.category,
+            homepage: metadata.homepage,
+            repository: metadata.repository,
+            author: metadata.author,
+        });
     }
 
     async #uploadParts(content: Buffer, parts: PresignedUploadPart[]): Promise<CompletedUploadPart[]> {

@@ -9,12 +9,27 @@ export interface PackageDependency {
     registry?: string;
 }
 
+export interface PackageAuthor {
+    name: string;
+    email?: string;
+}
+
+export interface PackageRepository {
+    type: string;
+    url: string;
+}
+
 export interface PackageConfig {
     name?: string;
     version?: string;
     description?: string;
     license?: string;
-    author?: string;
+    author?: PackageAuthor;
+    // Freeform taxonomy string (e.g. "lib/flow", "examples") - the editor's Templates page
+    // filters published packages to category "examples" to build its catalog.
+    category?: string;
+    homepage?: string;
+    repository?: PackageRepository;
     private?: boolean;
     entry: string;
     scripts: Record<string, string>;
@@ -82,6 +97,25 @@ function parseDependencies(raw: any, packagePath: string): Record<string, Packag
     return dependencies;
 }
 
+function parseAuthor(raw: any, packagePath: string): PackageAuthor {
+    const source = expectObject(raw, "author", packagePath);
+    const author: PackageAuthor = { name: expectString(source.name, "author.name", packagePath) };
+
+    if (source.email !== undefined) {
+        author.email = expectString(source.email, "author.email", packagePath);
+    }
+
+    return author;
+}
+
+function parseRepository(raw: any, packagePath: string): PackageRepository {
+    const source = expectObject(raw, "repository", packagePath);
+    return {
+        type: expectString(source.type, "repository.type", packagePath),
+        url: expectString(source.url, "repository.url", packagePath),
+    };
+}
+
 function parseNodeDependencies(raw: any, packagePath: string): Record<string, string> {
     if (raw === undefined) {
         return {};
@@ -128,7 +162,16 @@ export function loadPackageConfig(packagePath: string): PackageConfig {
         config.license = expectString(raw.license, "license", packagePath);
 
     if (raw.author !== undefined)
-        config.author = expectString(raw.author, "author", packagePath);
+        config.author = parseAuthor(raw.author, packagePath);
+
+    if (raw.category !== undefined)
+        config.category = expectString(raw.category, "category", packagePath);
+
+    if (raw.homepage !== undefined)
+        config.homepage = expectString(raw.homepage, "homepage", packagePath);
+
+    if (raw.repository !== undefined)
+        config.repository = parseRepository(raw.repository, packagePath);
 
     if (raw.private !== undefined)
         config.private = Boolean(raw.private);

@@ -11,7 +11,14 @@ export { RuntimeOptions } from "./RuntimeOptions";
 export { CallSite, LocatedError, ResolverError } from "./ResolverError";
 export { Closure } from "./fn/lang/closure";
 export { loadNativeExtensions } from "./NativeExtensionLoader";
-export { loadPackageConfig, PackageConfig, PackageDependency, DEFAULT_ENTRY_FILE } from "./PackageConfig";
+export {
+    loadPackageConfig,
+    PackageConfig,
+    PackageDependency,
+    PackageAuthor,
+    PackageRepository,
+    DEFAULT_ENTRY_FILE,
+} from "./PackageConfig";
 export {
     findProject,
     resolveProjectForTarget,

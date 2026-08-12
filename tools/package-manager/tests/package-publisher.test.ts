@@ -233,6 +233,81 @@ describe('PackagePublisher: publish', () => {
         }
     });
 
+    it('forwards optional category/homepage/repository/author metadata to the create-request step', async () => {
+        const content = Buffer.from('fake archive bytes');
+        const archivePath = writeArchive(content);
+
+        const server = await startServer((req, res) => {
+            if (req.method === 'POST' && req.url === '/api/v1/packages') {
+                const body = JSON.parse(req.body.toString('utf8'));
+                expect(body).toEqual({
+                    name: 'mylib',
+                    version: '1.0.0',
+                    size: content.length,
+                    hash: crypto.createHash('sha256').update(content).digest('hex'),
+                    description: 'A test library.',
+                    license: 'MIT',
+                    category: 'examples',
+                    homepage: 'https://example.com',
+                    repository: { type: 'git', url: 'https://github.com/org/repo.git' },
+                    author: { name: 'Jane Doe', email: 'jane@example.com' },
+                });
+
+                res.writeHead(201, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    requestId: 'req-4',
+                    key: 'mylib@1.0.0/data.expkg',
+                    uploadId: 'upload-4',
+                    parts: [{ partNumber: 1, url: `${server.baseUrl}/upload/part1` }],
+                }));
+                return;
+            }
+
+            if (req.method === 'PUT' && req.url === '/upload/part1') {
+                res.writeHead(200, { ETag: '"etag-1"' });
+                res.end();
+                return;
+            }
+
+            if (req.method === 'POST' && req.url === '/api/v1/package-request/req-4/complete') {
+                res.writeHead(201, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    owner: 'owner-1',
+                    name: 'mylib',
+                    version: '1.0.0',
+                    description: 'A test library.',
+                    size: content.length,
+                    hash: crypto.createHash('sha256').update(content).digest('hex'),
+                    createdAt: '2026-08-11T00:00:00.000Z',
+                    downloadUrl: '/api/v1/packages/mylib/1.0.0/download',
+                    license: 'MIT',
+                    category: 'examples',
+                }));
+                return;
+            }
+
+            res.writeHead(404);
+            res.end('not found');
+        });
+
+        try {
+            const publisher = new PackagePublisher({ registry: server.baseUrl, token: 'secret-token' });
+            const published = await publisher.publish(archivePath, 'mylib', '1.0.0', {
+                description: 'A test library.',
+                license: 'MIT',
+                category: 'examples',
+                homepage: 'https://example.com',
+                repository: { type: 'git', url: 'https://github.com/org/repo.git' },
+                author: { name: 'Jane Doe', email: 'jane@example.com' },
+            });
+
+            expect(published.category).toBe('examples');
+            expect(published.license).toBe('MIT');
+        } finally {
+            await server.close();
+        }
+    });
+
     it('rejects when a part upload does not return an ETag header', async () => {
         const archivePath = writeArchive(Buffer.from('bytes'));
 

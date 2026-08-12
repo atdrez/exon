@@ -30,7 +30,6 @@ describe('loadPackageConfig', () => {
             "version": "1.0.0",
             "description": "A description of the project",
             "license": "ISC",
-            "author": "",
             "private": true
         }`);
 
@@ -40,8 +39,56 @@ describe('loadPackageConfig', () => {
         expect(config.version).toBe('1.0.0');
         expect(config.description).toBe('A description of the project');
         expect(config.license).toBe('ISC');
-        expect(config.author).toBe('');
         expect(config.private).toBe(true);
+    });
+
+    it('throws when "author" is a plain string rather than a name/email object', () => {
+        const filePath = writePackageJson(`{ "author": "Jane Doe" }`);
+        expect(() => loadPackageConfig(filePath)).toThrow(/author/);
+    });
+
+    it('parses author as a name/email object', () => {
+        const filePath = writePackageJson(`{
+            "author": { "name": "Jane Doe", "email": "jane@example.com" }
+        }`);
+
+        const config = loadPackageConfig(filePath);
+        expect(config.author).toEqual({ name: 'Jane Doe', email: 'jane@example.com' });
+    });
+
+    it('parses an author object without an email', () => {
+        const filePath = writePackageJson(`{ "author": { "name": "Jane Doe" } }`);
+        expect(loadPackageConfig(filePath).author).toEqual({ name: 'Jane Doe' });
+    });
+
+    it('throws when an author object is missing "name"', () => {
+        const filePath = writePackageJson(`{ "author": { "email": "jane@example.com" } }`);
+        expect(() => loadPackageConfig(filePath)).toThrow(/author.name/);
+    });
+
+    it('parses category and homepage as strings', () => {
+        const filePath = writePackageJson(`{
+            "category": "examples",
+            "homepage": "https://example.com"
+        }`);
+
+        const config = loadPackageConfig(filePath);
+        expect(config.category).toBe('examples');
+        expect(config.homepage).toBe('https://example.com');
+    });
+
+    it('parses repository as a type/url object', () => {
+        const filePath = writePackageJson(`{
+            "repository": { "type": "git", "url": "https://github.com/org/repo.git" }
+        }`);
+
+        const config = loadPackageConfig(filePath);
+        expect(config.repository).toEqual({ type: 'git', url: 'https://github.com/org/repo.git' });
+    });
+
+    it('throws when "repository" is missing "url"', () => {
+        const filePath = writePackageJson(`{ "repository": { "type": "git" } }`);
+        expect(() => loadPackageConfig(filePath)).toThrow(/repository.url/);
     });
 
     it('defaults entry to main.exon when missing', () => {
