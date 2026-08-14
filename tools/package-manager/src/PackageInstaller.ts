@@ -22,14 +22,14 @@ const consoleLogger: InstallLogger = {
     info: (message) => console.log(message),
 };
 
-const DEFAULT_REGISTRY = "https://packages.exonlang.org";
+const DEFAULT_REGISTRY = "https://api.exonlang.org";
 
 function metadataUrlFor(registry: string, name: string, version: string): string {
     return `${registry.replace(/\/+$/, "")}/api/v1/packages/${name}/${version}`;
 }
 
-function authToken(): string {
-    const token = process.env.EXON_REGISTRY_TOKEN;
+function authToken(explicitToken?: string): string {
+    const token = explicitToken ?? process.env.EXON_REGISTRY_TOKEN;
 
     if (token === undefined || token.length === 0) {
         throw new Error("No registry auth token found. Set the EXON_REGISTRY_TOKEN environment variable.");
@@ -38,8 +38,8 @@ function authToken(): string {
     return token;
 }
 
-async function fetchAuthenticated(url: string): Promise<Response> {
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${authToken()}` } });
+async function fetchAuthenticated(url: string, token?: string): Promise<Response> {
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${authToken(token)}` } });
 
     if (!response.ok) {
         throw new Error(`Failed to fetch "${url}": ${response.status} ${response.statusText}`);
@@ -56,12 +56,13 @@ export async function installDependencies(
     packagePath: string,
     config: PackageConfig,
     modulesDir: string,
-    logger: InstallLogger = consoleLogger
+    logger: InstallLogger = consoleLogger,
+    token?: string
 ): Promise<Record<string, string>> {
     const projectDir = Path.dirname(packagePath);
     const visited = new Set<string>();
     const nodeDependencies: Record<string, string> = {};
-    await installDependenciesInto(config, modulesDir, projectDir, logger, visited, true, nodeDependencies);
+    await installDependenciesInto(config, modulesDir, projectDir, logger, visited, true, nodeDependencies, token);
     return nodeDependencies;
 }
 
@@ -72,7 +73,8 @@ async function installDependenciesInto(
     logger: InstallLogger,
     visited: Set<string>,
     isRoot: boolean,
-    nodeDependencies: Record<string, string>
+    nodeDependencies: Record<string, string>,
+    token?: string
 ): Promise<void> {
     const names = Object.keys(config.dependencies);
 
@@ -96,9 +98,9 @@ async function installDependenciesInto(
 
         logger.info(`Installing "${name}" -> exon_modules/${name} ...`);
 
-        await installFromHttp(dependency.registry ?? process.env.EXON_REGISTRY_API ?? DEFAULT_REGISTRY, name, dependency.version, targetDir);
+        await installFromHttp(dependency.registry ?? process.env.EXON_REGISTRY_API ?? DEFAULT_REGISTRY, name, dependency.version, targetDir, token);
 
-        await collectTransitive(targetDir, modulesDir, projectDir, logger, visited, nodeDependencies);
+        await collectTransitive(targetDir, modulesDir, projectDir, logger, visited, nodeDependencies, token);
     }
 }
 
@@ -108,7 +110,8 @@ async function collectTransitive(
     projectDir: string,
     logger: InstallLogger,
     visited: Set<string>,
-    nodeDependencies: Record<string, string>
+    nodeDependencies: Record<string, string>,
+    token?: string
 ): Promise<void> {
     const nestedPackagePath = Path.join(installedDir, PACKAGE_FILE_NAME);
 
@@ -119,7 +122,7 @@ async function collectTransitive(
     const nestedConfig = loadPackageConfig(nestedPackagePath);
 
     Object.assign(nodeDependencies, nestedConfig.nodeDependencies);
-    await installDependenciesInto(nestedConfig, modulesDir, projectDir, logger, visited, false, nodeDependencies);
+    await installDependenciesInto(nestedConfig, modulesDir, projectDir, logger, visited, false, nodeDependencies, token);
 }
 
 export function uninstallAll(modulesDir: string, logger: InstallLogger = consoleLogger): void {
@@ -186,13 +189,13 @@ export function installNodeDependencies(
 // "{name}@{version}/meta.json" on publish, see backend/docs/api.md) before downloading the
 // archive, so the downloaded bytes can be checksummed against it - catching a corrupted or
 // truncated download before it gets extracted into exon_modules.
-async function installFromHttp(registry: string, name: string, version: string, targetDir: string): Promise<void> {
+async function installFromHttp(registry: string, name: string, version: string, targetDir: string, token?: string): Promise<void> {
     const metadataUrl = metadataUrlFor(registry, name, version);
-    const metadataResponse = await fetchAuthenticated(metadataUrl);
+    const metadataResponse = await fetchAuthenticated(metadataUrl, token);
     const metadata = (await metadataResponse.json()) as PackageMetadata;
 
     const downloadUrl = new URL(metadata.downloadUrl, metadataUrl).toString();
-    const downloadResponse = await fetchAuthenticated(downloadUrl);
+    const downloadResponse = await fetchAuthenticated(downloadUrl, token);
     const buffer = Buffer.from(await downloadResponse.arrayBuffer());
 
     const hash = Crypto.createHash("sha256").update(buffer).digest("hex");

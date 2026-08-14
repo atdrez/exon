@@ -43,7 +43,7 @@ expm publish [dir] [--compress] [--registry <url>]
 - `expm install [dir]` - installs the dependencies declared in the
   `exon-package.json` found in `dir` (defaults to the current directory). Each
   dependency is fetched from its registry (the `registry` field in its
-  `dependencies` entry, or `https://packages.exonlang.org` by default) via the
+  `dependencies` entry, or `https://api.exonlang.org` by default) via the
   registry backend's package API: a `GET /api/v1/packages/<name>/<version>`
   metadata request, which carries the published SHA-256 hash, followed by a
   `GET .../download` request for the archive itself. The downloaded archive
@@ -70,7 +70,7 @@ expm publish [dir] [--compress] [--registry <url>]
   `version` must be set in `exon-package.json`. Publishing requires an
   `EXON_REGISTRY_TOKEN` environment variable holding a bearer token (obtained
   by logging in against the registry's backend); the registry API base URL
-  defaults to `https://packages.exonlang.org` and can be overridden with the
+  defaults to `https://api.exonlang.org` and can be overridden with the
   `EXON_REGISTRY_API` environment variable or the `--registry` flag.
 
   Publishing follows the registry's three-step, upload-direct-to-storage

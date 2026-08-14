@@ -132,7 +132,7 @@ describe('installDependencies: URL construction', () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' }));
 
         await expect(installDependencies(packagePath, config, modulesDir)).rejects.toThrow(
-            'https://packages.exonlang.org/api/v1/packages/std/flow/0.1.0'
+            'https://api.exonlang.org/api/v1/packages/std/flow/0.1.0'
         );
     });
 

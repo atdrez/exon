@@ -61,7 +61,7 @@ const consoleLogger: PublishLogger = {
     info: (message) => console.log(message),
 };
 
-const DEFAULT_REGISTRY = "https://packages.exonlang.org";
+const DEFAULT_REGISTRY = "https://api.exonlang.org";
 
 // Must match MULTIPART_UPLOAD_PART_SIZE_BYTES in the backend's storageService, since the number
 // of presigned parts returned by "POST /packages" only makes sense when parts are sliced at the
