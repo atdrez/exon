@@ -11,27 +11,25 @@ export default class Component extends Base {
     }
 
     public resolve(obj: any, context: Context): any {
-        if (typeof obj.count === undefined)
+        if (obj.count === undefined)
             throw new Error(`${this.name()}.count property is invalid`);
+
+        if (obj.content === undefined)
+            throw new Error(`${this.name()}.content property is invalid`);
 
         const num = context.resolve(obj.count);
 
         if (typeof num !== "number")
             throw new Error(`${this.name()}.count should be a valid number`);
 
-        if (obj.content === undefined)
-            throw new Error(`${this.name()}.content property is invalid`);
+        const statement = (typeof obj.content === "object" && obj.content !== null)
+            ? context.resolve(obj.content)
+            : obj.content;
 
-        let statement = obj.content;
+        const result: any[] = new Array(num);
 
-        if (typeof statement === "object")
-            statement = context.resolve(obj.content);
-
-        const result: any[] = [];
-
-        for (let i = 0; i < num; i++) {
-            result.push(statement);
-        }
+        for (let i = 0; i < num; i++)
+            result[i] = statement;
 
         return result;
     }

@@ -6,10 +6,10 @@ import { OpUnary } from "./opUnary";
 export default class Component extends OpUnary {
     constructor() { super("count"); }
 
-    public evaluate(obj: any, value: any, _context: Context): any {
+    public evaluate(_obj: any, value: any, _context: Context): any {
         if (!Array.isArray(value))
             throw new Error(`${this.name()} expected array argument`);
 
-        return !value ? 0 : value.length;
+        return value.length;
     }
 }
