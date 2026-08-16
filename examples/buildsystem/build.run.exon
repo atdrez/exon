@@ -15,15 +15,8 @@ using fn.println
 using fn.process.exec
 
 {
-    fn.assert {
-      fn.defined { fn.process.argv {0} }
-      message: "Script argument is missing"
-    }
-
-    dir: fn.path.dirname { fn.process.argv {0} }
-
-    srcDir: fn.string.join { @root.dir "/src" }
-    outDir: fn.string.join { @root.dir "/bin" }
+    srcDir: fn.path.absolute { "./src" }
+    outDir: fn.path.absolute { "./bin" }
 
     // use target passed via args, or fallback to hello
     target: fn.or { fn.process.argv { 1 } "hello" }
@@ -57,6 +50,6 @@ using fn.process.exec
 
     *** run compiled binary and capture output ***
     println {
-        exec { fn.string.join { "./" @root.outDir "/" @root.target } }
+        exec { fn.string.join { @root.outDir "/" @root.target } }
     }
 }
