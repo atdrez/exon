@@ -18,15 +18,6 @@ export class Token {
         this.#tokenValue = undefined;
     }
 
-    public getChar(index: number): number {
-        const i = index + this.#startIndex;
-
-        if (i < this.#startIndex || i > this.#endIndex)
-            throw new Error("Invalid buffer index");
-
-        return this.#buffer[i];
-    }
-
     public toString() : string {
         if (this.tokenType === TokenType.None)
             return "<invalid>";
