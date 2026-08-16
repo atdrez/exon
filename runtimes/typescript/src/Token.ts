@@ -41,24 +41,36 @@ export class Token {
     }
 
     static #processEscape(raw: string) : string {
-        let result = "";
-        let i = 0;
-        while (i < raw.length) {
-            if (raw[i] === "\\" && i + 1 < raw.length) {
-                i++;
-                switch (raw[i]) {
-                    case "n":  result += "\n"; break;
-                    case "t":  result += "\t"; break;
-                    case "r":  result += "\r"; break;
-                    case "\\": result += "\\"; break;
-                    case "\"": result += "\""; break;
-                    default:   result += "\\" + raw[i]; break;
-                }
-            } else {
+        const backslashIndex = raw.indexOf("\\");
+
+        if (backslashIndex < 0)
+            return raw;
+
+        const len = raw.length;
+        let result = raw.slice(0, backslashIndex);
+
+        for (let i = backslashIndex; i < len; i++) {
+            const c = raw.charCodeAt(i);
+
+            if (c !== 92 /* \ */ || i + 1 >= len) {
                 result += raw[i];
+                continue;
             }
+
             i++;
+            switch (raw.charCodeAt(i)) {
+                case 110: result += "\n"; break;
+                case 116: result += "\t"; break;
+                case 114: result += "\r"; break;
+                case 92:  result += "\\"; break;
+                case 34:  result += "\""; break;
+                default:
+                    result += "\\";
+                    result += raw[i];
+                    break;
+            }
         }
+
         return result;
     }
 
