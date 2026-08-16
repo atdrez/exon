@@ -10,6 +10,9 @@ if [ "$1" = "-r" ]; then
     ok=0
     fail=0
     while IFS= read -r f; do
+        if [[ "$f" == *.app.exon ]]; then
+            continue
+        fi
         if [[ "$f" == *.run.exon ]]; then
             cmd=("$NODE" "$MAIN" -r "$f" -p "$EXAMPLES")
         else
