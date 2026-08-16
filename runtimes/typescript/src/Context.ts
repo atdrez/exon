@@ -92,9 +92,9 @@ export class Context {
         const property: IPropertyScript = obj[key];
 
         if (!property || typeof property.getGetter !== 'function')
-            return obj[key];
+            return property;
 
-        return this.resolvePropertyScript(property.getGetter(obj), obj, key, obj[key]);
+        return this.resolvePropertyScript(property.getGetter(obj), obj, key, property);
     }
 
     public setProperty(obj: any, key: string, value: any): void {
