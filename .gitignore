@@ -1,4 +1,5 @@
 *~
 bin/
+examples/**/*.out
 node_modules/
 *.vsix
