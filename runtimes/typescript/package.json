@@ -37,13 +37,14 @@
     "start": "node bin/main.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "build": "npm run lint && rm -rf bin && tsc",
-    "prepare": "rm -rf bin && tsc",
+    "build": "npm run lint && rm -rf bin && tsc && node scripts/minify.js",
+    "prepare": "rm -rf bin && tsc && node scripts/minify.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "esbuild": "^0.25.12",
     "eslint": "^10.4.0",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.59.4",

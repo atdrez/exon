@@ -15,6 +15,7 @@
   "exclude": [
     "bin",
     "node_modules",
+    "scripts",
     "tests",
     "vitest.config.ts"
   ]
