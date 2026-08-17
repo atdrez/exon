@@ -20,7 +20,7 @@ export class PathResolver {
             name = name.slice(dotCount);
         }
 
-        const basePath = name.split(".").join("/");
+        const basePath = name.replaceAll(".", "/");
         return Path.join(resolvedDir, basePath + PathResolver.extension);
     }
 }
