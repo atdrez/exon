@@ -81,14 +81,10 @@ async function runInstall(args: string[]): Promise<void> {
         const modulesDir = project !== null ? project.modulesDir : Path.join(cwd, MODULES_DIR_NAME);
 
         try {
-            const nodeDependencies = await installPackage(packageSpec.name, packageSpec.version, modulesDir);
+            await installPackage(packageSpec.name, packageSpec.version, modulesDir);
 
             if (project !== null) {
                 addDependencyToConfig(project.packagePath, packageSpec.name, packageSpec.version);
-
-                if (Object.keys(nodeDependencies).length > 0) {
-                    installNodeDependencies(project.projectDir, nodeDependencies);
-                }
             }
         } catch (e) {
             reportError(e instanceof Error ? e.message : String(e));
@@ -105,10 +101,8 @@ async function runInstall(args: string[]): Promise<void> {
     }
 
     try {
-        const transitiveNodeDependencies = await installDependencies(project.packagePath, project.config, project.modulesDir);
-
-        const nodeDependencies = { ...transitiveNodeDependencies, ...project.config.nodeDependencies };
-        installNodeDependencies(project.projectDir, nodeDependencies);
+        await installDependencies(project.packagePath, project.config, project.modulesDir);
+        installNodeDependencies(project.projectDir, project.config.nodeDependencies);
     } catch (e) {
         reportError(e instanceof Error ? e.message : String(e));
         return;

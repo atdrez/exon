@@ -58,12 +58,10 @@ export async function installDependencies(
     modulesDir: string,
     logger: InstallLogger = consoleLogger,
     token?: string
-): Promise<Record<string, string>> {
+): Promise<void> {
     const projectDir = Path.dirname(packagePath);
     const visited = new Set<string>();
-    const nodeDependencies: Record<string, string> = {};
-    await installDependenciesInto(config, modulesDir, projectDir, logger, visited, true, nodeDependencies, token);
-    return nodeDependencies;
+    await installDependenciesInto(config, modulesDir, projectDir, logger, visited, true, token);
 }
 
 async function installDependenciesInto(
@@ -73,7 +71,6 @@ async function installDependenciesInto(
     logger: InstallLogger,
     visited: Set<string>,
     isRoot: boolean,
-    nodeDependencies: Record<string, string>,
     token?: string
 ): Promise<void> {
     const names = Object.keys(config.dependencies);
@@ -100,7 +97,7 @@ async function installDependenciesInto(
 
         await installFromHttp(dependency.registry ?? process.env.EXON_REGISTRY_API ?? DEFAULT_REGISTRY, name, dependency.version, targetDir, token);
 
-        await collectTransitive(targetDir, modulesDir, projectDir, logger, visited, nodeDependencies, token);
+        await collectTransitive(targetDir, modulesDir, projectDir, logger, visited, token);
     }
 }
 
@@ -110,7 +107,6 @@ async function collectTransitive(
     projectDir: string,
     logger: InstallLogger,
     visited: Set<string>,
-    nodeDependencies: Record<string, string>,
     token?: string
 ): Promise<void> {
     const nestedPackagePath = Path.join(installedDir, PACKAGE_FILE_NAME);
@@ -121,8 +117,11 @@ async function collectTransitive(
 
     const nestedConfig = loadPackageConfig(nestedPackagePath);
 
-    Object.assign(nodeDependencies, nestedConfig.nodeDependencies);
-    await installDependenciesInto(nestedConfig, modulesDir, projectDir, logger, visited, false, nodeDependencies, token);
+    if (Object.keys(nestedConfig.nodeDependencies).length > 0) {
+        installNodeDependencies(installedDir, nestedConfig.nodeDependencies, logger);
+    }
+
+    await installDependenciesInto(nestedConfig, modulesDir, projectDir, logger, visited, false, token);
 }
 
 export function uninstallAll(modulesDir: string, logger: InstallLogger = consoleLogger): void {
@@ -210,18 +209,15 @@ export async function installPackage(
     logger: InstallLogger = consoleLogger,
     registry?: string,
     token?: string
-): Promise<Record<string, string>> {
+): Promise<void> {
     FileSystem.mkdirSync(modulesDir, { recursive: true });
 
     const targetDir = targetDirFor(modulesDir, name);
     const visited = new Set<string>([targetDir]);
-    const nodeDependencies: Record<string, string> = {};
 
     logger.info(`Installing "${name}@${version}" -> exon_modules/${name} ...`);
     await installFromHttp(registry ?? process.env.EXON_REGISTRY_API ?? DEFAULT_REGISTRY, name, version, targetDir, token);
-    await collectTransitive(targetDir, modulesDir, modulesDir, logger, visited, nodeDependencies, token);
-
-    return nodeDependencies;
+    await collectTransitive(targetDir, modulesDir, modulesDir, logger, visited, token);
 }
 
 // Fetches the package's metadata (which carries the same hash the registry wrote to

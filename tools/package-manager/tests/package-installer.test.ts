@@ -10,10 +10,19 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { installDependencies, installNodeDependencies, uninstallAll, uninstallDependency } from '../src/PackageInstaller';
 import type { PackageConfig } from 'exon-runtime';
 
+const { spawnSyncMock } = vi.hoisted(() => ({
+    spawnSyncMock: vi.fn().mockReturnValue({ status: 0, error: undefined }),
+}));
+
+vi.mock('child_process', () => ({
+    spawnSync: spawnSyncMock,
+}));
+
 let tmpDirs: string[] = [];
 
 beforeEach(() => {
     vi.stubEnv('EXON_REGISTRY_TOKEN', 'test-token');
+    spawnSyncMock.mockClear();
 });
 
 function mkTmpDir(prefix: string): string {
@@ -236,7 +245,7 @@ describe('installDependencies: http downloads', () => {
 });
 
 describe('installDependencies: transitive nodeDependencies', () => {
-    it("returns a dependency's nodeDependencies without installing them on the spot", async () => {
+    it("installs a dependency's nodeDependencies into the package's own directory, not the project root", async () => {
         const { projectDir, packagePath } = makeProject();
         const archive = await makeArchive({
             'exon-package.json': JSON.stringify({
@@ -252,22 +261,23 @@ describe('installDependencies: transitive nodeDependencies', () => {
             const modulesDir = path.join(projectDir, 'exon_modules');
             const config = makeConfig({ mylib: { version: '1.0.0', registry: baseUrl } });
 
-            const nodeDependencies = await installDependencies(packagePath, config, modulesDir);
+            await installDependencies(packagePath, config, modulesDir);
 
-            expect(nodeDependencies).toEqual({ 'some-pkg': '^1.0.0' });
+            expect(spawnSyncMock).toHaveBeenCalledOnce();
+            const command = spawnSyncMock.mock.calls[0][0] as string;
+            expect(command).toContain(`--prefix "${path.join(modulesDir, 'mylib')}"`);
+            expect(command).toContain('"some-pkg@^1.0.0"');
             expect(fs.existsSync(path.join(projectDir, 'node_modules'))).toBe(false);
         } finally {
             await close();
         }
     });
 
-    it('merges nodeDependencies from every package in the graph into one map - the fix for ' +
-       '`npm install --no-save` pruning packages added by an earlier, separate npm install call', async () => {
+    it('installs nodeDependencies for each package into its own directory, preventing version conflicts', async () => {
         const { projectDir, packagePath } = makeProject();
 
-        // A depends on B; both declare their own, distinct nodeDependencies. Before the fix,
-        // each was installed via its own separate `npm install` call, and the later call
-        // (for B) silently pruned whatever the earlier call (for A) had just installed.
+        // A depends on B; each declares its own npm deps. With per-package node_modules,
+        // they are installed in isolation so version conflicts between packages cannot occur.
         const archiveB = await makeArchive({
             'exon-package.json': JSON.stringify({
                 entry: 'main.exon',
@@ -295,9 +305,16 @@ describe('installDependencies: transitive nodeDependencies', () => {
                 const modulesDir = path.join(projectDir, 'exon_modules');
                 const config = makeConfig({ a: { version: '1.0.0', registry: rootUrl } });
 
-                const nodeDependencies = await installDependencies(packagePath, config, modulesDir);
+                await installDependencies(packagePath, config, modulesDir);
 
-                expect(nodeDependencies).toEqual({ 'pkg-a': '^1.0.0', 'pkg-b': '^2.0.0' });
+                expect(spawnSyncMock).toHaveBeenCalledTimes(2);
+                const commands = spawnSyncMock.mock.calls.map(([cmd]) => cmd as string);
+                expect(commands.some((cmd) =>
+                    cmd.includes(`--prefix "${path.join(modulesDir, 'a')}"`) && cmd.includes('"pkg-a@^1.0.0"')
+                )).toBe(true);
+                expect(commands.some((cmd) =>
+                    cmd.includes(`--prefix "${path.join(modulesDir, 'b')}"`) && cmd.includes('"pkg-b@^2.0.0"')
+                )).toBe(true);
             } finally {
                 await closeRoot();
             }
