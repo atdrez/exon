@@ -10,11 +10,13 @@ import { installDependencies, installNodeDependencies, uninstallAll, uninstallDe
 import { packProject } from "./PackagePacker";
 import { PackagePublisher } from "./PackagePublisher";
 import { unpackArchive } from "./PackageUnpacker";
+import { fetchAndUnpack } from "./PackageFetcher";
 
 const USAGE = "Usage: expm install [dir]\n       expm uninstall [name]\n"
     + "       expm pack [dir] [--compress] [--output <dir>]\n"
     + "       expm publish [dir] [--compress] [--registry <url>]\n"
-    + "       expm unpack <file.expkg> [folder-path]";
+    + "       expm unpack <file.expkg> [folder-path]\n"
+    + "       expm fetch <url> [folder-path]";
 
 function extractFlag(args: string[], flag: string): { rest: string[]; present: boolean } {
     return { rest: args.filter((arg) => arg !== flag), present: args.includes(flag) };
@@ -150,6 +152,24 @@ async function runPublish(args: string[]): Promise<void> {
     }
 }
 
+async function runFetch(args: string[]): Promise<void> {
+    const cwd = process.cwd();
+    const urlArg = args[0];
+
+    if (urlArg === undefined) {
+        reportError("Usage: expm fetch <url> [folder-path]");
+        return;
+    }
+
+    const outputDir = args[1] !== undefined ? Path.resolve(cwd, args[1]) : undefined;
+
+    try {
+        await fetchAndUnpack(urlArg, outputDir);
+    } catch (e) {
+        reportError(e instanceof Error ? e.message : String(e));
+    }
+}
+
 async function runUnpack(args: string[]): Promise<void> {
     const cwd = process.cwd();
     const archiveArg = args[0];
@@ -199,6 +219,11 @@ export async function execute(): Promise<void> {
 
     if (command === "unpack") {
         await runUnpack(args);
+        return;
+    }
+
+    if (command === "fetch") {
+        await runFetch(args);
         return;
     }
 

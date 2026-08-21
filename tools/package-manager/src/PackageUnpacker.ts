@@ -12,10 +12,12 @@ const consoleLogger: UnpackLogger = {
     info: (message) => console.log(message),
 };
 
+export function stripExpkgExtension(filename: string): string {
+    return filename.endsWith(".expkg") ? filename.slice(0, -".expkg".length) : filename;
+}
+
 function defaultOutputDir(archivePath: string): string {
-    const base = Path.basename(archivePath);
-    const name = base.endsWith(".expkg") ? base.slice(0, -".expkg".length) : base;
-    return Path.join(Path.dirname(archivePath), name);
+    return Path.join(Path.dirname(archivePath), stripExpkgExtension(Path.basename(archivePath)));
 }
 
 export async function unpackArchive(
