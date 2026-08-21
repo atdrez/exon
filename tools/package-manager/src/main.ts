@@ -9,10 +9,12 @@ import { findProject, PACKAGE_FILE_NAME } from "exon-runtime";
 import { installDependencies, installNodeDependencies, uninstallAll, uninstallDependency } from "./PackageInstaller";
 import { packProject } from "./PackagePacker";
 import { PackagePublisher } from "./PackagePublisher";
+import { unpackArchive } from "./PackageUnpacker";
 
 const USAGE = "Usage: expm install [dir]\n       expm uninstall [name]\n"
     + "       expm pack [dir] [--compress] [--output <dir>]\n"
-    + "       expm publish [dir] [--compress] [--registry <url>]";
+    + "       expm publish [dir] [--compress] [--registry <url>]\n"
+    + "       expm unpack <file.expkg> [folder-path]";
 
 function extractFlag(args: string[], flag: string): { rest: string[]; present: boolean } {
     return { rest: args.filter((arg) => arg !== flag), present: args.includes(flag) };
@@ -148,6 +150,25 @@ async function runPublish(args: string[]): Promise<void> {
     }
 }
 
+async function runUnpack(args: string[]): Promise<void> {
+    const cwd = process.cwd();
+    const archiveArg = args[0];
+
+    if (archiveArg === undefined) {
+        reportError("Usage: expm unpack <file.expkg> [folder-path]");
+        return;
+    }
+
+    const archivePath = Path.resolve(cwd, archiveArg);
+    const outputDir = args[1] !== undefined ? Path.resolve(cwd, args[1]) : undefined;
+
+    try {
+        await unpackArchive(archivePath, outputDir);
+    } catch (e) {
+        reportError(e instanceof Error ? e.message : String(e));
+    }
+}
+
 export async function execute(): Promise<void> {
     const [command, ...args] = process.argv.slice(2);
 
@@ -173,6 +194,11 @@ export async function execute(): Promise<void> {
 
     if (command === "publish") {
         await runPublish(args);
+        return;
+    }
+
+    if (command === "unpack") {
+        await runUnpack(args);
         return;
     }
 
