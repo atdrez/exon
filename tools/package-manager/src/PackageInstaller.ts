@@ -185,6 +185,45 @@ export function installNodeDependencies(
     }
 }
 
+export function addDependencyToConfig(packagePath: string, name: string, version: string): void {
+    let raw: Record<string, unknown>;
+
+    try {
+        raw = JSON.parse(FileSystem.readFileSync(packagePath, "utf8")) as Record<string, unknown>;
+    } catch (e) {
+        throw new Error(`Failed to read ${packagePath}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+
+    if (typeof raw.dependencies !== "object" || raw.dependencies === null) {
+        raw.dependencies = {};
+    }
+
+    (raw.dependencies as Record<string, unknown>)[name] = { version };
+
+    FileSystem.writeFileSync(packagePath, JSON.stringify(raw, null, 4) + "\n");
+}
+
+export async function installPackage(
+    name: string,
+    version: string,
+    modulesDir: string,
+    logger: InstallLogger = consoleLogger,
+    registry?: string,
+    token?: string
+): Promise<Record<string, string>> {
+    FileSystem.mkdirSync(modulesDir, { recursive: true });
+
+    const targetDir = targetDirFor(modulesDir, name);
+    const visited = new Set<string>([targetDir]);
+    const nodeDependencies: Record<string, string> = {};
+
+    logger.info(`Installing "${name}@${version}" -> exon_modules/${name} ...`);
+    await installFromHttp(registry ?? process.env.EXON_REGISTRY_API ?? DEFAULT_REGISTRY, name, version, targetDir, token);
+    await collectTransitive(targetDir, modulesDir, modulesDir, logger, visited, nodeDependencies, token);
+
+    return nodeDependencies;
+}
+
 // Fetches the package's metadata (which carries the same hash the registry wrote to
 // "{name}@{version}/meta.json" on publish, see backend/docs/api.md) before downloading the
 // archive, so the downloaded bytes can be checksummed against it - catching a corrupted or

@@ -4,9 +4,9 @@ import * as Path from "path";
 import * as FileSystem from "fs";
 import * as OS from "os";
 import { spawnSync } from "child_process";
-import { findProject, PACKAGE_FILE_NAME } from "exon-runtime";
+import { findProject, PACKAGE_FILE_NAME, MODULES_DIR_NAME } from "exon-runtime";
 
-import { installDependencies, installNodeDependencies, uninstallAll, uninstallDependency } from "./PackageInstaller";
+import { addDependencyToConfig, installDependencies, installNodeDependencies, installPackage, uninstallAll, uninstallDependency } from "./PackageInstaller";
 import { packProject } from "./PackagePacker";
 import { PackagePublisher } from "./PackagePublisher";
 import { unpackArchive } from "./PackageUnpacker";
@@ -50,8 +50,52 @@ function runPostinstall(projectDir: string, command: string): void {
     }
 }
 
+function parsePackageSpec(spec: string): { name: string; version: string } | undefined {
+    if (!spec.includes("@"))
+        return undefined;
+
+    const atIndex = spec.indexOf("@");
+    const name = spec.slice(0, atIndex);
+    const version = spec.slice(atIndex + 1);
+
+    if (name.length === 0 || version.length === 0) {
+        throw new Error(`Malformed package spec "${spec}": expected name@version`);
+    }
+
+    return { name, version };
+}
+
 async function runInstall(args: string[]): Promise<void> {
     const cwd = process.cwd();
+
+    let packageSpec: { name: string; version: string } | undefined;
+    try {
+        packageSpec = args[0] !== undefined ? parsePackageSpec(args[0]) : undefined;
+    } catch (e) {
+        reportError(e instanceof Error ? e.message : String(e));
+        return;
+    }
+
+    if (packageSpec !== undefined) {
+        const project = findProject(cwd);
+        const modulesDir = project !== null ? project.modulesDir : Path.join(cwd, MODULES_DIR_NAME);
+
+        try {
+            const nodeDependencies = await installPackage(packageSpec.name, packageSpec.version, modulesDir);
+
+            if (project !== null) {
+                addDependencyToConfig(project.packagePath, packageSpec.name, packageSpec.version);
+
+                if (Object.keys(nodeDependencies).length > 0) {
+                    installNodeDependencies(project.projectDir, nodeDependencies);
+                }
+            }
+        } catch (e) {
+            reportError(e instanceof Error ? e.message : String(e));
+        }
+        return;
+    }
+
     const targetDir = args[0] !== undefined ? Path.resolve(cwd, args[0]) : cwd;
     const project = findProject(targetDir);
 
