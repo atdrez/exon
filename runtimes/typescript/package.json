@@ -31,7 +31,7 @@
     "object graph"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=24 <25"
   },
   "scripts": {
     "start": "node bin/main.js",
@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
-    "esbuild": "^0.25.12",
+    "esbuild": "^0.28.0",
     "eslint": "^10.4.0",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.59.4",
