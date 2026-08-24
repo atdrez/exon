@@ -1,0 +1,55 @@
+// Executor stress (loops): drives the resolver through many iterations of
+// foreach, while, and repeat, each executing a non-trivial body.
+
+using fn.*
+
+{
+    // repeat: N iterations of a simple math expression
+    repeatWork: repeat {
+        count: 5000
+        content: add {
+            mul { 7 11 }
+            sub { pow { 2 6 } mod { 999 13 } }
+        }
+    }
+
+    // foreach over a large synthetic list (built with repeat) evaluating
+    // a per-element expression
+    foreachWork: foreach {
+        data: repeat { count: 500 content: 42 }
+        do: add {
+            mul { parameter{} 2 }
+            sub { parameter{} 3 }
+        }
+    }
+
+    // nested foreach: outer x inner produces N*M evaluations
+    nestedForeach: foreach {
+        data: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ]
+        do: foreach {
+            data: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ]
+            do: mul { parameter{} parameter{} }
+        }
+    }
+
+    // while loop: counts up to N, doing a small computation per iteration
+    counter: 0
+    limit: 2000
+
+    whileWork: while {
+        condition: lt { @root.counter @root.limit }
+        do: Object@iter {
+            index: @root.counter
+            value: add {
+                mul { @root.counter 3 }
+                mod { @root.counter 17 }
+            }
+
+            _step: set {
+                target: @root
+                property: "counter"
+                value: add { @root.counter 1 }
+            }
+        }
+    }
+}

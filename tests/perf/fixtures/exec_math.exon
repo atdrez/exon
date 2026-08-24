@@ -1,0 +1,97 @@
+// Executor stress (arithmetic): builds many nested math expressions so the
+// resolver walks and evaluates a large call tree. The source itself is
+// small, so parse time is not the dominant factor here.
+
+using fn.*
+
+{
+    // deeply chained arithmetic (parenthesised in the comment for clarity):
+    // ((((((((((((10 + 3) * 2) - 5) / 3) + 7) * 4) - 11) + 2) * 3) - 1) + 8) * 2
+    chained: mul {
+        add {
+            sub {
+                mul {
+                    add {
+                        sub {
+                            mul {
+                                add {
+                                    div {
+                                        sub {
+                                            mul {
+                                                add { 10 3 }
+                                                2
+                                            }
+                                            5
+                                        }
+                                        3
+                                    }
+                                    7
+                                }
+                                4
+                            }
+                            11
+                        }
+                        2
+                    }
+                    3
+                }
+                1
+            }
+            8
+        }
+        2
+    }
+
+    // pow / mod tower: (2 ^ 10) % 1000, then ((2^10) % 1000) * 3, etc
+    powtower: mul {
+        add {
+            mod { pow { 2 12 } 997 }
+            mod { pow { 3 8 } 991 }
+        }
+        sub {
+            mod { pow { 5 6 } 983 }
+            mod { pow { 7 4 } 977 }
+        }
+    }
+
+    // math library calls
+    lib: add {
+        add { math.sqrt { 144 } math.abs { -37 } }
+        add { math.round { 12.6 } math.floor { 42.9 } }
+    }
+
+    // clamp/min/max tree
+    bounded: math.clamp {
+        add {
+            math.max { math.min { 100 200 } math.min { 50 300 } }
+            math.max { 25 math.min { 75 40 } }
+        }
+        0
+        1000
+    }
+
+    // repeat a small expression many times to force the resolver to run it
+    // over and over. This is the closest thing to a "loop of pure work".
+    repeated: repeat {
+        count: 1000
+        content: add {
+            mul { 12 34 }
+            sub { pow { 2 8 } mod { 1000 7 } }
+        }
+    }
+
+    // foreach over a moderate array of numbers, evaluating an expression per element
+    perElement: foreach {
+        data: [
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+            11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+            21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+            31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+            41, 42, 43, 44, 45, 46, 47, 48, 49, 50
+        ]
+        do: add {
+            mul { parameter{} parameter{} }
+            math.abs { sub { parameter{} 25 } }
+        }
+    }
+}

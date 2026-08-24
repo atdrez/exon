@@ -1,0 +1,78 @@
+// Executor stress (dict): builds a large dictionary from many key/value
+// pairs, including dynamically-constructed keys via string.join.
+
+using fn.*
+
+{
+    keyed: fn.dict {
+        // static string keys, mixed value types
+        "Company Name"    "FooBar Ltd."
+        "Founded Year"    2014
+        "Active"          true
+        "Employees"       248
+        "Customers"       12500
+        "Revenue"         18400000.50
+
+        // nested dicts
+        "Address" fn.dict {
+            "City"          "San Francisco"
+            "State"         "California"
+            "Country/Code"  "US"
+            "Country/Name"  "United States"
+            "Postal Code"   "94103"
+        }
+
+        "Statistics" {
+            employees: 248
+            customers: 12500
+            revenue: 18400000.50
+        }
+
+        // small inline arrays
+        "Product List" [
+            "Cloud Platform",
+            "Analytics Suite",
+            "Developer SDK",
+            "Data Warehouse",
+            "Realtime Metrics",
+            "Query Engine",
+            "Notification Bus",
+            "Storage Layer",
+            "Access Control",
+            "Billing Service"
+        ]
+
+        // many keys built dynamically from string.join, each with a small value
+        fn.string.join { "Products/" 2020 "/License" } "MIT"
+        fn.string.join { "Products/" 2021 "/License" } "MIT"
+        fn.string.join { "Products/" 2022 "/License" } "MIT"
+        fn.string.join { "Products/" 2023 "/License" } "Apache-2.0"
+        fn.string.join { "Products/" 2024 "/License" } "Apache-2.0"
+
+        fn.string.join { "Region/" "us-east" "/latency"  } 42
+        fn.string.join { "Region/" "us-west" "/latency"  } 58
+        fn.string.join { "Region/" "eu"      "/latency"  } 71
+        fn.string.join { "Region/" "ap"      "/latency"  } 96
+        fn.string.join { "Region/" "sa"      "/latency"  } 110
+
+        fn.string.join { "Feature/" "auth"   "/enabled" } true
+        fn.string.join { "Feature/" "search" "/enabled" } true
+        fn.string.join { "Feature/" "reports" "/enabled" } false
+        fn.string.join { "Feature/" "alerts" "/enabled" } true
+        fn.string.join { "Feature/" "webhooks" "/enabled" } false
+    }
+
+    // a large dict built by repeat + foreach: N synthetic entries
+    synthetic: foreach {
+        data: repeat { count: 200 content: "row" }
+        do: fn.dict {
+            "type"    parameter{}
+            "index"   parameter { "index" }
+            "double"  mul { parameter { "index" } 2 }
+            "label"   fn.string.join {
+                "item-"
+                parameter { "index" }
+            }
+        }
+    }
+}

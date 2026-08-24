@@ -1,0 +1,88 @@
+// Parser stress: a wide object with many top-level properties of every
+// literal kind exon supports. The resolve phase is trivial (no function
+// calls); the timings from this fixture reflect the lexer/parser only.
+
+{
+    // primitives
+    stringValue: "the quick brown fox jumps over the lazy dog"
+    intValue: 123456789
+    negativeInt: -42
+    floatValue: 3.141592653589793
+    negativeFloat: -273.15
+    trueValue: true
+    falseValue: false
+    nullValue: null
+
+    // small arrays of each primitive
+    integers: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ]
+    floats: [ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5 ]
+    strings: [ "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa" ]
+    bools: [ true, false, true, false, true, false, true, false, true, false ]
+
+    // wide flat sub-object 01
+    entry01: { id: 1  name: "first"    active: true   score: 10.5 }
+    entry02: { id: 2  name: "second"   active: false  score: 20.25 }
+    entry03: { id: 3  name: "third"    active: true   score: 30.125 }
+    entry04: { id: 4  name: "fourth"   active: false  score: 40.0625 }
+    entry05: { id: 5  name: "fifth"    active: true   score: 50.03125 }
+    entry06: { id: 6  name: "sixth"    active: false  score: 60.015625 }
+    entry07: { id: 7  name: "seventh"  active: true   score: 70.0078125 }
+    entry08: { id: 8  name: "eighth"   active: false  score: 80.00390625 }
+    entry09: { id: 9  name: "ninth"    active: true   score: 90.001953125 }
+    entry10: { id: 10 name: "tenth"    active: false  score: 100.0009765625 }
+    entry11: { id: 11 name: "eleventh" active: true   score: 110.5 }
+    entry12: { id: 12 name: "twelfth"  active: false  score: 120.25 }
+    entry13: { id: 13 name: "thirteenth" active: true score: 130.125 }
+    entry14: { id: 14 name: "fourteenth" active: false score: 140.0625 }
+    entry15: { id: 15 name: "fifteenth"  active: true  score: 150.03125 }
+    entry16: { id: 16 name: "sixteenth"  active: false score: 160.015625 }
+    entry17: { id: 17 name: "seventeenth" active: true score: 170.0078125 }
+    entry18: { id: 18 name: "eighteenth"  active: false score: 180.00390625 }
+    entry19: { id: 19 name: "nineteenth"  active: true score: 190.001953125 }
+    entry20: { id: 20 name: "twentieth"   active: false score: 200.0009765625 }
+
+    // wide flat sub-object 02
+    field01: "alpha"    field02: "beta"    field03: "gamma"    field04: "delta"
+    field05: "epsilon"  field06: "zeta"    field07: "eta"      field08: "theta"
+    field09: "iota"     field10: "kappa"   field11: "lambda"   field12: "mu"
+    field13: "nu"       field14: "xi"      field15: "omicron"  field16: "pi"
+    field17: "rho"      field18: "sigma"   field19: "tau"      field20: "upsilon"
+    field21: "phi"      field22: "chi"     field23: "psi"      field24: "omega"
+
+    // mixed array of records
+    records: [
+        { id: 1  name: "Alice"    role: "engineer"  active: true },
+        { id: 2  name: "Bob"      role: "designer"  active: true },
+        { id: 3  name: "Carol"    role: "manager"   active: false },
+        { id: 4  name: "Dave"     role: "engineer"  active: true },
+        { id: 5  name: "Eve"      role: "analyst"   active: true },
+        { id: 6  name: "Frank"    role: "engineer"  active: false },
+        { id: 7  name: "Grace"    role: "designer"  active: true },
+        { id: 8  name: "Heidi"    role: "manager"   active: true },
+        { id: 9  name: "Ivan"     role: "engineer"  active: false },
+        { id: 10 name: "Judy"     role: "analyst"   active: true },
+        { id: 11 name: "Kevin"    role: "engineer"  active: true },
+        { id: 12 name: "Laura"    role: "designer"  active: false },
+        { id: 13 name: "Mallory"  role: "manager"   active: true },
+        { id: 14 name: "Niaj"     role: "engineer"  active: true },
+        { id: 15 name: "Olivia"   role: "analyst"   active: false },
+        { id: 16 name: "Peggy"    role: "engineer"  active: true },
+        { id: 17 name: "Quentin"  role: "designer"  active: true },
+        { id: 18 name: "Ruth"     role: "manager"   active: false },
+        { id: 19 name: "Sybil"    role: "engineer"  active: true },
+        { id: 20 name: "Trent"    role: "analyst"   active: true }
+    ]
+
+    // a small nested block, to exercise brace tracking inside a mostly-flat file
+    nested: {
+        a: 1
+        b: {
+            c: 2
+            d: {
+                e: 3
+                f: [ 4, 5, 6 ]
+                g: "leaf"
+            }
+        }
+    }
+}

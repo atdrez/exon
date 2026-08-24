@@ -1,0 +1,95 @@
+// Executor stress (inheritance): many instances of a base object with
+// varying overrides. Exercises Resolver base-chain walks: base id
+// registration, resolveRecursive with a parent, and __base__ lookup for
+// native/nativeId scripts.
+
+{
+    // twenty instances of the plain Database base type, unmodified
+    db01: basic.models.Database { }
+    db02: basic.models.Database { }
+    db03: basic.models.Database { }
+    db04: basic.models.Database { }
+    db05: basic.models.Database { }
+    db06: basic.models.Database { }
+    db07: basic.models.Database { }
+    db08: basic.models.Database { }
+    db09: basic.models.Database { }
+    db10: basic.models.Database { }
+    db11: basic.models.Database { }
+    db12: basic.models.Database { }
+    db13: basic.models.Database { }
+    db14: basic.models.Database { }
+    db15: basic.models.Database { }
+    db16: basic.models.Database { }
+    db17: basic.models.Database { }
+    db18: basic.models.Database { }
+    db19: basic.models.Database { }
+    db20: basic.models.Database { }
+
+    // twenty instances with a single-field override
+    dbA01: basic.models.Database { name: "a01" }
+    dbA02: basic.models.Database { name: "a02" }
+    dbA03: basic.models.Database { name: "a03" }
+    dbA04: basic.models.Database { name: "a04" }
+    dbA05: basic.models.Database { name: "a05" }
+    dbA06: basic.models.Database { name: "a06" }
+    dbA07: basic.models.Database { name: "a07" }
+    dbA08: basic.models.Database { name: "a08" }
+    dbA09: basic.models.Database { name: "a09" }
+    dbA10: basic.models.Database { name: "a10" }
+    dbA11: basic.models.Database { name: "a11" }
+    dbA12: basic.models.Database { name: "a12" }
+    dbA13: basic.models.Database { name: "a13" }
+    dbA14: basic.models.Database { name: "a14" }
+    dbA15: basic.models.Database { name: "a15" }
+    dbA16: basic.models.Database { name: "a16" }
+    dbA17: basic.models.Database { name: "a17" }
+    dbA18: basic.models.Database { name: "a18" }
+    dbA19: basic.models.Database { name: "a19" }
+    dbA20: basic.models.Database { name: "a20" }
+
+    // twenty instances with a full override (all four fields)
+    dbF01: basic.models.Database { host: "h01" port: 1001 name: "f01" poolSize: 11 }
+    dbF02: basic.models.Database { host: "h02" port: 1002 name: "f02" poolSize: 12 }
+    dbF03: basic.models.Database { host: "h03" port: 1003 name: "f03" poolSize: 13 }
+    dbF04: basic.models.Database { host: "h04" port: 1004 name: "f04" poolSize: 14 }
+    dbF05: basic.models.Database { host: "h05" port: 1005 name: "f05" poolSize: 15 }
+    dbF06: basic.models.Database { host: "h06" port: 1006 name: "f06" poolSize: 16 }
+    dbF07: basic.models.Database { host: "h07" port: 1007 name: "f07" poolSize: 17 }
+    dbF08: basic.models.Database { host: "h08" port: 1008 name: "f08" poolSize: 18 }
+    dbF09: basic.models.Database { host: "h09" port: 1009 name: "f09" poolSize: 19 }
+    dbF10: basic.models.Database { host: "h10" port: 1010 name: "f10" poolSize: 20 }
+    dbF11: basic.models.Database { host: "h11" port: 1011 name: "f11" poolSize: 21 }
+    dbF12: basic.models.Database { host: "h12" port: 1012 name: "f12" poolSize: 22 }
+    dbF13: basic.models.Database { host: "h13" port: 1013 name: "f13" poolSize: 23 }
+    dbF14: basic.models.Database { host: "h14" port: 1014 name: "f14" poolSize: 24 }
+    dbF15: basic.models.Database { host: "h15" port: 1015 name: "f15" poolSize: 25 }
+    dbF16: basic.models.Database { host: "h16" port: 1016 name: "f16" poolSize: 26 }
+    dbF17: basic.models.Database { host: "h17" port: 1017 name: "f17" poolSize: 27 }
+    dbF18: basic.models.Database { host: "h18" port: 1018 name: "f18" poolSize: 28 }
+    dbF19: basic.models.Database { host: "h19" port: 1019 name: "f19" poolSize: 29 }
+    dbF20: basic.models.Database { host: "h20" port: 1020 name: "f20" poolSize: 30 }
+
+    // twenty gauge instances (deferred script with a base of its own -
+    // gauge.exon wraps a lib.clamped call)
+    gauge01: property.gauge { }
+    gauge02: property.gauge { value: 10 }
+    gauge03: property.gauge { value: 20 }
+    gauge04: property.gauge { value: 30 }
+    gauge05: property.gauge { value: 40 }
+    gauge06: property.gauge { value: 50 }
+    gauge07: property.gauge { value: 60 }
+    gauge08: property.gauge { value: 70 }
+    gauge09: property.gauge { value: 80 }
+    gauge10: property.gauge { value: 90 }
+    gauge11: property.gauge { value: 5 }
+    gauge12: property.gauge { value: 15 }
+    gauge13: property.gauge { value: 25 }
+    gauge14: property.gauge { value: 35 }
+    gauge15: property.gauge { value: 45 }
+    gauge16: property.gauge { value: 55 }
+    gauge17: property.gauge { value: 65 }
+    gauge18: property.gauge { value: 75 }
+    gauge19: property.gauge { value: 85 }
+    gauge20: property.gauge { value: 95 }
+}

@@ -1,0 +1,65 @@
+// Executor stress (strings): builds many string values by joining, slicing,
+// replacing, and repeating. The source is small; almost all cost is in
+// string library calls at resolve time.
+
+using fn.*
+
+{
+    // one large join of many segments
+    joined: string.join {
+        "alpha" "-" "beta" "-" "gamma" "-" "delta" "-" "epsilon"
+        "-" "zeta" "-" "eta" "-" "theta" "-" "iota" "-" "kappa"
+        "-" "lambda" "-" "mu" "-" "nu" "-" "xi" "-" "omicron"
+        "-" "pi" "-" "rho" "-" "sigma" "-" "tau" "-" "upsilon"
+        "-" "phi" "-" "chi" "-" "psi" "-" "omega"
+    }
+
+    // build a long string by repeating a small pattern many times
+    longRepeat: string.repeat { "abcdefghij" count: 500 }
+
+    // slice / length / trim / case chained many times
+    processed: string.toUpperCase {
+        string.trim {
+            string.replaceAll {
+                string.toLowerCase {
+                    string.join {
+                        "  The Quick Brown Fox Jumps Over The Lazy Dog  "
+                        "  the quick brown fox jumps over the lazy dog  "
+                        separator: " | "
+                    }
+                }
+                search: "fox"
+                replacement: "cat"
+            }
+        }
+    }
+
+    // per-element string work across a moderate list of words
+    labels: foreach {
+        data: [
+            "alpha", "beta", "gamma", "delta", "epsilon",
+            "zeta", "eta", "theta", "iota", "kappa",
+            "lambda", "mu", "nu", "xi", "omicron",
+            "pi", "rho", "sigma", "tau", "upsilon",
+            "phi", "chi", "psi", "omega",
+            "one", "two", "three", "four", "five",
+            "six", "seven", "eight", "nine", "ten"
+        ]
+        do: string.join {
+            "["
+            string.toUpperCase { parameter{} }
+            "]"
+            "-"
+            string.padStart { parameter{} length: 6 pad: "." }
+        }
+    }
+
+    // build many concatenations via repeat
+    manyConcats: repeat {
+        count: 1000
+        content: string.join {
+            "prefix-" "middle-" "suffix"
+            separator: ""
+        }
+    }
+}
