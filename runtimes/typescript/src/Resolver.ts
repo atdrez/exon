@@ -7,53 +7,55 @@ import { RuntimeOptions } from "./RuntimeOptions";
 import { IScriptRepository } from "./IScriptRepository";
 import { IScript } from "./IScript";
 
-export class Resolver implements IResolver {
-    #context: Context;
-    #manager: IScriptRepository;
-    #idRegistry: Map<string, Map<string, any>> = new Map();
-    #params: { [key: string]: any } | undefined = undefined;
-    #pathStack: string[] = [];
+// Field-key sets consulted in the resolver hot loop. Kept at module scope
+// (frozen, single instance) so no per-Resolver allocation happens and no
+// per-field branch on options.testMode is needed inside resolveRecursive.
+//
+// SKIP_FIELDS_TEST_MODE is used when RuntimeOptions.testMode is on and
+// __tests__ blocks must be resolved. SKIP_FIELDS_DEFAULT is the common
+// case (testMode off) and additionally skips __tests__.
+//
+// Keys intentionally absent from either set:
+//   __content__:     field that holds child elements declared inside an object body;
+//                    (e.g: Object {1 2 3} is the same as Object{__content__: [1, 2, 3]}
+//   __preresolved__: sentinel set by deferred scripts (e.g. fn.property) to cache a result;
+//   __bindFile__:    file where an @ref binding was written; always lives inside a
+//                    { __bind__, __bindFile__ } value object (never a top-level field);
+const SKIP_FIELDS_TEST_MODE: ReadonlySet<string> = new Set([
+    '__name__',    // base filename (no extension) of the root object in each file
+    '__file__',    // source file path where the object was parsed
+    '__line__',    // source line number where the object was parsed
+    '__id__',      // declared identifier; enables cross-object @ref lookups
+    '__idFile__',  // file where __id__ was declared; scopes IDs per file in the registry
+    '__ref__',     // marks this object as a binding reference
+    '__native__',  // native component name to invoke during resolution
+    '__nativeId__', // id an fn.native{id, path} declaration self-registered under;
+                    // consulted only when walking __base__ for inheritance
+    '__base__',    // parsed base-type object (inheritance)
+    '__bind__',    // binding target for @ref declarations
+]);
+const SKIP_FIELDS_DEFAULT: ReadonlySet<string> = new Set([...SKIP_FIELDS_TEST_MODE, '__tests__']);
 
-    static readonly #METADATA_KEYS = new Set([
-        '__name__',    // base filename (no extension) of the root object in each file
-        '__file__',    // source file path where the object was parsed
-        '__line__',    // source line number where the object was parsed
-        '__id__',      // declared identifier; enables cross-object @ref lookups
-        '__idFile__',  // file where __id__ was declared; scopes IDs per file in the registry
-        '__ref__',     // marks this object as a binding reference
-        '__native__',  // native component name to invoke during resolution
-        '__nativeId__', // id an fn.native{id,path} declaration self-registered under;
-                        // consulted only when walking __base__ for inheritance (see below)
-        '__base__',    // parsed base-type object (inheritance)
-        '__bind__',    // binding target for @ref declarations
-    ]);
-    // Keys intentionally absent from METADATA_KEYS:
-    //   __content__:     field that holds child elements declared inside an object body;
-    //                    (e.g: Object {1 2 3} is the same as Object{__content__: [1, 2, 3]}
-    //   __tests__:       block of test assertions embedded in the exon file; resolved normally when
-    //                    testMode is on (-t flag), suppressed entirely otherwise;
-    //   __preresolved__: sentinel set by deferred scripts (e.g. fn.property) to cache a result;
-    //   __bindFile__:    file where an @ref binding was written; always lives inside a
-    //                    { __bind__, __bindFile__ } value object (never a top-level field);
+export class Resolver implements IResolver {
+    private _context: Context;
+    private _manager: IScriptRepository;
+    private _idRegistry: Map<string, Map<string, any>> = new Map();
+    private _params: { [key: string]: any } | undefined = undefined;
+    private _pathStack: string[] = [];
+    private _skipFields: ReadonlySet<string>;
 
     constructor(manager: IScriptRepository, options: RuntimeOptions) {
-        this.#manager = manager;
-        this.#context = new Context(this, manager, options);
-    }
-
-    static #shouldSkipField(key: string, context: Context): boolean {
-        if (Resolver.#METADATA_KEYS.has(key))
-            return true;
-
-        return (key === '__tests__' && !context.options.testMode);
+        this._manager = manager;
+        this._context = new Context(this, manager, options);
+        this._skipFields = options.testMode ? SKIP_FIELDS_TEST_MODE : SKIP_FIELDS_DEFAULT;
     }
 
     private registerIdInFile(id: string, file: string, value: any): void {
-        let fileMap = this.#idRegistry.get(file);
+        let fileMap = this._idRegistry.get(file);
 
         if (!fileMap) {
             fileMap = new Map<string, any>();
-            this.#idRegistry.set(file, fileMap);
+            this._idRegistry.set(file, fileMap);
         }
 
         fileMap.set(id, value);
@@ -83,10 +85,10 @@ export class Resolver implements IResolver {
 
     public resolve(obj: any, params?: { [key: string]: any }): any {
         if (params !== undefined) {
-            const saved = this.#params;
-            this.#params = params;
+            const saved = this._params;
+            this._params = params;
             const result = this.resolveImpl(obj);
-            this.#params = saved;
+            this._params = saved;
             return result;
         }
 
@@ -94,11 +96,11 @@ export class Resolver implements IResolver {
     }
 
     public resolveWithOptions(obj: any, opts: RuntimeOptions, params?: { [key: string]: any }): any {
-        return Resolver.execute(this.#manager, obj, opts, params);
+        return Resolver.execute(this._manager, obj, opts, params);
     }
 
     public getCurrentPathStack(): readonly string[] {
-        return this.#pathStack;
+        return this._pathStack;
     }
 
     private resolveImpl(obj: any): any {
@@ -110,34 +112,39 @@ export class Resolver implements IResolver {
             return obj;
         }
 
-        if ('__preresolved__' in obj) {
-            return obj['__preresolved__'];
+        const preresolved = obj['__preresolved__'];
+        if (preresolved !== undefined || '__preresolved__' in obj) {
+            return preresolved;
         }
 
-        let result: any = {};
-
-        if (obj['__file__']) {
-            this.#context.location.file = obj['__file__'];
-        }
-
-        if (obj['__line__']) {
-            this.#context.location.line = obj['__line__'];
-        }
-
-        const myFileName = this.#context.location.file;
-        const myLine = this.#context.location.line;
-
-        const isFileRoot = '__name__' in obj;
+        // Destructure hot metadata once instead of re-reading on every branch.
+        // These fields are consulted many times below (native lookup, base
+        // chain walk, id registration, error rethrow).
+        const objFile: string | undefined = obj['__file__'];
+        const objLine: number | undefined = obj['__line__'];
+        const objBase: any = obj['__base__'];
+        const objNative: string | undefined = obj['__native__'];
         const id: string | undefined = obj['__id__'];
         const idFile: string = obj['__idFile__'] ?? '';
+        const isFileRoot = '__name__' in obj;
 
-        this.registerObjectIds(id, idFile, isFileRoot, myFileName, result);
+        const location = this._context.location;
+        if (objFile) {
+            location.file = objFile;
+        }
 
-        let native = obj['__native__'];
+        if (objLine) {
+            location.line = objLine;
+        }
+
+        const myFileName = location.file;
+        const myLine = location.line;
+
+        let native = objNative;
         let nativeSource = obj;
 
-        if (!native) {
-            let base = obj['__base__'];
+        if (!native && objBase) {
+            let base = objBase;
             while (base && !native) {
                 // __nativeId__ (a self-registered fn.native{id, path}) takes priority
                 // over __native__
@@ -150,34 +157,43 @@ export class Resolver implements IResolver {
             }
         }
 
-        const script = native ? this.#context.findScript(native) : undefined;
+        const script = native ? this._context.findScript(native) : undefined;
 
         if (native && !script) {
             throw new Error(`Unable to find '${native}' element`);
         }
 
+        let result: any;
+
         try {
             if (script?.isDeferred?.()) {
-                const rawForLazy = obj['__base__'] ? this.mergeRawForLazy(obj, script) : obj;
+                const rawForLazy = objBase ? this.mergeRawForLazy(obj, script) : obj;
 
                 this.registerObjectIds(id, idFile, isFileRoot, myFileName, rawForLazy);
 
-                const savedIds = this.saveBaseChainIds(obj);
-                this.registerBaseChainIds(obj, rawForLazy);
+                // Save-then-register in two passes: the save must observe
+                // the true pre-chain registry state, so it has to complete
+                // before any registration overwrites existing entries.
+                // Chain depth is small, so the cost of two walks is fine
+                // and this preserves the exact prior semantics.
+                const savedIds = this.saveBaseChainIds(objBase);
+                this.registerBaseChainIds(objBase, rawForLazy);
 
-                this.#context.location.file = nativeSource['__file__'] ?? myFileName;
-                this.#context.location.line = nativeSource['__line__'] ?? myLine;
+                location.file = nativeSource['__file__'] ?? myFileName;
+                location.line = nativeSource['__line__'] ?? myLine;
 
-                result = this.#context.resolveScript(script, rawForLazy, this.#params);
+                result = this._context.resolveScript(script, rawForLazy, this._params);
                 this.restoreIds(savedIds);
             } else {
+                result = {};
+                this.registerObjectIds(id, idFile, isFileRoot, myFileName, result);
                 this.resolveRecursive(result, obj);
 
                 if (script) {
-                    this.#context.location.file = nativeSource['__file__'] ?? myFileName;
-                    this.#context.location.line = nativeSource['__line__'] ?? myLine;
+                    location.file = nativeSource['__file__'] ?? myFileName;
+                    location.line = nativeSource['__line__'] ?? myLine;
 
-                    result = this.#context.resolveScript(script, result, this.#params);
+                    result = this._context.resolveScript(script, result, this._params);
                 }
             }
         } catch (e) {
@@ -189,21 +205,21 @@ export class Resolver implements IResolver {
         return result;
     }
 
-    private saveBaseChainIds(obj: any): Array<[string, string, any]> {
+    private saveBaseChainIds(firstBase: any): Array<[string, string, any]> {
         const saved: Array<[string, string, any]> = [];
 
-        let current = obj['__base__'];
+        let current = firstBase;
         while (current) {
             const baseId: string | undefined = current['__id__'];
             if (baseId) {
                 const baseIdFile: string = current['__idFile__'] ?? '';
-                const fileMap = this.#idRegistry.get(baseIdFile);
+                const fileMap = this._idRegistry.get(baseIdFile);
                 saved.push([baseId, baseIdFile, fileMap?.get(baseId)]);
             }
 
             if ('__name__' in current) {
                 const baseFile: string = current['__file__'] ?? '';
-                const fileMap = this.#idRegistry.get(baseFile);
+                const fileMap = this._idRegistry.get(baseFile);
                 saved.push(['root', baseFile, fileMap?.get('root')]);
             }
 
@@ -213,14 +229,22 @@ export class Resolver implements IResolver {
         return saved;
     }
 
+    private registerBaseChainIds(firstBase: any, target: any): void {
+        let current = firstBase;
+        while (current) {
+            this.registerBaseIds(current, target);
+            current = current['__base__'];
+        }
+    }
+
     private restoreIds(saved: Array<[string, string, any]>): void {
         for (const [id, file, value] of saved) {
             if (value === undefined) {
-                const fileMap = this.#idRegistry.get(file);
+                const fileMap = this._idRegistry.get(file);
                 if (fileMap) {
                     fileMap.delete(id);
                     if (fileMap.size === 0) {
-                        this.#idRegistry.delete(file);
+                        this._idRegistry.delete(file);
                     }
                 }
             } else {
@@ -229,17 +253,9 @@ export class Resolver implements IResolver {
         }
     }
 
-    private registerBaseChainIds(obj: any, target: any): void {
-        let current = obj['__base__'];
-        while (current) {
-            this.registerBaseIds(current, target);
-            current = current['__base__'];
-        }
-    }
-
-    static #composeObjectFields(obj: any, merged: any, mergeContent: boolean, context: Context): any {
+    static _composeObjectFields(obj: any, merged: any, mergeContent: boolean, skipFields: ReadonlySet<string>): any {
         for (const key of Object.keys(obj)) {
-            if (Resolver.#shouldSkipField(key, context))
+            if (skipFields.has(key))
                 continue;
 
             if (!mergeContent || key !== '__content__') {
@@ -270,17 +286,22 @@ export class Resolver implements IResolver {
     private mergeRawForLazy(obj: any, script: IScript): any {
         const merged: any = {};
         const isComposable = script.isComposable?.() === true;
+        const skipFields = this._skipFields;
 
-        const collectBase = (source: any) => {
-            const parent = source['__base__'];
-            if (parent) {
-                collectBase(parent);
-            }
-            Resolver.#composeObjectFields(source, merged, isComposable, this.#context);
-        };
+        // Walk the base chain iteratively into a stack, then compose from
+        // root to leaf. Avoids recursion depth and repeated function-call
+        // overhead for deep inheritance chains.
+        const chain: any[] = [];
+        let current: any = obj['__base__'];
+        while (current) {
+            chain.push(current);
+            current = current['__base__'];
+        }
 
-        collectBase(obj['__base__']);
-        Resolver.#composeObjectFields(obj, merged, isComposable, this.#context);
+        for (let i = chain.length - 1; i >= 0; i--) {
+            Resolver._composeObjectFields(chain[i], merged, isComposable, skipFields);
+        }
+        Resolver._composeObjectFields(obj, merged, isComposable, skipFields);
 
         return merged;
     }
@@ -293,8 +314,12 @@ export class Resolver implements IResolver {
             this.resolveRecursive(obj, parent);
         }
 
+        const skipFields = this._skipFields;
+        const pathStack = this._pathStack;
+        const context = this._context;
+
         for (const key of Object.keys(source)) {
-            if (Resolver.#shouldSkipField(key, this.#context)) {
+            if (skipFields.has(key)) {
                 continue;
             }
 
@@ -305,30 +330,31 @@ export class Resolver implements IResolver {
                 continue;
             }
 
-            const trackPath = key !== '__content__'
-                && !(key.startsWith('__componentDef_') && key.endsWith('__'));
+            const isComponentDef = key.charCodeAt(0) === 95 /* '_' */
+                && key.startsWith('__componentDef_') && key.endsWith('__');
+            const trackPath = key !== '__content__' && !isComponentDef;
 
             if (trackPath) {
-                this.#pathStack.push(key);
+                pathStack.push(key);
             }
 
-            if (key.startsWith('__componentDef_') && key.endsWith('__')) {
+            if (isComponentDef) {
                 this.parseValueRecursive(sourceValue);
             } else if (sourceValue === undefined || sourceValue === null) {
-                this.#context.setProperty(obj, key, null);
+                context.setProperty(obj, key, null);
             } else if (typeof sourceValue === 'object' && sourceValue['__ref__']) {
-                const target = this.#context.getProperty(obj, key);
+                const target = context.getProperty(obj, key);
                 this.applyPartialOverride(target, sourceValue);
             } else if (key === '__content__') {
-                const existing = this.#context.getProperty(obj, key);
+                const existing = context.getProperty(obj, key);
                 const resolved = this.parseValueRecursive(sourceValue);
-                this.#context.setProperty(obj, key, Array.isArray(existing) ? existing.concat(resolved) : resolved);
+                context.setProperty(obj, key, Array.isArray(existing) ? existing.concat(resolved) : resolved);
             } else {
-                this.#context.setProperty(obj, key, this.parseValueRecursive(sourceValue));
+                context.setProperty(obj, key, this.parseValueRecursive(sourceValue));
             }
 
             if (trackPath) {
-                this.#pathStack.pop();
+                pathStack.pop();
             }
         }
     }
@@ -391,19 +417,28 @@ export class Resolver implements IResolver {
     }
 
     public resolveBinding(path: string, file: string): any {
-        return this.resolveBindingImpl(path, file, new Set());
+        // visited is allocated lazily on the first recursive descent (see
+        // resolveBindingImpl). The common case is a single-hop lookup that
+        // never recurses, so the Set would otherwise be allocated and
+        // discarded unused.
+        return this.resolveBindingImpl(path, file, null);
     }
 
-    private resolveBindingImpl(path: string, file: string, visited: Set<string>): any {
-        const key = `${file}::${path}`;
-        if (visited.has(key)) {
-            throw new Error(`Circular binding reference: @${path}`);
+    private resolveBindingImpl(path: string, file: string, visited: Set<string> | null): any {
+        // Cycle-detection key: only allocate/consult the visited Set when
+        // it already exists (a recursive descent through @ref->@ref).
+        // Single-hop resolutions never see the same (file, path) twice.
+        if (visited !== null) {
+            const key = `${file}::${path}`;
+            if (visited.has(key)) {
+                throw new Error(`Circular binding reference: @${path}`);
+            }
+            visited.add(key);
         }
-        visited.add(key);
 
         const parts = path.split('.');
         const id = parts[0];
-        const fileMap = this.#idRegistry.get(file);
+        const fileMap = this._idRegistry.get(file);
         const target = fileMap?.get(id);
 
         if (target === undefined) {
@@ -411,10 +446,12 @@ export class Resolver implements IResolver {
         }
 
         let result = target;
+        const context = this._context;
 
         for (let i = 1; i < parts.length; i++) {
-            if (this.#context.isObjectBinding(result)) {
-                result = this.resolveBindingImpl(result['__bind__'], result['__bindFile__'] ?? file, visited);
+            if (context.isObjectBinding(result)) {
+                result = this.resolveBindingImpl(result['__bind__'], result['__bindFile__'] ?? file,
+                    this.ensureVisited(visited, path, file));
             }
 
             if (typeof result === 'object' && result !== null && '__preresolved__' in result) {
@@ -425,11 +462,12 @@ export class Resolver implements IResolver {
                 throw new Error(`Cannot access property '${parts[i]}' on undefined`);
             }
 
-            result = this.#context.getProperty(result, parts[i]);
+            result = context.getProperty(result, parts[i]);
         }
 
-        if (this.#context.isObjectBinding(result)) {
-            return this.resolveBindingImpl(result['__bind__'], result['__bindFile__'] ?? file, visited);
+        if (context.isObjectBinding(result)) {
+            return this.resolveBindingImpl(result['__bind__'], result['__bindFile__'] ?? file,
+                this.ensureVisited(visited, path, file));
         }
 
         if (typeof result === 'object' && result !== null && '__preresolved__' in result) {
@@ -443,30 +481,41 @@ export class Resolver implements IResolver {
         return result;
     }
 
+    private ensureVisited(visited: Set<string> | null, path: string, file: string): Set<string> {
+        if (visited !== null) {
+            return visited;
+        }
+        // First recursive descent: seed the Set with the current entry so
+        // the callee will detect a cycle back to us.
+        const created = new Set<string>();
+        created.add(`${file}::${path}`);
+        return created;
+    }
+
     private setNestedProperty(obj: any, key: string, value: any): void {
         const parts = key.split('.');
         let target = obj;
         for (let i = 0; i < parts.length - 1; i++) {
-            target = this.#context.getProperty(target, parts[i]);
+            target = this._context.getProperty(target, parts[i]);
             if (target === undefined || target === null) {
                 throw new Error(`Cannot override '${key}': '${parts.slice(0, i + 1).join('.')}' is ${String(target)}`);
             }
         }
         const leafKey = parts[parts.length - 1];
-        this.#context.setProperty(target, leafKey, value === null ? null : this.parseValueRecursive(value));
+        this._context.setProperty(target, leafKey, value === null ? null : this.parseValueRecursive(value));
     }
 
     private applyPartialOverride(target: any, refObj: any): void {
         for (const key of Object.keys(refObj)) {
-            if (key.startsWith('__')) {
+            if (key.charCodeAt(0) === 95 /* '_' */ && key.startsWith('__')) {
                 continue;
             }
 
             const value = refObj[key];
             if (typeof value === 'object' && value !== null && value['__ref__']) {
-                this.applyPartialOverride(this.#context.getProperty(target, key), value);
+                this.applyPartialOverride(this._context.getProperty(target, key), value);
             } else {
-                this.#context.setProperty(target, key, this.parseValueRecursive(value));
+                this._context.setProperty(target, key, this.parseValueRecursive(value));
             }
         }
     }
@@ -477,8 +526,9 @@ export class Resolver implements IResolver {
         }
 
         if (typeof value === 'object' && value !== null) {
-            if (value['__bind__'] !== undefined) {
-                const bound = this.resolveBinding(value['__bind__'], value['__bindFile__'] ?? '');
+            const bind = value['__bind__'];
+            if (bind !== undefined) {
+                const bound = this.resolveBinding(bind, value['__bindFile__'] ?? '');
                 if (typeof bound === 'object' && bound !== null && !Array.isArray(bound)
                     && ('__base__' in bound || '__native__' in bound || '__file__' in bound)) {
                     return this.resolveImpl(bound);
@@ -497,12 +547,25 @@ export class Resolver implements IResolver {
     }
 
     private parseArrayRecursive(value: unknown[]): unknown[] {
-        const result = new Array<unknown>(value.length);
+        const length = value.length;
+        const result = new Array<unknown>(length);
+        const pathStack = this._pathStack;
 
-        for (let i = 0; i < value.length; i++) {
-            this.#pathStack.push(String(i));
-            result[i] = this.parseValueRecursive(value[i]);
-            this.#pathStack.pop();
+        for (let i = 0; i < length; i++) {
+            const item = value[i];
+
+            // Primitive elements never recurse into a script, so nothing
+            // downstream can observe the path stack. Skip the index push
+            // and its String(i) allocation in that case (the common one
+            // for large primitive arrays).
+            if (item === null || typeof item !== 'object') {
+                result[i] = item;
+                continue;
+            }
+
+            pathStack.push(String(i));
+            result[i] = this.parseValueRecursive(item);
+            pathStack.pop();
         }
 
         return result;

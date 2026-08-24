@@ -29,7 +29,8 @@ describe('parser errors', () => {
     });
 
     it('throws when an imported file does not exist', () => {
-        expect(() => compile(`NoSuchType { }`)).toThrow();
+        expect(() => compile(`NoSuchType { }`))
+            .toThrow('File does not exists: NoSuchType.exon');
     });
 
     it('throws on @ without a following identifier', () => {

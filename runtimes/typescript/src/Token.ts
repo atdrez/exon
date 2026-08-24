@@ -3,44 +3,94 @@
 import { TokenType } from "./TokenType";
 
 export class Token {
-    public readonly tokenType: TokenType;
+    private _buffer: Buffer;
+    private _tokenType: TokenType = TokenType.None;
+    private _startIndex: number = 0;
+    private _endIndex: number = -1;
+    private _tokenValue: string | undefined = undefined;
 
-    #buffer: Buffer;
-    #startIndex: number;
-    #endIndex: number;
-    #tokenValue: string | undefined;
+    constructor(buffer: Buffer) {
+        this._buffer = buffer;
+    }
 
-    constructor(buffer: Buffer, tokenType: TokenType, start: number, end: number) {
-        this.#buffer = buffer;
-        this.#startIndex = start;
-        this.#endIndex = end;
-        this.tokenType = tokenType;
-        this.#tokenValue = undefined;
+    public getTokenType() : TokenType {
+        return this._tokenType;
+    }
+
+    public assign(tokenType: TokenType, start: number, end: number) : TokenType {
+        this._tokenType = tokenType;
+        this._startIndex = start;
+        this._endIndex = end;
+        this._tokenValue = undefined;
+        return tokenType;
+    }
+
+    public copyFrom(other: Token) : void {
+        this._buffer = other._buffer;
+        this.assign(other._tokenType, other._startIndex, other._endIndex);
+        this._tokenValue = other._tokenValue;
+    }
+
+    static parseSpecialToken(ch: number) : TokenType {
+        switch (ch) {
+            case 44:  return TokenType.Comma;
+            case 58:  return TokenType.Colon;
+            case 45:  return TokenType.Minus;
+            case 59:  return TokenType.Semicolon;
+            case 64:  return TokenType.At;
+            case 91:  return TokenType.LeftBracket;
+            case 93:  return TokenType.RightBracket;
+            case 123: return TokenType.LeftCurlyBracket;
+            case 125: return TokenType.RightCurlyBracket;
+            default:  return TokenType.None;
+        }
     }
 
     public toString() : string {
-        if (this.tokenType === TokenType.None)
+        if (this._tokenType === TokenType.None)
             return "<invalid>";
 
-        if (this.#tokenValue !== undefined)
-            return this.#tokenValue;
+        if (this._tokenValue !== undefined)
+            return this._tokenValue;
 
-        const raw = this.#buffer.toString("utf-8", this.#startIndex, this.#endIndex + 1);
+        const raw = this._buffer.toString("utf8", this._startIndex, this._endIndex + 1);
 
-        if (this.tokenType === TokenType.String) {
-            this.#tokenValue = Token.#processEscape(raw);
+        if (this._tokenType === TokenType.String) {
+            this._tokenValue = Token.processEscape(raw);
         }
-        else if (this.tokenType === TokenType.MultilineString) {
-            this.#tokenValue = Token.#processEscape(Token.#dedent(raw));
+        else if (this._tokenType === TokenType.MultilineString) {
+            this._tokenValue = Token.processEscape(Token.dedent(raw));
         }
         else {
-            this.#tokenValue = raw;
+            this._tokenValue = raw;
         }
 
-        return  this.#tokenValue;
+        return this._tokenValue;
     }
 
-    static #processEscape(raw: string) : string {
+    public toNumber() : number {
+        const buffer = this._buffer;
+        const start = this._startIndex;
+        const end = this._endIndex;
+        const length = end - start + 1;
+
+        if (this._tokenType === TokenType.Float || length > 15) {
+            // floats or huge numbers fallback to parseFloat
+            return parseFloat(this._buffer.toString("utf8", this._startIndex, this._endIndex + 1));
+        }
+
+        if (this._tokenType !== TokenType.Integer) {
+            return 0; // invalid number type
+        }
+
+        let result = 0;
+        for (let i = start; i <= end; i++) {
+            result = result * 10 + (buffer[i] - 48 /* 0 */);
+        }
+        return result;
+    }
+
+    private static processEscape(raw: string) : string {
         const backslashIndex = raw.indexOf("\\");
 
         if (backslashIndex < 0)
@@ -76,7 +126,7 @@ export class Token {
 
     // Dedents a multiline string's raw content using the minimum common
     // leading whitespace (space or tab) shared by its lines.
-    static #dedent(raw: string) : string {
+    private static dedent(raw: string) : string {
         let text = raw;
         let hasLeadingBreak = false;
 

@@ -12,24 +12,25 @@ import { PathResolver } from "./PathResolver";
 type UsingEntry = { namespace: string; alias: string; isWildcard: boolean };
 
 export class Parser {
-    static #extension = ".exon";
-    static #defaultObjectName = "Object"
+    private static _extension = ".exon";
+    private static _defaultObjectName = "Object"
 
-    #paths: string[];
-    #scriptManager: IScriptRepository;
-    #parsingFiles: Set<string> = new Set();
-    #parseCache: Map<string, any> = new Map();
-    #existsCache: Map<string, boolean> = new Map();
+    private _paths: string[];
+    private _scriptManager: IScriptRepository;
+    private _parsingFiles: Set<string> = new Set();
+    private _parseCache: Map<string, any> = new Map();
+    private _existsCache: Map<string, boolean> = new Map();
+    private _resolvedFileCache: Map<string, string | null> = new Map();
 
     public constructor(manager: IScriptRepository, paths: string[] = []) {
-        this.#paths = paths;
-        this.#scriptManager = manager;
+        this._paths = paths;
+        this._scriptManager = manager;
     }
 
     public parse(fileName: string) : any {
         const absoluteFilePath = Path.resolve(fileName);
-        this.#parsingFiles.clear();
-        this.#parsingFiles.add(absoluteFilePath);
+        this._parsingFiles.clear();
+        this._parsingFiles.add(absoluteFilePath);
         const input = FileSystem.readFileSync(absoluteFilePath);
         return this.parseFromBuffer(input, absoluteFilePath);
     }
@@ -41,61 +42,80 @@ export class Parser {
 
         const result = this.parseObject(lexer, usingNamespaces, true);
 
-        const extra = lexer.readToken();
-        if (extra.tokenType !== TokenType.None)
+        const extraTokenType = lexer.readToken();
+        if (extraTokenType !== TokenType.None)
             throw new ParserError(`Unexpected token found after root object declaration`, lexer);
 
         return result;
     }
 
     private fileExists(filePath: string): boolean {
-        let result = this.#existsCache.get(filePath);
+        let result = this._existsCache.get(filePath);
         if (result === undefined) {
             result = FileSystem.existsSync(filePath);
-            this.#existsCache.set(filePath, result);
+            this._existsCache.set(filePath, result);
         }
         return result;
     }
 
-    private resolveFileName(objectName: string, dirName: string) : string {
+    private findFileName(objectName: string, dirName: string) : string | null {
+        const cacheKey = objectName + '\0' + dirName;
+        const cached = this._resolvedFileCache.get(cacheKey);
+
+        if (cached !== undefined)
+            return cached;
+
+        const result = this.searchFileName(objectName, dirName);
+        this._resolvedFileCache.set(cacheKey, result);
+        return result;
+    }
+
+    private searchFileName(objectName: string, dirName: string) : string | null {
         const fileName = PathResolver.resolveDottedPath(objectName, dirName);
 
-        if (objectName.startsWith('.')) {
-            if (this.fileExists(fileName))
-                return fileName;
-
-            throw new Error(`File does not exists: ${fileName}`);
-        }
+        if (objectName.startsWith('.'))
+            return this.fileExists(fileName) ? fileName : null;
 
         const relativePath = Path.relative(dirName, fileName);
 
-        for (const path of this.#paths) {
+        for (const path of this._paths) {
             const resolvedPath = Path.join(path, relativePath);
 
             if (this.fileExists(resolvedPath))
                 return resolvedPath;
         }
 
-        if (this.fileExists(fileName))
+        return this.fileExists(fileName) ? fileName : null;
+    }
+
+    private resolveFileName(objectName: string, dirName: string) : string {
+        const fileName = this.findFileName(objectName, dirName);
+
+        if (fileName !== null)
             return fileName;
 
-        throw new Error(`File does not exists: ${relativePath}`);
+        const missingPath = PathResolver.resolveDottedPath(objectName, dirName);
+
+        if (objectName.startsWith('.'))
+            throw new Error(`File does not exists: ${missingPath}`);
+
+        throw new Error(`File does not exists: ${Path.relative(dirName, missingPath)}`);
     }
 
     private findAndParseObject(objectName: string, dirName: string) : any {
         const fileName = this.resolveFileName(objectName, dirName);
 
-        const cached = this.#parseCache.get(fileName);
+        const cached = this._parseCache.get(fileName);
         if (cached !== undefined) {
             return cached;
         }
 
-        if (this.#parsingFiles.has(fileName)) {
-            const cycle = [...this.#parsingFiles, fileName].join(' -> ');
+        if (this._parsingFiles.has(fileName)) {
+            const cycle = [...this._parsingFiles, fileName].join(' -> ');
             throw new Error(`Circular import detected: ${cycle}`);
         }
 
-        this.#parsingFiles.add(fileName);
+        this._parsingFiles.add(fileName);
         try {
             const input = FileSystem.readFileSync(fileName);
             const lexer = new Lexer(input, fileName);
@@ -103,10 +123,10 @@ export class Parser {
             const usingNamespaces = this.extractUsingDirectives(lexer);
 
             const result = this.parseObject(lexer, usingNamespaces, true, objectName);
-            this.#parseCache.set(fileName, result);
+            this._parseCache.set(fileName, result);
             return result;
         } finally {
-            this.#parsingFiles.delete(fileName);
+            this._parsingFiles.delete(fileName);
         }
     }
 
@@ -114,19 +134,19 @@ export class Parser {
         const entries: UsingEntry[] = [];
 
         while (true) {
-            const token = lexer.readToken();
+            const tokenType = lexer.readToken();
 
-            if (token.tokenType !== TokenType.Using) {
+            if (tokenType !== TokenType.Using) {
                 lexer.putTokenBack();
                 return entries;
             }
 
-            const nameToken = lexer.readToken();
+            const nameTokenType = lexer.readToken();
 
-            if (nameToken.tokenType !== TokenType.Identifier)
+            if (nameTokenType !== TokenType.Identifier)
                 throw new ParserError(`Expected namespace after 'using'`, lexer);
 
-            const namespace = nameToken.toString();
+            const namespace = lexer.getTokenString();
             const parts = namespace.split('.');
             const starIndex = parts.indexOf('*');
 
@@ -137,15 +157,15 @@ export class Parser {
                 throw new ParserError(`'*' alone is not a valid namespace`, lexer);
 
             const isWildcard = parts[parts.length - 1] === '*';
-            const asToken = lexer.readToken();
+            const asTokenType = lexer.readToken();
 
-            if (asToken.tokenType === TokenType.As) {
-                const aliasToken = lexer.readToken();
+            if (asTokenType === TokenType.As) {
+                const aliasTokenType = lexer.readToken();
 
-                if (aliasToken.tokenType !== TokenType.Identifier)
+                if (aliasTokenType !== TokenType.Identifier)
                     throw new ParserError(`Expected alias identifier after 'as'`, lexer);
 
-                const alias = aliasToken.toString();
+                const alias = lexer.getTokenString();
 
                 if (alias === '*')
                     throw new ParserError(`'*' is not a valid alias`, lexer);
@@ -188,15 +208,13 @@ export class Parser {
             }
 
             if (fullName !== undefined) {
-                if (this.#scriptManager.contains(fullName))
+                if (this._scriptManager.contains(fullName))
                     return fullName;
-    
-                try {
-                    this.resolveFileName(fullName, dirName);
+
+                // probing each candidate namespace in turn, so a miss is expected control
+                // flow here and must not pay for building and throwing an Error
+                if (this.findFileName(fullName, dirName) !== null)
                     return fullName;
-                } catch {
-                    // not found via this namespace, try next
-                }
             }
         }
 
@@ -204,67 +222,67 @@ export class Parser {
     }
 
     private parseObject(lexer: Lexer, usingNamespaces: UsingEntry[], isRoot: boolean = false, defaultId?: string) : any {
-        const token = lexer.readToken();
+        const tokenType = lexer.readToken();
 
-        if (token.tokenType === TokenType.LeftCurlyBracket) {
+        if (tokenType === TokenType.LeftCurlyBracket) {
             lexer.putTokenBack();
-            return this.parseObjectBody(Parser.#defaultObjectName, lexer, usingNamespaces, isRoot, defaultId);
+            return this.parseObjectBody(Parser._defaultObjectName, lexer, usingNamespaces, isRoot, defaultId);
         }
 
-        if (token.tokenType !== TokenType.Identifier)
-            throw new ParserError(`Invalid token found '${token.toString()}', expected <identifier>`,
+        if (tokenType !== TokenType.Identifier)
+            throw new ParserError(`Invalid token found '${lexer.getTokenString()}', expected <identifier>`,
                                   lexer);
 
-        return this.parseObjectBody(token.toString(), lexer, usingNamespaces, isRoot, defaultId);
+        return this.parseObjectBody(lexer.getTokenString(), lexer, usingNamespaces, isRoot, defaultId);
     }
 
     private parseObjectBody(objectName: string, lexer: Lexer, usingNamespaces: UsingEntry[], isRoot: boolean = false, defaultId?: string) : any {
-        let token = lexer.readToken();
+        let tokenType = lexer.readToken();
 
         let objectId: string | null = null;
 
-        if (token.tokenType === TokenType.At) {
-            const idToken = lexer.readToken();
+        if (tokenType === TokenType.At) {
+            const idTokenType = lexer.readToken();
 
-            if (idToken.tokenType !== TokenType.Identifier)
-                throw new ParserError(`Invalid token found '${idToken.toString()}', expected identifier after '@'`, lexer);
+            if (idTokenType !== TokenType.Identifier)
+                throw new ParserError(`Invalid token found '${lexer.getTokenString()}', expected identifier after '@'`, lexer);
 
-            objectId = idToken.toString();
+            objectId = lexer.getTokenString();
 
             if (objectId === 'root')
                 throw new ParserError(`'root' is a reserved binding id`, lexer);
 
-            token = lexer.readToken();
+            tokenType = lexer.readToken();
         }
 
-        if (token.tokenType !== TokenType.LeftCurlyBracket)
-            throw new ParserError(`Invalid token found ${token.toString()}, expected '{'`, lexer);
+        if (tokenType !== TokenType.LeftCurlyBracket)
+            throw new ParserError(`Invalid token found ${lexer.getTokenString()}, expected '{'`, lexer);
 
         const result: Record<string, any> = {};
-        result['__line__'] = lexer.lineIndex;
-        result['__file__'] = lexer.fileName;
+        result['__line__'] = lexer.getLineIndex();
+        result['__file__'] = lexer.getFileName();
 
         if (isRoot) {
-            result['__name__'] = Path.basename(lexer.fileName, Parser.#extension);
+            result['__name__'] = Path.basename(lexer.getFileName(), Parser._extension);
         }
 
         if (objectId !== null) {
             result['__id__'] = objectId;
-            result['__idFile__'] = lexer.fileName;
+            result['__idFile__'] = lexer.getFileName();
         }
 
-        if (objectName !== Parser.#defaultObjectName) {
+        if (objectName !== Parser._defaultObjectName) {
             if (objectName === '*') {
                 result['__ref__'] = true;
             } else {
-                if (this.#scriptManager.contains(objectName)) {
+                if (this._scriptManager.contains(objectName)) {
                     result['__native__'] = objectName;
                 } else {
-                    const resolvedName = this.resolveUsingName(objectName, usingNamespaces, lexer.dirName);
-                    if (this.#scriptManager.contains(resolvedName)) {
+                    const resolvedName = this.resolveUsingName(objectName, usingNamespaces, lexer.getDirectoryName());
+                    if (this._scriptManager.contains(resolvedName)) {
                         result['__native__'] = resolvedName;
                     } else {
-                        const parsedBase = this.findAndParseObject(resolvedName, lexer.dirName);
+                        const parsedBase = this.findAndParseObject(resolvedName, lexer.getDirectoryName());
                         result['__base__'] = parsedBase;
 
                         // Base file may have self-registered as a script under an id different from resolvedName.
@@ -272,7 +290,7 @@ export class Parser {
                         if (selfRegisteredId) {
                             result['__native__'] = selfRegisteredId;
                             delete result['__base__'];
-                        } else if (this.#scriptManager.contains(resolvedName)) {
+                        } else if (this._scriptManager.contains(resolvedName)) {
                             result['__native__'] = resolvedName;
                             delete result['__base__'];
                         }
@@ -283,30 +301,30 @@ export class Parser {
 
         const content: any[] = [];
         let componentDefCount = 0;
-        token = lexer.readToken();
+        tokenType = lexer.readToken();
 
-        while (token.tokenType !== TokenType.RightCurlyBracket) {
-            if (token.tokenType !== TokenType.Identifier) {
+        while (tokenType !== TokenType.RightCurlyBracket) {
+            if (tokenType !== TokenType.Identifier) {
                 // bare value (string, number, bool, null, array, @ref) -> implicit content
                 lexer.putTokenBack();
                 content.push(this.parseValue(lexer, usingNamespaces));
-                token = lexer.readToken();
-                if (token.tokenType === TokenType.Semicolon)
-                    token = lexer.readToken();
+                tokenType = lexer.readToken();
+                if (tokenType === TokenType.Semicolon)
+                    tokenType = lexer.readToken();
                 continue;
             }
 
-            const parameterName = token.toString();
-            const nextToken = lexer.readToken();
+            const parameterName = lexer.getTokenString();
+            const nextTokenType = lexer.readToken();
 
-            if (nextToken.tokenType === TokenType.Colon) {
+            if (nextTokenType === TokenType.Colon) {
                 // regular key: value field
                 result[parameterName] = this.parseValue(lexer, usingNamespaces);
             } else {
                 // inline object as implicit content item (e.g. h1 { ... })
                 lexer.putTokenBack();
                 const item = this.parseObjectBody(parameterName, lexer, usingNamespaces);
-                const itemScript = this.#scriptManager.find(item['__native__']);
+                const itemScript = this._scriptManager.find(item['__native__']);
                 if (itemScript?.isComponent?.()) {
                     // store component-def objects at their source position so the
                     // resolver runs them before subsequent items that use the new script
@@ -316,10 +334,10 @@ export class Parser {
                 }
             }
 
-            token = lexer.readToken();
+            tokenType = lexer.readToken();
 
-            if (token.tokenType === TokenType.Semicolon)
-                token = lexer.readToken();
+            if (tokenType === TokenType.Semicolon)
+                tokenType = lexer.readToken();
         }
 
         if (content.length > 0) {
@@ -328,8 +346,8 @@ export class Parser {
 
         const nativeName = result['__native__'];
         if (typeof nativeName === 'string') {
-            this.#scriptManager.find(nativeName)?.onComponentParsed?.(
-                result, lexer.dirName, (s) => this.#scriptManager.register(s), defaultId
+            this._scriptManager.find(nativeName)?.onComponentParsed?.(
+                result, lexer.getDirectoryName(), (s) => this._scriptManager.register(s), defaultId
             );
         }
 
@@ -337,24 +355,26 @@ export class Parser {
     }
 
     private parseValue(lexer: Lexer, usingNamespaces: UsingEntry[]) : any {
-        let token = lexer.readToken();
+        let tokenType = lexer.readToken();
 
-        switch (token.tokenType) {
+        switch (tokenType) {
         case TokenType.Minus: {
-            token = lexer.readToken();
+            tokenType = lexer.readToken();
 
-            if (token.tokenType !== TokenType.Number)
-                throw new ParserError(`Invalid token found '${token.toString()}', expected a number`,  lexer);
+            if (tokenType !== TokenType.Float && tokenType !== TokenType.Integer) {
+                throw new ParserError(`Invalid token found '${lexer.getTokenString()}', expected a number`,  lexer);
+            }
 
-            return -parseFloat(token.toString());
+            return -lexer.getTokenNumber();
         }
 
-        case TokenType.Number:
-            return parseFloat(token.toString());
+        case TokenType.Float:
+        case TokenType.Integer:
+            return lexer.getTokenNumber();
 
         case TokenType.String:
         case TokenType.MultilineString:
-            return token.toString();
+            return lexer.getTokenString();
 
         case TokenType.True:
             return true;
@@ -371,38 +391,38 @@ export class Parser {
 
         case TokenType.LeftCurlyBracket:
             lexer.putTokenBack();
-            return this.parseObjectBody(Parser.#defaultObjectName, lexer, usingNamespaces);
+            return this.parseObjectBody(Parser._defaultObjectName, lexer, usingNamespaces);
 
         case TokenType.Identifier:
             lexer.putTokenBack();
             return this.parseObject(lexer, usingNamespaces);
 
         case TokenType.At: {
-            const refToken = lexer.readToken();
+            const refTokenType = lexer.readToken();
 
-            if (refToken.tokenType !== TokenType.Identifier)
-                throw new ParserError(`Invalid token found '${refToken.toString()}', expected identifier after '@'`, lexer);
+            if (refTokenType !== TokenType.Identifier)
+                throw new ParserError(`Invalid token found '${lexer.getTokenString()}', expected identifier after '@'`, lexer);
 
-            return { __bind__: refToken.toString(), __bindFile__: lexer.fileName };
+            return { __bind__: lexer.getTokenString(), __bindFile__: lexer.getFileName() };
         }
 
         default:
-            throw new ParserError(`Invalid token found '${token.toString()}', expected: <number> | <null> | <string> | <array> | <object>`, lexer);
+            throw new ParserError(`Invalid token found '${lexer.getTokenString()}', expected: <number> | <null> | <string> | <array> | <object>`, lexer);
         }
     }
 
     private parseArray(lexer: Lexer, usingNamespaces: UsingEntry[]): any {
-        let token = lexer.readToken();
+        let tokenType = lexer.readToken();
 
-        if (token.tokenType !== TokenType.LeftBracket)
-            throw new ParserError(`Invalid token found '${token.toString()}', expected: '['`,
+        if (tokenType !== TokenType.LeftBracket)
+            throw new ParserError(`Invalid token found '${lexer.getTokenString()}', expected: '['`,
                                   lexer);
 
         const result = new Array<any>();
 
-        token = lexer.readToken();
+        tokenType = lexer.readToken();
 
-        if (token.tokenType === TokenType.RightBracket)
+        if (tokenType === TokenType.RightBracket)
             return result;
 
         lexer.putTokenBack();
@@ -412,18 +432,18 @@ export class Parser {
 
             result.push(value);
 
-            token = lexer.readToken();
+            tokenType = lexer.readToken();
 
-            if (token.tokenType === TokenType.RightBracket)
+            if (tokenType === TokenType.RightBracket)
                 break;
 
-            if (token.tokenType !== TokenType.Comma)
-                throw new ParserError(`Invalid token found '${token.toString()}', expected: ','`,
+            if (tokenType !== TokenType.Comma)
+                throw new ParserError(`Invalid token found '${lexer.getTokenString()}', expected: ','`,
                                       lexer);
 
             // allow trailing comma: peek ahead and stop if the array is closed
-            token = lexer.readToken();
-            if (token.tokenType === TokenType.RightBracket)
+            tokenType = lexer.readToken();
+            if (tokenType === TokenType.RightBracket)
                 break;
             lexer.putTokenBack();
         }

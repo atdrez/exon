@@ -5,10 +5,11 @@ export enum TokenType {
     Identifier = 1,
     String = 2,
     MultilineString = 7,
-    Number = 3,
+    Float = 3,
     True = 4,
     False = 5,
     Null = 6,
+    Integer = 8,
 
     Colon = 10,
     Comma = 11,

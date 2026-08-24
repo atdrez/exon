@@ -9,10 +9,10 @@ function lex(source: string): Lexer {
 function readAll(source: string): Array<{ type: TokenType; text: string }> {
     const lexer = lex(source);
     const tokens: Array<{ type: TokenType; text: string }> = [];
-    while (lexer.available) {
-        const t = lexer.readToken();
-        if (t.tokenType === TokenType.None) break;
-        tokens.push({ type: t.tokenType, text: t.toString() });
+    while (lexer.isAvailable()) {
+        const type = lexer.readToken();
+        if (type === TokenType.None) break;
+        tokens.push({ type, text: lexer.getTokenString() });
     }
     return tokens;
 }
@@ -104,13 +104,13 @@ describe('Lexer', () => {
     describe('numbers', () => {
         it('reads an integer', () => {
             const [t] = readAll('42');
-            expect(t.type).toBe(TokenType.Number);
+            expect(t.type).toBe(TokenType.Integer);
             expect(t.text).toBe('42');
         });
 
         it('reads a float', () => {
             const [t] = readAll('3.14');
-            expect(t.type).toBe(TokenType.Number);
+            expect(t.type).toBe(TokenType.Float);
             expect(t.text).toBe('3.14');
         });
     });
@@ -166,23 +166,58 @@ describe('Lexer', () => {
         it('tracks line numbers across newlines', () => {
             const lexer = lex('a\nb\nc');
             lexer.readToken(); // a -- line 1
-            expect(lexer.lineIndex).toBe(1);
+            expect(lexer.getLineIndex()).toBe(1);
             lexer.readToken(); // b -- line 2
-            expect(lexer.lineIndex).toBe(2);
+            expect(lexer.getLineIndex()).toBe(2);
             lexer.readToken(); // c -- line 3
-            expect(lexer.lineIndex).toBe(3);
+            expect(lexer.getLineIndex()).toBe(3);
         });
     });
 
     describe('putTokenBack', () => {
         it('re-reads the same token after putTokenBack', () => {
             const lexer = lex('foo bar');
-            const first = lexer.readToken();
+            lexer.readToken();
+            const first = lexer.getTokenString();
             lexer.putTokenBack();
-            const again = lexer.readToken();
-            expect(again.toString()).toBe(first.toString());
-            const second = lexer.readToken();
-            expect(second.toString()).toBe('bar');
+            lexer.readToken();
+            expect(lexer.getTokenString()).toBe(first);
+            lexer.readToken();
+            expect(lexer.getTokenString()).toBe('bar');
+        });
+
+        it('is idempotent when called twice in a row', () => {
+            const lexer = lex('foo bar');
+            lexer.readToken();
+            lexer.putTokenBack();
+            lexer.putTokenBack();
+            expect(lexer.readToken()).toBe(TokenType.Identifier);
+            expect(lexer.getTokenString()).toBe('foo');
+            lexer.readToken();
+            expect(lexer.getTokenString()).toBe('bar');
+        });
+
+        it('replays the token type without re-scanning the buffer', () => {
+            const lexer = lex('"hello" 42');
+            expect(lexer.readToken()).toBe(TokenType.String);
+            lexer.putTokenBack();
+            expect(lexer.readToken()).toBe(TokenType.String);
+            expect(lexer.getTokenString()).toBe('hello');
+            expect(lexer.readToken()).toBe(TokenType.Integer);
+            expect(lexer.getTokenNumber()).toBe(42);
+        });
+
+        // A re-scan would count the token's newlines a second time, so a token spanning
+        // lines used to leave lineIndex too high for every error reported after it.
+        it('keeps lineIndex correct after putting back a multiline token', () => {
+            const lexer = lex('"""\na\nb\n""" tail');
+            expect(lexer.readToken()).toBe(TokenType.MultilineString);
+            const lineAfterRead = lexer.getLineIndex();
+            lexer.putTokenBack();
+            expect(lexer.readToken()).toBe(TokenType.MultilineString);
+            expect(lexer.getLineIndex()).toBe(lineAfterRead);
+            lexer.readToken();
+            expect(lexer.getTokenString()).toBe('tail');
         });
     });
 

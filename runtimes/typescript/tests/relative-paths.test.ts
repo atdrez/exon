@@ -9,10 +9,10 @@ import { compileAt, parseAndResolve } from './helpers';
 function readTokens(source: string) {
     const lexer = new Lexer(Buffer.from(source), 'test.exon');
     const tokens: Array<{ type: TokenType; text: string }> = [];
-    while (lexer.available) {
-        const t = lexer.readToken();
-        if (t.tokenType === TokenType.None) break;
-        tokens.push({ type: t.tokenType, text: t.toString() });
+    while (lexer.isAvailable()) {
+        const type = lexer.readToken();
+        if (type === TokenType.None) break;
+        tokens.push({ type, text: lexer.getTokenString() });
     }
     return tokens;
 }
@@ -94,7 +94,7 @@ describe('. (local file, not exon_modules)', () => {
     it('throws when the local file does not exist', () => {
         expect(() =>
             compileAt('sub', `.Missing { }`)
-        ).toThrow();
+        ).toThrow(/File does not exists: .*[/\\]sub[/\\]Missing\.exon/);
     });
 
     it('does not fall back to a same-named file on the module search path', () => {

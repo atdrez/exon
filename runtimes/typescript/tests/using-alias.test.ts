@@ -57,6 +57,22 @@ describe('using ... as alias', () => {
         expect(JSON.parse(result.out)).toEqual({ a: 3 })
     })
 
+    // The first namespace is probed and misses on disk; resolution must continue to the
+    // next one rather than treating that miss as a hard failure.
+    it('falls through to a later wildcard namespace when the first has no such file', () => {
+        const result = compile(`
+            using lib.first.*
+            using lib.second.*
+            {
+                widget: Widget { }
+            }
+        `, {
+            'lib/first/Other.exon': `{ tag: "first" }`,
+            'lib/second/Widget.exon': `{ tag: "second" }`,
+        })
+        expect(result.widget.tag).toBe('second')
+    })
+
     it('last-segment alias resolves bare name to full namespace', () => {
         const result = compile(`
             using fn.json.encode

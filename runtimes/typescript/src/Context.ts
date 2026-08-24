@@ -19,30 +19,30 @@ type ResolverScope = {
 };
 
 export class Context {
+    private _resolver: IResolver;
+    private _scriptRepository: IScriptRepository;
+    private _params: KeyValueMap | undefined;
+    private _property: KeyValueSingle | undefined;
+
     public location: Location;
 
     public readonly options: RuntimeOptions;
 
     public params(): KeyValueMap | undefined {
-        return this.#params;
+        return this._params;
     }
 
     public property(): KeyValueSingle | undefined {
-        return this.#property;
+        return this._property;
     }
 
-    #resolver: IResolver;
-    #scriptRepository: IScriptRepository;
-    #params: KeyValueMap | undefined;
-    #property: KeyValueSingle | undefined;
-
     constructor(resolver: IResolver, scriptRepository: IScriptRepository, options: RuntimeOptions) {
-        this.#resolver = resolver;
+        this._resolver = resolver;
         this.options = options;
-        this.#params = undefined;
-        this.#property = undefined;
+        this._params = undefined;
+        this._property = undefined;
         this.location = { file: "", line: 0 };
-        this.#scriptRepository = scriptRepository;
+        this._scriptRepository = scriptRepository;
     }
 
     public resolve(obj: any, params?: { [key: string]: any }, scope?: ResolverScope): any {
@@ -50,18 +50,18 @@ export class Context {
             const route = scope.route;
             const namedArgv = scope.args;
             const options = new RuntimeOptions({ route, namedArgv });
-            return this.#resolver.resolveWithOptions(obj, options, params);
+            return this._resolver.resolveWithOptions(obj, options, params);
         }
     
         if (this.isObjectBinding(obj)) {
             obj = this.resolveBinding(obj['__bind__'], obj['__bindFile__']);
         }
 
-        return this.#resolver!.resolve(obj, params);
+        return this._resolver!.resolve(obj, params);
     }
 
     public resolveBinding(path: string, file: string): any {
-        return this.#resolver!.resolveBinding(path, file);
+        return this._resolver!.resolveBinding(path, file);
     }
 
     public isObjectBinding(obj: any): boolean {
@@ -69,23 +69,23 @@ export class Context {
     }
 
     public rethrow(error: unknown, location: Location): never {
-        return this.#resolver!.rethrow(error, location.file, location.line);
+        return this._resolver!.rethrow(error, location.file, location.line);
     }
 
     public findScript(name: string): IScript | undefined {
-        return this.#scriptRepository.find(name);
+        return this._scriptRepository.find(name);
     }
 
     public registerScript(script: IScript): void {
-        this.#scriptRepository.register(script);
+        this._scriptRepository.register(script);
     }
 
     public getScriptRepository(): IScriptRepository {
-        return this.#scriptRepository;
+        return this._scriptRepository;
     }
 
     public pathStack(): string[] {
-        return [...this.#resolver.getCurrentPathStack()];
+        return [...this._resolver.getCurrentPathStack()];
     }
 
     public getProperty(obj: any, key: string): any {
@@ -112,8 +112,8 @@ export class Context {
         if (script === undefined)
             throw new Error(`Invalid property script`);
 
-        this.#params = params;
-        this.#property = undefined;
+        this._params = params;
+        this._property = undefined;
         return script.resolve(rawObj, this);
     }
 
@@ -121,7 +121,7 @@ export class Context {
         if (script === undefined)
             throw new Error(`Invalid property script`);
 
-        this.#property = {
+        this._property = {
             name: key,
             value: value
         }
