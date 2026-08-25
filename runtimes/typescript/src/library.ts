@@ -17,6 +17,7 @@ export {
     PackageDependency,
     PackageAuthor,
     PackageRepository,
+    PackageEntry,
     DEFAULT_ENTRY_FILE,
 } from "./PackageConfig";
 export {

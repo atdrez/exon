@@ -193,4 +193,59 @@ describe('loadPackageConfig', () => {
         const filePath = writePackageJson(`{ name: "my-module" }`);
         expect(() => loadPackageConfig(filePath)).toThrow(/failed to parse JSON/);
     });
+
+    it('parses title and icon as optional strings', () => {
+        const filePath = writePackageJson(`{
+            "title": "Basic Examples",
+            "icon": "assets/icon.png"
+        }`);
+
+        const config = loadPackageConfig(filePath);
+        expect(config.title).toBe('Basic Examples');
+        expect(config.icon).toBe('assets/icon.png');
+    });
+
+    it('leaves title and icon undefined when missing', () => {
+        const filePath = writePackageJson(`{ "name": "my-module" }`);
+        const config = loadPackageConfig(filePath);
+        expect(config.title).toBeUndefined();
+        expect(config.icon).toBeUndefined();
+    });
+
+    it('parses entries as an array of name/description/path objects', () => {
+        const filePath = writePackageJson(`{
+            "entries": [
+                { "name": "Hello", "description": "Prints hello", "path": "basic/hello.exon" },
+                { "name": "Loop", "description": "Loops forever", "path": "basic/loop.exon" }
+            ]
+        }`);
+
+        const config = loadPackageConfig(filePath);
+        expect(config.entries).toEqual([
+            { name: 'Hello', description: 'Prints hello', path: 'basic/hello.exon' },
+            { name: 'Loop', description: 'Loops forever', path: 'basic/loop.exon' },
+        ]);
+    });
+
+    it('defaults entries to an empty array when missing', () => {
+        const filePath = writePackageJson(`{ "name": "my-module" }`);
+        expect(loadPackageConfig(filePath).entries).toEqual([]);
+    });
+
+    it('throws when "entries" is not an array', () => {
+        const filePath = writePackageJson(`{ "entries": {} }`);
+        expect(() => loadPackageConfig(filePath)).toThrow(/entries/);
+    });
+
+    it('throws when an entry is missing a required field', () => {
+        const filePath = writePackageJson(`{
+            "entries": [{ "name": "Hello", "path": "basic/hello.exon" }]
+        }`);
+        expect(() => loadPackageConfig(filePath)).toThrow(/entries\[0\]\.description/);
+    });
+
+    it('throws when "title" is not a string', () => {
+        const filePath = writePackageJson(`{ "title": 42 }`);
+        expect(() => loadPackageConfig(filePath)).toThrow(/title/);
+    });
 });

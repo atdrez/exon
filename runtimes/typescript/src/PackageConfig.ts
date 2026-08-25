@@ -19,8 +19,18 @@ export interface PackageRepository {
     url: string;
 }
 
+// A user-runnable script declared by a package
+export interface PackageEntry {
+    name: string;
+    description: string;
+    path: string;
+}
+
 export interface PackageConfig {
+    // Package identifier used for publishing / dependency references (e.g. "+es/basic-examples").
     name?: string;
+    // Human-friendly display name
+    title?: string;
     version?: string;
     description?: string;
     license?: string;
@@ -31,10 +41,14 @@ export interface PackageConfig {
     homepage?: string;
     repository?: PackageRepository;
     private?: boolean;
+    // Project-relative path to a project icon file (e.g. "icon.png"), shown in the editor's
+    // project cards. Resolution to an absolute filesystem path is the consumer's job.
+    icon?: string;
     entry: string;
     scripts: Record<string, string>;
     dependencies: Record<string, PackageDependency>;
     nodeDependencies: Record<string, string>;
+    entries: PackageEntry[];
 }
 
 function expectString(value: any, label: string, packagePath: string): string {
@@ -116,6 +130,25 @@ function parseRepository(raw: any, packagePath: string): PackageRepository {
     };
 }
 
+function parseEntries(raw: any, packagePath: string): PackageEntry[] {
+    if (raw === undefined) {
+        return [];
+    }
+
+    if (!Array.isArray(raw)) {
+        throw new Error(`${packagePath}: "entries" must be an array`);
+    }
+
+    return raw.map((value, index) => {
+        const source = expectObject(value, `entries[${index}]`, packagePath);
+        return {
+            name: expectString(source.name, `entries[${index}].name`, packagePath),
+            description: expectString(source.description, `entries[${index}].description`, packagePath),
+            path: expectString(source.path, `entries[${index}].path`, packagePath),
+        };
+    });
+}
+
 function parseNodeDependencies(raw: any, packagePath: string): Record<string, string> {
     if (raw === undefined) {
         return {};
@@ -147,10 +180,17 @@ export function loadPackageConfig(packagePath: string): PackageConfig {
         scripts: parseScripts(raw.scripts, packagePath),
         dependencies: parseDependencies(raw.dependencies, packagePath),
         nodeDependencies: parseNodeDependencies(raw.nodeDependencies, packagePath),
+        entries: parseEntries(raw.entries, packagePath),
     };
 
     if (raw.name !== undefined)
         config.name = expectString(raw.name, "name", packagePath);
+
+    if (raw.title !== undefined)
+        config.title = expectString(raw.title, "title", packagePath);
+
+    if (raw.icon !== undefined)
+        config.icon = expectString(raw.icon, "icon", packagePath);
 
     if (raw.version !== undefined)
         config.version = expectString(raw.version, "version", packagePath);
