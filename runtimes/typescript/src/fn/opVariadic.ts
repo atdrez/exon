@@ -3,14 +3,14 @@
 import { Base } from "./base";
 import { Context } from "../IScript";
 
-export class OpVariadic extends Base {
-    #minArguments: number = 2;
-    #maxArguments: number = -1;
+export abstract class OpVariadic extends Base {
+    private _minArguments: number = 2;
+    private _maxArguments: number = -1;
 
     constructor(name: string, min: number, max: number = -1) {
         super(name);
-        this.#minArguments = min;
-        this.#maxArguments = max;
+        this._minArguments = min;
+        this._maxArguments = max;
     }
 
     public resolve(obj: any, context: Context) : any {
@@ -19,12 +19,12 @@ export class OpVariadic extends Base {
         if (!(content instanceof Array))
             throw new Error(`${this.name()} content should be an array`);
 
-        const min = this.#minArguments;
+        const min = this._minArguments;
 
         if (content.length < min)
             throw new Error(`${this.name()} should have at least ${min} arguments`);
 
-        const max = this.#maxArguments;
+        const max = this._maxArguments;
 
         if (max >= 0 && content.length > max)
             throw new Error(`${this.name()} should have maximum of ${max} arguments`);
@@ -32,7 +32,5 @@ export class OpVariadic extends Base {
         return this.evaluate(obj, content, context);
     }
 
-    protected evaluate(_obj: any, _values: Array<any>, _context: Context) : any {
-        throw new Error(`Not implemented`);
-    }
+    protected abstract evaluate(_obj: any, _values: Array<any>, _context: Context) : any;
 }

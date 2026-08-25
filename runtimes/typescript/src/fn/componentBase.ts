@@ -5,7 +5,7 @@ import { Context, IScript } from "../IScript";
 
 let componentCounter = 0;
 
-export class ComponentBase extends Base {
+export abstract class ComponentBase extends Base {
     public isDeferred(): boolean {
         return true;
     }

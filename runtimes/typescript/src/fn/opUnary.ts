@@ -3,7 +3,7 @@
 import { Base } from "./base";
 import { Context } from "../IScript";
 
-export class OpUnary extends Base {
+export abstract class OpUnary extends Base {
     public resolve(obj: any, context: Context) : any {
         const content = obj.__content__;
 
@@ -13,7 +13,5 @@ export class OpUnary extends Base {
         return this.evaluate(obj, content[0], context);
     }
 
-    protected evaluate(_obj: any, _value: any, _context: Context) : any {
-        throw new Error(`Not implemented`);
-    }
+    protected abstract evaluate(_obj: any, _value: any, _context: Context) : any;
 }

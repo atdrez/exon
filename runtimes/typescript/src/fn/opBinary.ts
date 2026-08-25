@@ -3,7 +3,7 @@
 import { Base } from "./base";
 import { Context } from "../IScript";
 
-export class OpBinary extends Base {
+export abstract class OpBinary extends Base {
     public resolve(obj: any, context: Context) : any {
         const content = obj.__content__;
 
@@ -22,7 +22,5 @@ export class OpBinary extends Base {
         return this.evaluate(obj, left, right, context);
     }
 
-    protected evaluate(_obj: any, _left: any, _right: any, _context: Context) : any {
-        throw new Error(`Not implemented`);
-    }
+    protected abstract evaluate(_obj: any, _left: any, _right: any, _context: Context) : any;
 }

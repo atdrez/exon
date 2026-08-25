@@ -8,43 +8,40 @@ import { RuntimeOptions } from "../../RuntimeOptions";
 import { IScriptRepository } from "../../IScriptRepository";
 
 export class Closure {
-    readonly #ast: any;
-    readonly #file: string;
-    readonly #line: number;
-    readonly #scope: Record<string, any>;
-    readonly #manager: IScriptRepository;
-    readonly #options: RuntimeOptions;
+    private readonly _ast: any;
+    private readonly _file: string;
+    private readonly _line: number;
+    private readonly _scope: Record<string, any>;
+    private readonly _manager: IScriptRepository;
+    private readonly _options: RuntimeOptions;
+    private readonly _location: { file: string, line: number };
+    private readonly _scopedAst: { __file__: string, __line__: number, fn: any };
 
     constructor(ast: any, scope: Record<string, any>, file: string, line: number,
         manager: IScriptRepository, options: RuntimeOptions) {
-        this.#ast = ast;
-        this.#file = file;
-        this.#line = line;
-        this.#scope = scope;
-        this.#manager = manager;
-        this.#options = options;
+        this._ast = ast;
+        this._file = file;
+        this._line = line;
+        this._scope = scope;
+        this._manager = manager;
+        this._options = options;
+        this._location = { file, line };
+        this._scopedAst = { __file__: file, __line__: line, fn: ast };
     }
 
     public get location(): Location {
-        return { file: this.#file, line: this.#line };
+        return this._location;
     }
 
     public resolve(params?: Record<string, any>): any {
-        const resolver = new Resolver(this.#manager, this.#options);
+        const resolver = new Resolver(this._manager, this._options);
 
-        for (const [key, value] of Object.entries(this.#scope)) {
-            resolver.registerBinding(key, this.#file, value);
+        for (const [key, value] of Object.entries(this._scope)) {
+            resolver.registerBinding(key, this._file, value);
         }
 
-        resolver.registerBinding('root', this.#file, this);
-
-        const ast = {
-            __file__: this.#file,
-            __line__: this.#line,
-            fn: this.#ast
-        };
-
-        return resolver.resolve(ast, params).fn;
+        resolver.registerBinding('root', this._file, this);
+        return resolver.resolve(this._scopedAst, params).fn;
     }
 }
 

@@ -26,7 +26,7 @@ function escapeRegex(s: string): string {
 
 export default class Component extends Base {
     constructor() { super("preprocess"); }
-    #argv: string[] | undefined;
+    private _argv: string[] | undefined;
 
     public resolve(obj: any, context: Context): any {
         let content: string;
@@ -43,7 +43,7 @@ export default class Component extends Base {
         }
 
         const ps = this.resolvePattern(obj);
-        this.#argv = Array.isArray(obj.argv) ? obj.argv : undefined;
+        this._argv = Array.isArray(obj.argv) ? obj.argv : undefined;
         return this.preprocess(content, sourceFile, ps, context);
     }
 
@@ -101,7 +101,7 @@ export default class Component extends Base {
         const buffer = Buffer.from(exonCode, 'latin1');
         const repository = context.getScriptRepository();
         const parser = new Parser(repository, []);
-        const options = new RuntimeOptions({ run: false, test: false }, this.#argv);
+        const options = new RuntimeOptions({ run: false, test: false }, this._argv);
         const resolver = new Resolver(repository, options);
         return resolver.resolve(parser.parseFromBuffer(buffer, sourceFile));
     }

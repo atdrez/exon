@@ -2,18 +2,16 @@
 
 import { IScript, Context } from "../IScript";
 
-export class Base implements IScript {
-    #name: string;
+export abstract class Base implements IScript {
+    private _name: string;
 
     public name() : string {
-        return this.#name;
+        return this._name;
     }
 
     constructor(name: string) {
-        this.#name = `fn.${name}`;
+        this._name = `fn.${name}`;
     }
 
-    public resolve(_obj: any, _context: Context) : any {
-        throw new Error(`Not implemented`);
-    }
+    public abstract resolve(_obj: any, _context: Context) : any;
 }

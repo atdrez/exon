@@ -22,21 +22,23 @@ function bindRaw(raw: any, context: Context): any {
 }
 
 class PropertyValue implements IPropertyScript {
-    #getter: any;
-    #setter: any;
-    #init: any;
-    #context: Context;
-    #location: {
+    private _getter: any;
+    private _setter: any;
+    private _init: any;
+    private _context: Context;
+    private _location: {
         file: string;
         line: number;
     };
+    private _getterScript: IScript | undefined;
+    private _setterScript: IScript | undefined;
 
     constructor(rawGet: any, rawSet: any, rawInit: any, context: Context) {
-        this.#getter = rawGet;
-        this.#setter = rawSet;
-        this.#init = rawInit;
-        this.#context = context;
-        this.#location = {
+        this._getter = rawGet;
+        this._setter = rawSet;
+        this._init = rawInit;
+        this._context = context;
+        this._location = {
             file: context.location.file,
             line: context.location.line,
         }
@@ -47,47 +49,55 @@ class PropertyValue implements IPropertyScript {
     }
 
     public resolve(_obj: any, _context: Context): any {
-        return this.#context.resolve(this.#getter);
+        return this._context.resolve(this._getter);
     }
 
     public getGetter(_obj: any): IScript {
-        return {
+        if (this._getterScript)
+            return this._getterScript;
+
+        this._getterScript = {
             name: () => 'fn.property.getter',
             resolve: (_o: any, _c: Context) => {
                 try {
-                    return this.#context.resolve(this.#getter);
+                    return this._context.resolve(this._getter);
                 } catch (e) {
-                    this.#context.rethrow(e, this.#location);
+                    this._context.rethrow(e, this._location);
                 }
             }
         };
+        return this._getterScript;
     }
 
     public getSetter(_obj: any): IScript {
-        return {
+        if (this._setterScript)
+            return this._setterScript;
+
+        this._setterScript = {
             name: () => 'fn.property.setter',
             resolve: (_o: any, ctx: Context) => {
                 try {
-                    this.#context.resolve(this.#setter, { value: ctx.property()?.value });
+                    this._context.resolve(this._setter, { value: ctx.property()?.value });
                 } catch (e) {
-                    this.#context.rethrow(e, this.#location);
+                    this._context.rethrow(e, this._location);
                 }
             }
         };
+        return this._setterScript;
     }
 
     public runInit(): void {
-        if (this.#init === undefined) { return; }
+        if (this._init === undefined) { return; }
         try {
-            const currentValue = this.#context.resolve(this.#getter);
-            this.#context.resolve(this.#init, { value: currentValue });
+            const currentValue = this._context.resolve(this._getter);
+            this._context.resolve(this._init, { value: currentValue });
         } catch (e) {
-            this.#context.rethrow(e, this.#location);
+            this._context.rethrow(e, this._location);
         }
     }
 
     public toJSON(): any {
-        return this.#context.resolve(this.#getter);
+        return this._context.resolve(this._getter);
     }
 }
 
