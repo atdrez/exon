@@ -36,8 +36,8 @@ function reportError(message: string): never {
     return process.exit(1) as never;
 }
 
-function runPostinstall(projectDir: string, command: string): void {
-    console.log(`Running postinstall: ${command}`);
+function runScript(projectDir: string, scriptName: string, command: string): void {
+    console.log(`Running ${scriptName}: ${command}`);
 
     const result = spawnSync(command, { cwd: projectDir, stdio: "inherit", shell: true });
 
@@ -65,7 +65,7 @@ function parsePackageSpec(spec: string): { name: string; version: string } | und
     return { name, version };
 }
 
-async function runInstall(args: string[]): Promise<void> {
+export async function runInstall(args: string[]): Promise<void> {
     const cwd = process.cwd();
 
     let packageSpec: { name: string; version: string } | undefined;
@@ -100,6 +100,12 @@ async function runInstall(args: string[]): Promise<void> {
         return;
     }
 
+    const preinstall = project.config.scripts.preinstall;
+
+    if (preinstall !== undefined) {
+        runScript(project.projectDir, "preinstall", preinstall);
+    }
+
     try {
         await installDependencies(project.packagePath, project.config, project.modulesDir);
         installNodeDependencies(project.projectDir, project.config.nodeDependencies);
@@ -111,7 +117,7 @@ async function runInstall(args: string[]): Promise<void> {
     const postinstall = project.config.scripts.postinstall;
 
     if (postinstall !== undefined) {
-        runPostinstall(project.projectDir, postinstall);
+        runScript(project.projectDir, "postinstall", postinstall);
     }
 }
 

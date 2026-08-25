@@ -41,7 +41,14 @@ expm publish [dir] [--compress] [--registry <url>]
 ```
 
 - `expm install [dir]` - installs the dependencies declared in the
-  `exon-package.json` found in `dir` (defaults to the current directory). Each
+  `exon-package.json` found in `dir` (defaults to the current directory). If
+  the project declares a `scripts.preinstall` command, it is run first (from
+  the project directory, through the shell), so it can prepare anything the
+  install step depends on - for example `pip install ...` or `npx playwright
+  install` before the matching npm packages are pulled in. After all exon and
+  npm dependencies have been installed, a `scripts.postinstall` command (if
+  declared) is run the same way. Any non-zero exit from a script aborts the
+  install with the script's exit code. Each
   dependency is fetched from its registry (the `registry` field in its
   `dependencies` entry, or `https://api.exonlang.org` by default) via the
   registry backend's package API: a `GET /api/v1/packages/<name>/<version>`
