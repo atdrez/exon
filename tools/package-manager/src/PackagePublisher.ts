@@ -22,6 +22,7 @@ export interface PublishMetadata {
     homepage?: string;
     repository?: PackageRepository;
     author?: PackageAuthor;
+    private?: boolean;
 }
 
 export interface PublishedPackage {
@@ -127,6 +128,7 @@ export class PackagePublisher {
             size,
             hash,
             description: metadata.description,
+            isPrivate: metadata.private,
             license: metadata.license,
             category: metadata.category,
             homepage: metadata.homepage,

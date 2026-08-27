@@ -176,7 +176,7 @@ async function runPublish(args: string[]): Promise<void> {
         return;
     }
 
-    const { name, version, description, license, category, homepage, repository, author } = project.config;
+    const { name, version, description, license, category, homepage, repository, author, private: isPrivate } = project.config;
 
     if (name === undefined || version === undefined) {
         reportError(`${PACKAGE_FILE_NAME} must declare "name" and "version" to publish.`);
@@ -188,7 +188,7 @@ async function runPublish(args: string[]): Promise<void> {
     try {
         const archivePath = await packProject(project.projectDir, project.config, undefined, { compress, outputDir: stagingDir });
         const publisher = new PackagePublisher({ registry });
-        await publisher.publish(archivePath, name, version, { description, license, category, homepage, repository, author });
+        await publisher.publish(archivePath, name, version, { description, license, category, homepage, repository, author, private: isPrivate });
     } catch (e) {
         reportError(e instanceof Error ? e.message : String(e));
     } finally {
