@@ -28,18 +28,20 @@ function metadataUrlFor(registry: string, name: string, version: string): string
     return `${registry.replace(/\/+$/, "")}/api/v1/packages/${name}/${version}`;
 }
 
-function authToken(explicitToken?: string): string {
+function resolveAuthToken(explicitToken?: string): string | undefined {
     const token = explicitToken ?? process.env.EXON_REGISTRY_TOKEN;
-
-    if (token === undefined || token.length === 0) {
-        throw new Error("No registry auth token found. Set the EXON_REGISTRY_TOKEN environment variable.");
-    }
-
-    return token;
+    return token !== undefined && token.length > 0 ? token : undefined;
 }
 
-async function fetchAuthenticated(url: string, token?: string): Promise<Response> {
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${authToken(token)}` } });
+// The registry serves public package metadata and downloads without a token (see the
+// backend's optionalAuthentication middleware), so a token is attached only when one is
+// available. Installing a private package with no token still fails, but with the
+// registry's own 401/403 response rather than a client-side check that would also block
+// installing public packages, such as the standard library, for a logged-out user.
+async function fetchFromRegistry(url: string, token?: string): Promise<Response> {
+    const resolvedToken = resolveAuthToken(token);
+    const headers = resolvedToken !== undefined ? { Authorization: `Bearer ${resolvedToken}` } : undefined;
+    const response = await fetch(url, headers !== undefined ? { headers } : undefined);
 
     if (!response.ok) {
         throw new Error(`Failed to fetch "${url}": ${response.status} ${response.statusText}`);
@@ -226,11 +228,11 @@ export async function installPackage(
 // truncated download before it gets extracted into exon_modules.
 async function installFromHttp(registry: string, name: string, version: string, targetDir: string, token?: string): Promise<void> {
     const metadataUrl = metadataUrlFor(registry, name, version);
-    const metadataResponse = await fetchAuthenticated(metadataUrl, token);
+    const metadataResponse = await fetchFromRegistry(metadataUrl, token);
     const metadata = (await metadataResponse.json()) as PackageMetadata;
 
     const downloadUrl = new URL(metadata.downloadUrl, metadataUrl).toString();
-    const downloadResponse = await fetchAuthenticated(downloadUrl, token);
+    const downloadResponse = await fetchFromRegistry(downloadUrl, token);
     const buffer = Buffer.from(await downloadResponse.arrayBuffer());
 
     const hash = Crypto.createHash("sha256").update(buffer).digest("hex");

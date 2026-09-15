@@ -63,15 +63,27 @@ interface ServedPackage {
     archive: Buffer;
     // Override the hash reported by the metadata endpoint, to simulate a corrupted download.
     hash?: string;
+    // Mirrors the real registry's private packages, which reject a request carrying no
+    // token or the wrong one. Omitted (public) packages serve regardless of the
+    // Authorization header, matching the backend's optionalAuthentication middleware.
+    requireAuth?: boolean;
 }
 
 const API_PREFIX = '/api/v1/packages/';
 
-// Serves the same two-step, Bearer-authenticated shape the real registry backend does: a
-// metadata endpoint carrying the published hash, and a download endpoint for the archive
-// itself, keyed by "name/version" (name may itself contain "/" for scoped packages).
-function startServer(packages: Record<string, ServedPackage>): Promise<{ baseUrl: string; close: () => Promise<void> }> {
+// Serves the same two-step shape the real registry backend does: a metadata endpoint
+// carrying the published hash, and a download endpoint for the archive itself, keyed by
+// "name/version" (name may itself contain "/" for scoped packages). Bearer auth is only
+// enforced for packages marked requireAuth, just like the real registry gates only private
+// packages and otherwise allows anonymous access.
+function startServer(packages: Record<string, ServedPackage>): Promise<{
+    baseUrl: string;
+    close: () => Promise<void>;
+    receivedAuthorizationHeaders: (string | undefined)[];
+}> {
     return new Promise((resolve) => {
+        const receivedAuthorizationHeaders: (string | undefined)[] = [];
+
         const server = http.createServer((req, res) => {
             const url = req.url ?? '';
 
@@ -94,7 +106,9 @@ function startServer(packages: Record<string, ServedPackage>): Promise<{ baseUrl
                 return;
             }
 
-            if (req.headers.authorization !== 'Bearer test-token') {
+            receivedAuthorizationHeaders.push(req.headers.authorization);
+
+            if (served.requireAuth === true && req.headers.authorization !== 'Bearer test-token') {
                 res.writeHead(401);
                 res.end('unauthorized');
                 return;
@@ -118,6 +132,7 @@ function startServer(packages: Record<string, ServedPackage>): Promise<{ baseUrl
             resolve({
                 baseUrl: `http://127.0.0.1:${address.port}`,
                 close: () => new Promise((r) => server.close(() => r())),
+                receivedAuthorizationHeaders,
             });
         });
     });
@@ -157,13 +172,42 @@ describe('installDependencies: URL construction', () => {
         );
     });
 
-    it('throws a clear error when EXON_REGISTRY_TOKEN is not set', async () => {
+});
+
+describe('installDependencies: anonymous access to public packages', () => {
+    it('installs a public package with no EXON_REGISTRY_TOKEN set, sending no Authorization header', async () => {
         vi.unstubAllEnvs();
         const { projectDir, packagePath } = makeProject();
-        const modulesDir = path.join(projectDir, 'exon_modules');
-        const config = makeConfig({ ui: { version: '1.0.0' } });
+        const archive = await makeArchive({ 'index.exon': '{}' });
+        const { baseUrl, close, receivedAuthorizationHeaders } = await startServer({ 'std/1.0.0': { archive } });
 
-        await expect(installDependencies(packagePath, config, modulesDir)).rejects.toThrow(/EXON_REGISTRY_TOKEN/);
+        try {
+            const modulesDir = path.join(projectDir, 'exon_modules');
+            const config = makeConfig({ std: { version: '1.0.0', registry: baseUrl } });
+
+            await installDependencies(packagePath, config, modulesDir);
+
+            expect(fs.existsSync(path.join(modulesDir, 'std', 'index.exon'))).toBe(true);
+            expect(receivedAuthorizationHeaders.every((header) => header === undefined)).toBe(true);
+        } finally {
+            await close();
+        }
+    });
+
+    it('surfaces the registry\'s unauthorized response when a package requires a token that is not set', async () => {
+        vi.unstubAllEnvs();
+        const { projectDir, packagePath } = makeProject();
+        const archive = await makeArchive({ 'index.exon': '{}' });
+        const { baseUrl, close } = await startServer({ 'private-lib/1.0.0': { archive, requireAuth: true } });
+
+        try {
+            const modulesDir = path.join(projectDir, 'exon_modules');
+            const config = makeConfig({ 'private-lib': { version: '1.0.0', registry: baseUrl } });
+
+            await expect(installDependencies(packagePath, config, modulesDir)).rejects.toThrow(/401/);
+        } finally {
+            await close();
+        }
     });
 });
 
