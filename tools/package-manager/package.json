@@ -1,6 +1,6 @@
 {
   "name": "exon-package-manager",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Package manager for exon projects: installs dependencies declared in exon-package.json",
   "license": "MIT",
   "main": "bin/main.js",
@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@types/node": "^25.6.0",
-    "exon-runtime": "^0.3.0",
+    "exon-runtime": "^0.4.0",
     "tar": "^7.5.20",
     "terser": "^5.49.0"
   },
