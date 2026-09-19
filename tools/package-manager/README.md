@@ -38,6 +38,8 @@ expm install [dir]
 expm uninstall [name]
 expm pack [dir] [--compress]
 expm publish [dir] [--compress] [--registry <url>]
+expm login [--registry <url>]
+expm logout [--registry <url>]
 ```
 
 - `expm install [dir]` - installs the dependencies declared in the
@@ -56,8 +58,9 @@ expm publish [dir] [--compress] [--registry <url>]
   `GET .../download` request for the archive itself. The downloaded archive
   is hashed and checked against the metadata's hash before extraction, so a
   corrupted or truncated download is rejected instead of silently installed.
-  Both requests require an `EXON_REGISTRY_TOKEN` environment variable holding
-  a bearer token.
+  Both requests carry a bearer token when one is available (see "Authentication"
+  below); installing a private package with no token fails with the registry's own
+  401/403 response.
 - `expm uninstall [name]` - uninstalls the given dependency, or all installed
   dependencies if `name` is omitted.
 - `expm pack [dir] [--compress]` - packages the contents of `dir` (defaults to
@@ -74,11 +77,10 @@ expm publish [dir] [--compress] [--registry <url>]
 - `expm publish [dir] [--compress] [--registry <url>]` - packs the project in
   `dir` (defaults to the current directory) the same way as `pack`, then
   publishes the resulting archive to the exon package registry. `name` and
-  `version` must be set in `exon-package.json`. Publishing requires an
-  `EXON_REGISTRY_TOKEN` environment variable holding a bearer token (obtained
-  by logging in against the registry's backend); the registry API base URL
-  defaults to `https://api.exonlang.org` and can be overridden with the
-  `EXON_REGISTRY_API` environment variable or the `--registry` flag.
+  `version` must be set in `exon-package.json`. Publishing requires a bearer
+  token, resolved as described in "Authentication" below; the registry API
+  base URL defaults to `https://api.exonlang.org` and can be overridden with
+  the `EXON_REGISTRY_API` environment variable or the `--registry` flag.
 
   Publishing follows the registry's three-step, upload-direct-to-storage
   flow: declare the package and get back presigned upload URLs for each part
@@ -87,3 +89,28 @@ expm publish [dir] [--compress] [--registry <url>]
   Archive bytes are never proxied through this tool's own process beyond
   reading the packed file and streaming it out - see the backend's
   `backend/docs/api.md` for the full protocol.
+- `expm login [--registry <url>]` - prompts for an email and password (the
+  password is not echoed to the terminal) and exchanges them for a session
+  with the registry's backend (`POST /users/login`). The session is saved to
+  `~/.exon/auth.json`, scoped to the resolved registry, so subsequent
+  `expm publish`/`expm install` calls against that same registry pick it up
+  automatically. The file is written with owner-only (`0600`) permissions.
+- `expm logout [--registry <url>]` - revokes the session stored for the
+  resolved registry (`POST /users/logout`) and removes it from
+  `~/.exon/auth.json`. The local session is cleared even if the registry is
+  unreachable or the session was already invalid.
+
+## Authentication
+
+Commands that talk to the registry (`install`, `publish`) resolve a bearer
+token in this order, and proceed with no token at all if none of these
+produce one - which is fine for installing a public package, but `publish`
+always requires one:
+
+1. An explicit token passed by the calling code (used by this package's own
+   tests; there is no CLI flag for it).
+2. The `EXON_REGISTRY_TOKEN` environment variable - the recommended way to
+   authenticate in CI, where there is no interactive terminal to run
+   `expm login` in.
+3. The session saved by a prior `expm login` for the resolved registry, read
+   from `~/.exon/auth.json`.

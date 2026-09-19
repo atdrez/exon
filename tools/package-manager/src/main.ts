@@ -3,6 +3,7 @@
 import * as Path from "path";
 import * as FileSystem from "fs";
 import * as OS from "os";
+import * as ReadLine from "readline";
 import { spawnSync } from "child_process";
 import { findProject, PACKAGE_FILE_NAME, MODULES_DIR_NAME } from "exon-runtime";
 
@@ -11,12 +12,16 @@ import { packProject } from "./PackagePacker";
 import { PackagePublisher } from "./PackagePublisher";
 import { unpackArchive } from "./PackageUnpacker";
 import { fetchAndUnpack } from "./PackageFetcher";
+import { AuthClient, decodeSessionTokenClaims } from "./AuthClient";
+import { SessionStore } from "./SessionStore";
 
 const USAGE = "Usage: expm install [dir]\n       expm uninstall [name]\n"
     + "       expm pack [dir] [--compress] [--output <dir>]\n"
     + "       expm publish [dir] [--compress] [--registry <url>]\n"
     + "       expm unpack <file.expkg> [folder-path]\n"
-    + "       expm fetch <url> [folder-path]";
+    + "       expm fetch <url> [folder-path]\n"
+    + "       expm login [--registry <url>]\n"
+    + "       expm logout [--registry <url>]";
 
 function extractFlag(args: string[], flag: string): { rest: string[]; present: boolean } {
     return { rest: args.filter((arg) => arg !== flag), present: args.includes(flag) };
@@ -233,6 +238,128 @@ async function runUnpack(args: string[]): Promise<void> {
     }
 }
 
+function prompt(question: string): Promise<string> {
+    return new Promise((resolve) => {
+        const rl = ReadLine.createInterface({ input: process.stdin, output: process.stdout });
+        rl.question(question, (answer) => {
+            rl.close();
+            resolve(answer.trim());
+        });
+    });
+}
+
+// No readline equivalent exists for a masked prompt, so raw mode is used directly: input is
+// read one character at a time and never echoed, the same way a terminal password prompt (e.g.
+// "sudo") behaves, rather than echoing "*" per character and having to handle backspace redraws.
+function promptPassword(question: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        process.stdout.write(question);
+
+        const stdin = process.stdin;
+        const wasRaw = stdin.isRaw;
+        let password = "";
+
+        const cleanup = (): void => {
+            stdin.removeListener("data", onData);
+            if (stdin.isTTY) {
+                stdin.setRawMode(Boolean(wasRaw));
+            }
+            stdin.pause();
+        };
+
+        const onData = (chunk: Buffer): void => {
+            const char = chunk.toString("utf8");
+
+            if (char === "\n" || char === "\r" || char === "\u0004") {
+                cleanup();
+                process.stdout.write("\n");
+                resolve(password);
+                return;
+            }
+
+            if (char === "\u0003") {
+                cleanup();
+                process.stdout.write("\n");
+                reject(new Error("Aborted."));
+                return;
+            }
+
+            if (char === "\u007f" || char === "\b") {
+                password = password.slice(0, -1);
+                return;
+            }
+
+            password += char;
+        };
+
+        if (stdin.isTTY) {
+            stdin.setRawMode(true);
+        }
+
+        stdin.resume();
+        stdin.setEncoding("utf8");
+        stdin.on("data", onData);
+    });
+}
+
+export interface Credentials {
+    email: string;
+    password: string;
+}
+
+async function readCredentialsFromTerminal(): Promise<Credentials> {
+    const email = await prompt("Email: ");
+    const password = await promptPassword("Password: ");
+    return { email, password };
+}
+
+// readCredentials and sessionStore are overridable so tests can drive this without a real
+// terminal or touching the real ~/.exon/auth.json - see PackageInstaller's own token/logger
+// parameters for the same trailing-optional-parameter convention used for test injection.
+export async function runLogin(
+    args: string[],
+    readCredentials: () => Promise<Credentials> = readCredentialsFromTerminal,
+    sessionStore: SessionStore = new SessionStore()
+): Promise<void> {
+    const { value: registry } = extractValueFlag(args, "--registry");
+    const authClient = new AuthClient(registry);
+
+    const { email, password } = await readCredentials();
+
+    try {
+        const result = await authClient.login(email, password);
+        const claims = decodeSessionTokenClaims(result.token);
+
+        sessionStore.saveSession(authClient.registry, {
+            token: result.token,
+            expiresAt: result.expiresAt,
+            sessionId: result.sessionId,
+            email: claims?.email ?? email,
+            username: claims?.username ?? "",
+        });
+
+        console.log(`Logged in as ${claims?.username ?? claims?.email ?? email} on ${authClient.registry}.`);
+    } catch (e) {
+        reportError(e instanceof Error ? e.message : String(e));
+    }
+}
+
+export async function runLogout(args: string[], sessionStore: SessionStore = new SessionStore()): Promise<void> {
+    const { value: registry } = extractValueFlag(args, "--registry");
+    const authClient = new AuthClient(registry);
+
+    const session = sessionStore.getSession(authClient.registry);
+
+    if (session === undefined) {
+        console.log(`Not logged in on ${authClient.registry}.`);
+        return;
+    }
+
+    await authClient.logout(session.token);
+    sessionStore.clearSession(authClient.registry);
+    console.log(`Logged out from ${authClient.registry}.`);
+}
+
 export async function execute(): Promise<void> {
     const [command, ...args] = process.argv.slice(2);
 
@@ -268,6 +395,16 @@ export async function execute(): Promise<void> {
 
     if (command === "fetch") {
         await runFetch(args);
+        return;
+    }
+
+    if (command === "login") {
+        await runLogin(args);
+        return;
+    }
+
+    if (command === "logout") {
+        await runLogout(args);
         return;
     }
 

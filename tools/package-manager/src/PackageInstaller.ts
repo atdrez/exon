@@ -8,6 +8,8 @@ import * as tar from "tar";
 import { spawnSync } from "child_process";
 import { loadPackageConfig, PACKAGE_FILE_NAME } from "exon-runtime";
 import type { PackageConfig } from "exon-runtime";
+import { registryApiBase, resolveRegistry } from "./RegistryConfig";
+import { SessionStore } from "./SessionStore";
 
 export interface InstallLogger {
     info(message: string): void;
@@ -22,14 +24,16 @@ const consoleLogger: InstallLogger = {
     info: (message) => console.log(message),
 };
 
-const DEFAULT_REGISTRY = "https://api.exonlang.org";
-
 function metadataUrlFor(registry: string, name: string, version: string): string {
-    return `${registry.replace(/\/+$/, "")}/api/v1/packages/${name}/${version}`;
+    return `${registryApiBase(registry)}/packages/${name}/${version}`;
 }
 
-function resolveAuthToken(explicitToken?: string): string | undefined {
-    const token = explicitToken ?? process.env.EXON_REGISTRY_TOKEN;
+// EXON_REGISTRY_TOKEN remains the CI-friendly path; an interactive user can instead run
+// "expm login" once and have the session it stores in ~/.exon/auth.json picked up here for
+// this registry, without either being required. See PackagePublisher's constructor for the
+// same fallback order used on the publish side.
+function resolveAuthToken(explicitToken: string | undefined, registry: string, sessionStore: SessionStore): string | undefined {
+    const token = explicitToken ?? process.env.EXON_REGISTRY_TOKEN ?? sessionStore.getSession(registry)?.token;
     return token !== undefined && token.length > 0 ? token : undefined;
 }
 
@@ -38,9 +42,8 @@ function resolveAuthToken(explicitToken?: string): string | undefined {
 // available. Installing a private package with no token still fails, but with the
 // registry's own 401/403 response rather than a client-side check that would also block
 // installing public packages, such as the standard library, for a logged-out user.
-async function fetchFromRegistry(url: string, token?: string): Promise<Response> {
-    const resolvedToken = resolveAuthToken(token);
-    const headers = resolvedToken !== undefined ? { Authorization: `Bearer ${resolvedToken}` } : undefined;
+async function fetchFromRegistry(url: string, token: string | undefined): Promise<Response> {
+    const headers = token !== undefined ? { Authorization: `Bearer ${token}` } : undefined;
     const response = await fetch(url, headers !== undefined ? { headers } : undefined);
 
     if (!response.ok) {
@@ -59,11 +62,12 @@ export async function installDependencies(
     config: PackageConfig,
     modulesDir: string,
     logger: InstallLogger = consoleLogger,
-    token?: string
+    token?: string,
+    sessionStore: SessionStore = new SessionStore()
 ): Promise<void> {
     const projectDir = Path.dirname(packagePath);
     const visited = new Set<string>();
-    await installDependenciesInto(config, modulesDir, projectDir, logger, visited, true, token);
+    await installDependenciesInto(config, modulesDir, projectDir, logger, visited, true, token, sessionStore);
 }
 
 async function installDependenciesInto(
@@ -73,7 +77,8 @@ async function installDependenciesInto(
     logger: InstallLogger,
     visited: Set<string>,
     isRoot: boolean,
-    token?: string
+    token: string | undefined,
+    sessionStore: SessionStore
 ): Promise<void> {
     const names = Object.keys(config.dependencies);
 
@@ -97,9 +102,10 @@ async function installDependenciesInto(
 
         logger.info(`Installing "${name}" -> exon_modules/${name} ...`);
 
-        await installFromHttp(dependency.registry ?? process.env.EXON_REGISTRY_API ?? DEFAULT_REGISTRY, name, dependency.version, targetDir, token);
+        const registry = resolveRegistry(dependency.registry);
+        await installFromHttp(registry, name, dependency.version, targetDir, resolveAuthToken(token, registry, sessionStore));
 
-        await collectTransitive(targetDir, modulesDir, projectDir, logger, visited, token);
+        await collectTransitive(targetDir, modulesDir, projectDir, logger, visited, token, sessionStore);
     }
 }
 
@@ -109,7 +115,8 @@ async function collectTransitive(
     projectDir: string,
     logger: InstallLogger,
     visited: Set<string>,
-    token?: string
+    token: string | undefined,
+    sessionStore: SessionStore
 ): Promise<void> {
     const nestedPackagePath = Path.join(installedDir, PACKAGE_FILE_NAME);
 
@@ -123,7 +130,7 @@ async function collectTransitive(
         installNodeDependencies(installedDir, nestedConfig.nodeDependencies, logger);
     }
 
-    await installDependenciesInto(nestedConfig, modulesDir, projectDir, logger, visited, false, token);
+    await installDependenciesInto(nestedConfig, modulesDir, projectDir, logger, visited, false, token, sessionStore);
 }
 
 export function uninstallAll(modulesDir: string, logger: InstallLogger = consoleLogger): void {
@@ -210,23 +217,25 @@ export async function installPackage(
     modulesDir: string,
     logger: InstallLogger = consoleLogger,
     registry?: string,
-    token?: string
+    token?: string,
+    sessionStore: SessionStore = new SessionStore()
 ): Promise<void> {
     FileSystem.mkdirSync(modulesDir, { recursive: true });
 
     const targetDir = targetDirFor(modulesDir, name);
     const visited = new Set<string>([targetDir]);
+    const resolvedRegistry = resolveRegistry(registry);
 
     logger.info(`Installing "${name}@${version}" -> exon_modules/${name} ...`);
-    await installFromHttp(registry ?? process.env.EXON_REGISTRY_API ?? DEFAULT_REGISTRY, name, version, targetDir, token);
-    await collectTransitive(targetDir, modulesDir, modulesDir, logger, visited, token);
+    await installFromHttp(resolvedRegistry, name, version, targetDir, resolveAuthToken(token, resolvedRegistry, sessionStore));
+    await collectTransitive(targetDir, modulesDir, modulesDir, logger, visited, token, sessionStore);
 }
 
 // Fetches the package's metadata (which carries the same hash the registry wrote to
 // "{name}@{version}/meta.json" on publish, see backend/docs/api.md) before downloading the
 // archive, so the downloaded bytes can be checksummed against it - catching a corrupted or
 // truncated download before it gets extracted into exon_modules.
-async function installFromHttp(registry: string, name: string, version: string, targetDir: string, token?: string): Promise<void> {
+async function installFromHttp(registry: string, name: string, version: string, targetDir: string, token: string | undefined): Promise<void> {
     const metadataUrl = metadataUrlFor(registry, name, version);
     const metadataResponse = await fetchFromRegistry(metadataUrl, token);
     const metadata = (await metadataResponse.json()) as PackageMetadata;

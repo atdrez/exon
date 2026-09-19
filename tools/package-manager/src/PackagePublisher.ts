@@ -3,6 +3,8 @@
 import * as Crypto from "crypto";
 import * as FileSystem from "fs";
 import type { PackageAuthor, PackageRepository } from "exon-runtime";
+import { readErrorMessage, registryApiBase, resolveRegistry } from "./RegistryConfig";
+import { SessionStore } from "./SessionStore";
 
 export interface PublishLogger {
     info(message: string): void;
@@ -62,21 +64,10 @@ const consoleLogger: PublishLogger = {
     info: (message) => console.log(message),
 };
 
-const DEFAULT_REGISTRY = "https://api.exonlang.org";
-
 // Must match MULTIPART_UPLOAD_PART_SIZE_BYTES in the backend's storageService, since the number
 // of presigned parts returned by "POST /packages" only makes sense when parts are sliced at the
 // same boundaries the backend used to presign them.
 const MULTIPART_UPLOAD_PART_SIZE_BYTES = 8 * 1024 * 1024;
-
-async function readErrorMessage(response: Response): Promise<string> {
-    try {
-        const body = (await response.json()) as { code?: string; message?: string };
-        return body.message !== undefined ? `${body.code}: ${body.message}` : `${response.status} ${response.statusText}`;
-    } catch {
-        return `${response.status} ${response.statusText}`;
-    }
-}
 
 // Publishes a packed .expkg archive to the exon package registry, following the three-step
 // direct-to-storage upload flow described in backend/docs/api.md: declare the package and get
@@ -87,14 +78,17 @@ export class PackagePublisher {
     readonly #token: string;
     readonly #logger: PublishLogger;
 
-    public constructor(options: PublishOptions = {}, logger: PublishLogger = consoleLogger) {
-        const registry = options.registry ?? process.env.EXON_REGISTRY_API ?? DEFAULT_REGISTRY;
-        this.#registryApi = `${registry.replace(/\/+$/, "")}/api/v1`;
+    public constructor(options: PublishOptions = {}, logger: PublishLogger = consoleLogger, sessionStore: SessionStore = new SessionStore()) {
+        const registry = resolveRegistry(options.registry);
+        this.#registryApi = registryApiBase(registry);
 
-        const token = options.token ?? process.env.EXON_REGISTRY_TOKEN;
+        // EXON_REGISTRY_TOKEN remains the CI-friendly path (a token exported as a secret); an
+        // interactive user can instead run "expm login" once and have the session it stores
+        // picked up here, without either being required.
+        const token = options.token ?? process.env.EXON_REGISTRY_TOKEN ?? sessionStore.getSession(registry)?.token;
 
         if (token === undefined || token.length === 0) {
-            throw new Error("No registry auth token found. Set the EXON_REGISTRY_TOKEN environment variable.");
+            throw new Error(`No registry auth token found for ${registry}. Run "expm login" or set the EXON_REGISTRY_TOKEN environment variable.`);
         }
         this.#token = token;
 

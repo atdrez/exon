@@ -7,6 +7,7 @@ import * as http from 'http';
 import * as crypto from 'crypto';
 import { describe, it, expect, afterEach } from 'vitest';
 import { PackagePublisher } from '../src/PackagePublisher';
+import { SessionStore } from '../src/SessionStore';
 
 let tmpDirs: string[] = [];
 
@@ -20,6 +21,13 @@ function writeArchive(content: Buffer): string {
     const archivePath = path.join(mkTmpDir('exon-publish-archive-'), 'pkg.expkg');
     fs.writeFileSync(archivePath, content);
     return archivePath;
+}
+
+// A SessionStore backed by a file that is never written to in these tests, so construction
+// never depends on (or risks reading) whatever the real ~/.exon/auth.json happens to hold on
+// the machine running the suite.
+function emptySessionStore(): SessionStore {
+    return new SessionStore(path.join(mkTmpDir('exon-publish-empty-session-'), 'auth.json'));
 }
 
 interface RecordedRequest {
@@ -76,14 +84,82 @@ afterEach(() => {
 });
 
 describe('PackagePublisher: construction', () => {
-    it('throws when no token is provided and EXON_REGISTRY_TOKEN is not set', () => {
+    it('throws when no token is provided, EXON_REGISTRY_TOKEN is not set, and no session is stored', () => {
         const previous = process.env.EXON_REGISTRY_TOKEN;
         delete process.env.EXON_REGISTRY_TOKEN;
 
         try {
-            expect(() => new PackagePublisher()).toThrow(/EXON_REGISTRY_TOKEN/);
+            expect(() => new PackagePublisher({}, undefined, emptySessionStore())).toThrow(/expm login/);
         } finally {
             if (previous !== undefined) process.env.EXON_REGISTRY_TOKEN = previous;
+        }
+    });
+
+    it('falls back to a session stored by "expm login" when EXON_REGISTRY_TOKEN is not set', () => {
+        const previous = process.env.EXON_REGISTRY_TOKEN;
+        delete process.env.EXON_REGISTRY_TOKEN;
+
+        const sessionStore = emptySessionStore();
+        sessionStore.saveSession('https://registry.example', {
+            token: 'stored-session-token',
+            expiresAt: new Date(Date.now() + 60_000).toISOString(),
+            sessionId: 'session-1',
+            email: 'jane@example.com',
+            username: 'jane',
+        });
+
+        try {
+            expect(() => new PackagePublisher({ registry: 'https://registry.example' }, undefined, sessionStore)).not.toThrow();
+        } finally {
+            if (previous !== undefined) process.env.EXON_REGISTRY_TOKEN = previous;
+        }
+    });
+
+    it('prefers EXON_REGISTRY_TOKEN over a stored session when both are present', async () => {
+        const content = Buffer.from('bytes');
+        const archivePath = writeArchive(content);
+
+        const server = await startServer((req, res) => {
+            if (req.method === 'POST' && req.url === '/api/v1/packages') {
+                expect(req.headers.authorization).toBe('Bearer env-token');
+                res.writeHead(201, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ requestId: 'req-5', key: 'k', uploadId: 'u', parts: [] }));
+                return;
+            }
+
+            if (req.method === 'POST' && req.url === '/api/v1/package-request/req-5/complete') {
+                res.writeHead(201, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    owner: 'owner-1', name: 'mylib', version: '1.0.0', description: '',
+                    size: content.length, hash: 'irrelevant', createdAt: '2026-08-11T00:00:00.000Z',
+                    downloadUrl: '/api/v1/packages/mylib/1.0.0/download',
+                }));
+                return;
+            }
+
+            res.writeHead(404);
+            res.end('not found');
+        });
+
+        const sessionStore = emptySessionStore();
+        sessionStore.saveSession(server.baseUrl, {
+            token: 'stored-session-token',
+            expiresAt: new Date(Date.now() + 60_000).toISOString(),
+            sessionId: 'session-1',
+            email: 'jane@example.com',
+            username: 'jane',
+        });
+
+        const previous = process.env.EXON_REGISTRY_TOKEN;
+        process.env.EXON_REGISTRY_TOKEN = 'env-token';
+
+        try {
+            const publisher = new PackagePublisher({ registry: server.baseUrl }, undefined, sessionStore);
+            await publisher.publish(archivePath, 'mylib', '1.0.0');
+        } finally {
+            if (previous !== undefined) process.env.EXON_REGISTRY_TOKEN = previous;
+            else delete process.env.EXON_REGISTRY_TOKEN;
+            await server.close();
         }
     });
 });

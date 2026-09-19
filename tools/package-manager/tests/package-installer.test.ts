@@ -8,6 +8,7 @@ import * as crypto from 'crypto';
 import * as tar from 'tar';
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { installDependencies, installNodeDependencies, uninstallAll, uninstallDependency } from '../src/PackageInstaller';
+import { SessionStore } from '../src/SessionStore';
 import type { PackageConfig } from 'exon-runtime';
 
 const { spawnSyncMock } = vi.hoisted(() => ({
@@ -205,6 +206,34 @@ describe('installDependencies: anonymous access to public packages', () => {
             const config = makeConfig({ 'private-lib': { version: '1.0.0', registry: baseUrl } });
 
             await expect(installDependencies(packagePath, config, modulesDir)).rejects.toThrow(/401/);
+        } finally {
+            await close();
+        }
+    });
+
+    it('falls back to a session stored by "expm login" when EXON_REGISTRY_TOKEN is not set', async () => {
+        vi.unstubAllEnvs();
+        const { projectDir, packagePath } = makeProject();
+        const archive = await makeArchive({ 'index.exon': '{}' });
+        const { baseUrl, close, receivedAuthorizationHeaders } = await startServer({ 'private-lib/1.0.0': { archive, requireAuth: true } });
+
+        try {
+            const modulesDir = path.join(projectDir, 'exon_modules');
+            const config = makeConfig({ 'private-lib': { version: '1.0.0', registry: baseUrl } });
+
+            const sessionStore = new SessionStore(path.join(mkTmpDir('exon-install-session-'), 'auth.json'));
+            sessionStore.saveSession(baseUrl, {
+                token: 'test-token',
+                expiresAt: new Date(Date.now() + 60_000).toISOString(),
+                sessionId: 'session-1',
+                email: 'jane@example.com',
+                username: 'jane',
+            });
+
+            await installDependencies(packagePath, config, modulesDir, undefined, undefined, sessionStore);
+
+            expect(fs.existsSync(path.join(modulesDir, 'private-lib', 'index.exon'))).toBe(true);
+            expect(receivedAuthorizationHeaders).toEqual(['Bearer test-token', 'Bearer test-token']);
         } finally {
             await close();
         }
